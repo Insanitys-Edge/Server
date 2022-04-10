@@ -525,11 +525,6 @@ void EntityList::MobProcess()
 			if(mob->IsMerc()) {
 				entity_list.RemoveMerc(id);
 			}
-#ifdef BOTS
-			else if(mob->IsBot()) {
-				entity_list.RemoveBot(id);
-			}
-#endif
 			else if(mob->IsNPC()) {
 				entity_list.RemoveNPC(id);
 			}
