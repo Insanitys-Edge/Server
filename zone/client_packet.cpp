@@ -14496,11 +14496,7 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
 	if (tradee && tradee->IsClient()) {
 		tradee->CastToClient()->QueuePacket(app);
 	}
-#ifndef BOTS
-	else if (tradee && tradee->IsNPC()) {
-#else
 	else if (tradee && (tradee->IsNPC() || tradee->IsBot())) {
-#endif
         if (!tradee->IsEngaged()) {
             trade->Start(msg->to_mob_id);
             EQApplicationPacket *outapp = new EQApplicationPacket(OP_TradeRequestAck, sizeof(TradeRequest_Struct));
@@ -14512,7 +14508,7 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
         }
     }
 	return;
-	}
+}
 
 void Client::Handle_OP_TradeRequestAck(const EQApplicationPacket *app)
 {
