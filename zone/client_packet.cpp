@@ -12794,11 +12794,20 @@ void Client::Handle_OP_SetTitle(const EQApplicationPacket *app)
 
 	SetTitle_Struct *sts = (SetTitle_Struct *)app->pBuffer;
 
-	if (!title_manager.HasTitle(this, sts->title_id)) {
+	if (sts->title_id && !title_manager.HasTitle(this, sts->title_id)) {
 		return;
 	}
 
-	std::string title = !sts->is_suffix ? title_manager.GetPrefix(sts->title_id) : title_manager.GetSuffix(sts->title_id);
+	std::string title = (
+		sts->title_id ?
+		(
+			!sts->is_suffix ?
+			title_manager.GetPrefix(sts->title_id) :
+			title_manager.GetSuffix(sts->title_id)
+		) :
+		""
+	);
+
 	if (!sts->is_suffix) {
 		SetAATitle(title.c_str());
 	} else {
@@ -14487,11 +14496,7 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
 	if (tradee && tradee->IsClient()) {
 		tradee->CastToClient()->QueuePacket(app);
 	}
-#ifndef BOTS
-	else if (tradee && tradee->IsNPC()) {
-#else
 	else if (tradee && (tradee->IsNPC() || tradee->IsBot())) {
-#endif
         if (!tradee->IsEngaged()) {
             trade->Start(msg->to_mob_id);
             EQApplicationPacket *outapp = new EQApplicationPacket(OP_TradeRequestAck, sizeof(TradeRequest_Struct));
@@ -14503,7 +14508,7 @@ void Client::Handle_OP_TradeRequest(const EQApplicationPacket *app)
         }
     }
 	return;
-	}
+}
 
 void Client::Handle_OP_TradeRequestAck(const EQApplicationPacket *app)
 {
