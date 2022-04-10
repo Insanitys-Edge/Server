@@ -33,10 +33,6 @@
 #include <sstream>
 #include <algorithm>
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 extern EntityList entity_list;
 
 extern Zone* zone;
@@ -502,10 +498,6 @@ Mob::Mob(
 
 	queue_wearchange_slot = -1;
 
-#ifdef BOTS
-	m_manual_follow = false;
-#endif
-
 	mob_close_scan_timer.Trigger();
 
 	SetCanOpenDoors(true);
@@ -554,10 +546,6 @@ Mob::~Mob()
 	entity_list.RemoveAuraFromMobs(this);
 
 	close_mobs.clear();
-
-#ifdef BOTS
-	LeaveHealRotationTargetPool();
-#endif
 }
 
 uint32 Mob::GetAppearanceValue(EmuAppearance iAppearance) {
@@ -759,11 +747,7 @@ int Mob::_GetWalkSpeed() const {
 		return(0);
 
 	//runspeed cap.
-#ifdef BOTS
-	if (IsClient() || IsBot())
-#else
 	if(IsClient())
-#endif
 	{
 		if(speed_mod > runspeedcap)
 			speed_mod = runspeedcap;
@@ -822,11 +806,7 @@ int Mob::_GetRunSpeed() const {
 
 	if (!has_horse && movemod != 0)
 	{
-#ifdef BOTS
-		if (IsClient() || IsBot())
-#else
 		if (IsClient())
-#endif
 		{
 			speed_mod += (speed_mod * movemod / 100);
 		} else {
@@ -855,11 +835,7 @@ int Mob::_GetRunSpeed() const {
 		return(0);
 	}
 	//runspeed cap.
-#ifdef BOTS
-	if (IsClient() || IsBot())
-#else
 	if(IsClient())
-#endif
 	{
 		if(speed_mod > runspeedcap)
 			speed_mod = runspeedcap;
@@ -1546,25 +1522,6 @@ void Mob::SendHPUpdate(bool force_update_all)
 		}
 	}
 
-#ifdef BOTS
-	if (GetOwner() && GetOwner()->IsBot() && GetOwner()->CastToBot()->GetBotOwner() && GetOwner()->CastToBot()->GetBotOwner()->IsClient()) {
-		auto bot_owner = GetOwner()->CastToBot()->GetBotOwner()->CastToClient();
-		if (bot_owner) {
-			bot_owner->QueuePacket(&hp_packet, false);
-			group = entity_list.GetGroupByClient(bot_owner);
-
-			if (group) {
-				group->SendHPPacketsFrom(this);
-			}
-
-			Raid *raid = entity_list.GetRaidByClient(bot_owner);
-			if (raid) {
-				raid->SendHPManaEndPacketsFrom(this);
-			}
-		}
-	}
-#endif
-
 	if (GetPet() && GetPet()->IsClient()) {
 		GetPet()->CastToClient()->QueuePacket(&hp_packet, false);
 	}
@@ -1668,11 +1625,8 @@ void Mob::MakeSpawnUpdate(PlayerPositionUpdateServer_Struct* spu) {
 	spu->delta_y = FloatToEQ13(m_Delta.y);
 	spu->delta_z = FloatToEQ13(m_Delta.z);
 	spu->heading = FloatToEQ12(m_Position.w);
-#ifdef BOTS
-	if (this->IsClient() || this->IsBot())
-#else
+
 	if (this->IsClient())
-#endif
 		spu->animation = animation;
 	else
 		spu->animation = pRunAnimSpeed;//animation;
@@ -4175,10 +4129,6 @@ void Mob::SetTarget(Mob *mob)
 		if (CastToClient()->admin > AccountStatus::GMMgmt) {
 			DisplayInfo(mob);
 		}
-
-#ifdef BOTS
-		CastToClient()->SetBotPrecombat(false); // Any change in target will nullify this flag (target == mob checked above)
-#endif
 	}
 
 	if (IsPet() && GetOwner() && GetOwner()->IsClient()) {
@@ -6633,72 +6583,6 @@ void Mob::SetFeigned(bool in_feigned) {
 	}
 	feigned = in_feigned;
 }
-
-#ifdef BOTS
-bool Mob::JoinHealRotationTargetPool(std::shared_ptr<HealRotation>* heal_rotation)
-{
-	if (IsHealRotationTarget())
-		return false;
-	if (!heal_rotation->use_count())
-		return false;
-	if (!(*heal_rotation))
-		return false;
-	if (!IsHealRotationTargetMobType(this))
-		return false;
-
-	if (!(*heal_rotation)->AddTargetToPool(this))
-		return false;
-
-	m_target_of_heal_rotation = *heal_rotation;
-
-	return IsHealRotationTarget();
-}
-
-bool Mob::LeaveHealRotationTargetPool()
-{
-	if (!IsHealRotationTarget()) {
-		m_target_of_heal_rotation.reset();
-		return true;
-	}
-
-	m_target_of_heal_rotation->RemoveTargetFromPool(this);
-	m_target_of_heal_rotation.reset();
-
-	return !IsHealRotationTarget();
-}
-
-uint32 Mob::HealRotationHealCount()
-{
-	if (!IsHealRotationTarget())
-		return 0;
-
-	return m_target_of_heal_rotation->HealCount(this);
-}
-
-uint32 Mob::HealRotationExtendedHealCount()
-{
-	if (!IsHealRotationTarget())
-		return 0;
-
-	return m_target_of_heal_rotation->ExtendedHealCount(this);
-}
-
-float Mob::HealRotationHealFrequency()
-{
-	if (!IsHealRotationTarget())
-		return 0.0f;
-
-	return m_target_of_heal_rotation->HealFrequency(this);
-}
-
-float Mob::HealRotationExtendedHealFrequency()
-{
-	if (!IsHealRotationTarget())
-		return 0.0f;
-
-	return m_target_of_heal_rotation->ExtendedHealFrequency(this);
-}
-#endif
 
 bool Mob::CanOpenDoors() const
 {

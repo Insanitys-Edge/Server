@@ -893,11 +893,6 @@ XS(XS_Client_MovePC) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MovePC) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MovePC) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MovePC) attempted to process a type NPC reference");
 			}
@@ -932,11 +927,6 @@ XS(XS_Client_MovePCInstance) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MovePCInstance) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MovePCInstance) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MovePCInstance) attempted to process a type NPC reference");
 			}
@@ -967,11 +957,6 @@ XS(XS_Client_MoveZone) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZone) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MoveZone) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZone) attempted to process a type NPC reference");
 			}
@@ -1001,11 +986,6 @@ XS(XS_Client_MoveZoneGroup) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneGroup) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneGroup) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneGroup) attempted to process a type NPC reference");
 			}
@@ -1035,11 +1015,6 @@ XS(XS_Client_MoveZoneRaid) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneRaid) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneRaid) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneRaid) attempted to process a type NPC reference");
 			}
@@ -1069,11 +1044,6 @@ XS(XS_Client_MoveZoneInstance) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstance) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstance) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstance) attempted to process a type NPC reference");
 			}
@@ -1103,11 +1073,6 @@ XS(XS_Client_MoveZoneInstanceGroup) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstanceGroup) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstanceGroup) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstanceGroup) attempted to process a type NPC reference");
 			}
@@ -1137,11 +1102,6 @@ XS(XS_Client_MoveZoneInstanceRaid) {
 			if (THIS->IsMerc()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstanceRaid) attempted to process a type Merc reference");
 			}
-#ifdef BOTS
-			else if (THIS->IsBot()) {
-				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstanceRaid) attempted to process a type Bot reference");
-			}
-#endif
 			else if (THIS->IsNPC()) {
 				LogDebug("[CLIENT] Perl(XS_Client_MoveZoneInstanceRaid) attempted to process a type NPC reference");
 			}

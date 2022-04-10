@@ -16,10 +16,6 @@ typedef const char Const_char;
 #include "../common/spdat.h"
 #include "dialogue_window.h"
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 #ifdef THIS /* this macro seems to leak out on some systems */
 #undef THIS
 #endif
@@ -6647,41 +6643,6 @@ XS(XS_Mob_ApplySpellBuff) {
 	XSRETURN_EMPTY;
 }
 
-#ifdef BOTS
-XS(XS_Mob_CastToBot); /* prototype to pass -Wmissing-prototypes */
-XS(XS_Mob_CastToBot)
-{
-	dXSARGS;
-	if (items != 1)
-		Perl_croak(aTHX_ "Usage: Mob::CastToBot(THIS)");
-	{
-		Mob* THIS;
-		Bot* RETVAL;
-		VALIDATE_THIS_IS_MOB;
-		RETVAL = THIS->CastToBot();
-		ST(0) = sv_newmortal();
-		sv_setref_pv(ST(0), "Bot", (void*)RETVAL);
-	}
-	XSRETURN(1);
-}
-
-XS(XS_Mob_GetHateRandomBot); /* prototype to pass -Wmissing-prototypes */
-XS(XS_Mob_GetHateRandomBot) {
-	dXSARGS;
-	if (items != 1)
-		Perl_croak(aTHX_ "Usage: Mob::GetHateRandomBot(THIS)"); // @categories Hate and Aggro
-	{
-		Mob* THIS;
-		Bot* RETVAL;
-		VALIDATE_THIS_IS_MOB;
-		RETVAL = THIS->GetHateRandomBot();
-		ST(0) = sv_newmortal();
-		sv_setref_pv(ST(0), "Bot", (void *) RETVAL);
-	}
-	XSRETURN(1);
-}
-#endif
-
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -6722,9 +6683,6 @@ XS(boot_Mob) {
 	newXSproto(strcpy(buf, "CanThisClassParry"), XS_Mob_CanThisClassParry, file, "$");
 	newXSproto(strcpy(buf, "CanThisClassRiposte"), XS_Mob_CanThisClassRiposte, file, "$");
 	newXSproto(strcpy(buf, "CastSpell"), XS_Mob_CastSpell, file, "$$$;$$$");
-#ifdef BOTS
-	newXSproto(strcpy(buf, "CastToBot"), XS_Mob_CastToBot, file, "$");
-#endif
 	newXSproto(strcpy(buf, "CastToClient"), XS_Mob_CastToClient, file, "$");
 	newXSproto(strcpy(buf, "CastToCorpse"), XS_Mob_CastToCorpse, file, "$");
 	newXSproto(strcpy(buf, "CastToMob"), XS_Mob_CastToMob, file, "$");
@@ -6835,9 +6793,6 @@ XS(boot_Mob) {
 	newXSproto(strcpy(buf, "GetHateList"), XS_Mob_GetHateList, file, "$");
 	newXSproto(strcpy(buf, "GetHateListByDistance"), XS_Mob_GetHateListByDistance, file, "$;$");
 	newXSproto(strcpy(buf, "GetHateRandom"), XS_Mob_GetHateRandom, file, "$");
-#ifdef BOTS
-	newXSproto(strcpy(buf, "GetHateRandomBot"), XS_Mob_GetHateRandomBot, file, "$");
-#endif
 	newXSproto(strcpy(buf, "GetHateRandomClient"), XS_Mob_GetHateRandomClient, file, "$");
 	newXSproto(strcpy(buf, "GetHateRandomNPC"), XS_Mob_GetHateRandomNPC, file, "$");
 	newXSproto(strcpy(buf, "GetHateTop"), XS_Mob_GetHateTop, file, "$");

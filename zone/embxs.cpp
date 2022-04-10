@@ -22,9 +22,6 @@
 #include "../common/eqemu_logsys.h"
 #include "masterentity.h"
 #include "command.h"
-#ifdef BOTS
-#include "bot_command.h"
-#endif
 
 #include "embperl.h"
 #include "embxs.h" 

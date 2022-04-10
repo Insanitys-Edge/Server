@@ -43,10 +43,6 @@ Child of the Mob class.
 #include "mob.h"
 #include "raids.h"
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 #include "quest_parser_collection.h"
 #include "string_ids.h"
 #include "worldserver.h"

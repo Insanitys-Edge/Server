@@ -27,10 +27,6 @@
 #include "client.h"
 #include "mob.h"
 
-#ifdef BOTS
-	#include "bot.h"
-#endif
-
 #include <algorithm>
 
 

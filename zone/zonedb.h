@@ -12,10 +12,6 @@
 #include "event_codes.h"
 #include "../common/repositories/doors_repository.h"
 
-#ifdef BOTS
-#include "bot_database.h"
-#endif
-
 #define WOLF 42
 
 class Client;
@@ -597,14 +593,6 @@ public:
 	bool	logevents(const char* accountname,uint32 accountid,uint8 status,const char* charname,const char* target, const char* descriptiontype, const char* description,int event_nid);
 	uint32	GetKarma(uint32 acct_id);
 	void	UpdateKarma(uint32 acct_id, uint32 amount);
-
-	/* Things which really dont belong here... */
-	int16	CommandRequirement(const char* commandname);
-
-#ifdef BOTS
-	// bot database add-on to eliminate the need for a second database connection
-	BotDatabase botdb;
-#endif
 
 protected:
 	void ZDBInitVars();

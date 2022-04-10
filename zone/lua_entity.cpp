@@ -12,10 +12,6 @@
 #include "lua_object.h"
 #include "lua_door.h"
 
-#ifdef BOTS
-#include "lua_bot.h"
-#endif
-
 bool Lua_Entity::IsClient() {
 	Lua_Safe_Call_Bool();
 	return self->IsClient();
@@ -135,9 +131,6 @@ luabind::scope lua_register_entity() {
 	.def(luabind::constructor<>())
 	.property("null", &Lua_Entity::Null)
 	.property("valid", &Lua_Entity::Valid)
-#ifdef BOTS
-	.def("CastToBot", &Lua_Entity::CastToBot)
-#endif
 	.def("CastToClient", &Lua_Entity::CastToClient)
 	.def("CastToCorpse", &Lua_Entity::CastToCorpse)
 	.def("CastToDoor", &Lua_Entity::CastToDoor)

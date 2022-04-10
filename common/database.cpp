@@ -412,12 +412,6 @@ bool Database::DeleteCharacter(char *character_name) {
 		QueryDatabase(fmt::format("DELETE FROM {} WHERE {} = {}", table_name, character_id_column_name, character_id));
 	}
 
-#ifdef BOTS
-	query = StringFormat("DELETE FROM `guild_members` WHERE `char_id` = '%d' AND GetMobTypeById(%i) = 'C'", character_id); // note: only use of GetMobTypeById()
-	QueryDatabase(query);
-#endif
-
-
 	return true;
 }
 

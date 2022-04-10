@@ -51,10 +51,6 @@
 	#define strcasecmp	_stricmp
 #endif
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 extern Zone *zone;
 extern volatile bool is_zone_loaded;
 extern WorldServer worldserver;
@@ -276,30 +272,6 @@ const Encounter* Entity::CastToEncounter() const
 {
 	return static_cast<const Encounter *>(this);
 }
-
-#ifdef BOTS
-Bot *Entity::CastToBot()
-{
-#ifdef _EQDEBUG
-	if (!IsBot()) {
-		std::cout << "CastToBot error" << std::endl;
-		return 0;
-	}
-#endif
-	return static_cast<Bot *>(this);
-}
-
-const Bot *Entity::CastToBot() const
-{
-#ifdef _EQDEBUG
-	if (!IsBot()) {
-		std::cout << "CastToBot error" << std::endl;
-		return 0;
-	}
-#endif
-	return static_cast<const Bot *>(this);
-}
-#endif
 
 EntityList::EntityList()
 	:
@@ -3075,13 +3047,6 @@ void EntityList::RemoveEntity(uint16 id)
 		return;
 	else if (entity_list.RemoveMerc(id))
 		return;
-
-#ifdef BOTS
-	// This block of code is necessary to clean up bot objects
-	else if (entity_list.RemoveBot(id))
-		return;
-#endif //BOTS
-
 	else
 		entity_list.RemoveObject(id);
 }
@@ -5052,33 +5017,6 @@ void EntityList::GetClientList(std::list<Client *> &c_list)
 		++it;
 	}
 }
-
-#ifdef BOTS
-void EntityList::GetBotList(std::list<Bot *> &b_list)
-{
-	b_list.clear();
-	for (auto bot : bot_list) {
-		b_list.push_back(bot);
-	}
-}
-
-std::vector<Bot *> EntityList::GetBotListByClientName(std::string client_name)
-{
-	std::vector<Bot *> client_bot_list;
-
-	if (client_name.empty()) {
-		return client_bot_list;
-	}
-
-	for (auto bot : bot_list) {
-		if (bot->GetOwner() && str_tolower(bot->GetOwner()->GetCleanName()) == str_tolower(client_name)) {
-			client_bot_list.push_back(bot);
-		}
-	}
-
-	return client_bot_list;
-}
-#endif
 
 void EntityList::GetCorpseList(std::list<Corpse *> &c_list)
 {

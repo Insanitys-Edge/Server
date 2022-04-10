@@ -2267,73 +2267,6 @@ XS(XS__npcfeature) {
 	XSRETURN_EMPTY;
 }
 
-#ifdef BOTS
-
-XS(XS__createbotcount);
-XS(XS__createbotcount)
-{
-	dXSARGS;
-	int		RETVAL;
-	dXSTARG;
-
-	RETVAL = quest_manager.createbotcount();
-	XSprePUSH; PUSHi((IV)RETVAL);
-
-	XSRETURN(1);
-}
-
-XS(XS__spawnbotcount);
-XS(XS__spawnbotcount)
-{
-	dXSARGS;
-	int		RETVAL;
-	dXSTARG;
-
-	RETVAL = quest_manager.spawnbotcount();
-	XSprePUSH; PUSHi((IV)RETVAL);
-
-	XSRETURN(1);
-}
-
-XS(XS__botquest);
-XS(XS__botquest)
-{
-	dXSARGS;
-	bool		RETVAL;
-	dXSTARG;
-
-	RETVAL = quest_manager.botquest();
-	XSprePUSH; PUSHu((IV)RETVAL);
-
-	XSRETURN(1);
-}
-
-XS(XS__createBot);
-XS(XS__createBot)
-{
-	dXSARGS;
-	bool		RETVAL;
-	dXSTARG;
-
-	if(items != 6)
-	{
-		Perl_croak(aTHX_ "Usage: quest::createBot(string first_name, string last_name, int level, int race_id, int class_id, int gender_id)");
-	}
-
-	char *firstname = (char *)SvPV_nolen(ST(0));
-	char *lastname = (char *)SvPV_nolen(ST(1));
-	int level = (int) SvIV(ST(2));
-	int race_id = (int) SvIV(ST(3));
-	int class_id = (int) SvIV(ST(4));
-	int gender_id = (int) SvIV(ST(5));
-
-	RETVAL = quest_manager.createBot(firstname, lastname, level, race_id, class_id, gender_id);
-	XSprePUSH; PUSHu((IV)RETVAL);
-	XSRETURN(1);
-}
-
-#endif //BOTS
-
 XS(XS__taskselector);
 XS(XS__taskselector) {
 	dXSARGS;
@@ -8144,13 +8077,6 @@ EXTERN_C XS(boot_quest) {
 	//add the strcpy stuff to get rid of const warnings....
 
 	XS_VERSION_BOOTCHECK;
-
-#ifdef BOTS
-	newXS(strcpy(buf, "botquest"), XS__botquest, file);
-	newXS(strcpy(buf, "spawnbotcount"), XS__spawnbotcount, file);
-	newXS(strcpy(buf, "createbotcount"), XS__createbotcount, file);
-	newXS(strcpy(buf, "createBot"), XS__createBot, file);
-#endif //BOTS
 
 	newXS(strcpy(buf, "AssignGroupToInstance"), XS__AssignGroupToInstance, file);
 	newXS(strcpy(buf, "AssignRaidToInstance"), XS__AssignRaidToInstance, file);

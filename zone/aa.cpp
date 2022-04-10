@@ -1561,13 +1561,6 @@ bool Mob::CanUseAlternateAdvancementRank(AA::Rank *rank) {
 			return false;
 		}
 	}
-#ifdef BOTS
-	else if (IsBot()) {
-		if (rank->expansion && !(RuleI(Bots, BotExpansionSettings) & (1 << (rank->expansion - 1)))) {
-			return false;
-		}
-	}
-#endif
 	else {
 		if (rank->expansion && !(RuleI(World, ExpansionSettings) & (1 << (rank->expansion - 1)))) {
 			return false;

@@ -45,10 +45,6 @@
 #include <stdlib.h>
 #include <boost/concept_check.hpp>
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 extern QueryServ* QServ;
 extern WorldServer worldserver;
 extern FastMath g_Math;

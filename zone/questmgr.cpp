@@ -42,10 +42,6 @@
 #include <limits.h>
 #include <list>
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 extern QueryServ* QServ;
 extern Zone* zone;
 extern WorldServer worldserver;
@@ -2181,76 +2177,6 @@ void QuestManager::popup(const char *title, const char *text, uint32 popupid, ui
 	if(initiator)
 		initiator->SendPopupToClient(title, text, popupid, buttons, Duration);
 }
-
-#ifdef BOTS
-
-int QuestManager::createbotcount() {
-	return RuleI(Bots, CreationLimit);
-}
-
-int QuestManager::spawnbotcount() {
-	return RuleI(Bots, SpawnLimit);
-}
-
-bool QuestManager::botquest()
-{
-	return RuleB(Bots, QuestableSpawnLimit);
-}
-
-bool QuestManager::createBot(const char *name, const char *lastname, uint8 level, uint16 race, uint8 botclass, uint8 gender)
-{
-	QuestManagerCurrentQuestVars();
-	uint32 MaxBotCreate = RuleI(Bots, CreationLimit);
-
-	if (initiator && initiator->IsClient())
-	{
-		if(Bot::SpawnedBotCount(initiator->CharacterID()) >= MaxBotCreate)
-		{
-			initiator->Message(Chat::Yellow,"You have the maximum number of bots allowed.");
-			return false;
-		}
-
-		std::string test_name = name;
-		bool available_flag = false;
-		if(!database.botdb.QueryNameAvailablity(test_name, available_flag)) {
-			initiator->Message(Chat::White, "%s for '%s'", BotDatabase::fail::QueryNameAvailablity(), (char*)name);
-			return false;
-		}
-		if (!available_flag) {
-			initiator->Message(Chat::White, "The name %s is already being used or is invalid. Please choose a different name.", (char*)name);
-			return false;
-		}
-
-		Bot* NewBot = new Bot(Bot::CreateDefaultNPCTypeStructForBot(name, lastname, level, race, botclass, gender), initiator);
-
-		if(NewBot)
-		{
-			if(!NewBot->IsValidRaceClassCombo()) {
-				initiator->Message(Chat::White, "That Race/Class combination cannot be created.");
-				return false;
-			}
-
-			if(!NewBot->IsValidName()) {
-				initiator->Message(Chat::White, "%s has invalid characters. You can use only the A-Z, a-z and _ characters in a bot name.", NewBot->GetCleanName());
-				return false;
-			}
-
-			// Now that all validation is complete, we can save our newly created bot
-			if(!NewBot->Save())
-			{
-				initiator->Message(Chat::White, "Unable to save %s as a bot.", NewBot->GetCleanName());
-			}
-			else
-			{
-				initiator->Message(Chat::White, "%s saved as bot %u.", NewBot->GetCleanName(), NewBot->GetBotID());
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-#endif //BOTS
 
 void QuestManager::taskselector(int taskcount, int *tasks) {
 	QuestManagerCurrentQuestVars();

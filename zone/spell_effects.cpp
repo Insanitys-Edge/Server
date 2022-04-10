@@ -4501,9 +4501,6 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 	}
 	if((IsClient() && !CastToClient()->GetPVP()) ||
 		(IsPet() && GetOwner() && GetOwner()->IsClient() && !GetOwner()->CastToClient()->GetPVP()) ||
-#ifdef BOTS
-		(IsBot() && GetOwner() && GetOwner()->IsClient() && !GetOwner()->CastToClient()->GetPVP()) ||
-#endif
 		(IsMerc() && GetOwner() && GetOwner()->IsClient() && !GetOwner()->CastToClient()->GetPVP()))
 	{
 		EQApplicationPacket *outapp = MakeBuffsPacket();
@@ -6744,23 +6741,11 @@ void Mob::CheckNumHitsRemaining(NumHit type, int32 buff_slot, uint16 spell_id)
 	bool bDepleted = false;
 	int buff_max = GetMaxTotalSlots();
 
-#ifdef BOTS
-	std::string buff_name;
-	size_t buff_counter = 0;
-	bool buff_update = false;
-#endif
-
 	//Spell specific procs [Type 7,10,11]
 	if (IsValidSpell(spell_id)) {
 		for (int d = 0; d < buff_max; d++) {
 			if (buffs[d].spellid == spell_id && buffs[d].hit_number > 0 &&
 			    spells[buffs[d].spellid].hit_number_type == static_cast<int>(type)) {
-
-#ifdef BOTS
-				buff_name = spells[buffs[d].spellid].name;
-				buff_counter = (buffs[d].hit_number - 1);
-				buff_update = true;
-#endif
 
 				if (--buffs[d].hit_number == 0) {
 					CastOnNumHitFade(buffs[d].spellid);
@@ -6794,12 +6779,6 @@ void Mob::CheckNumHitsRemaining(NumHit type, int32 buff_slot, uint16 spell_id)
 			if (IsValidSpell(buffs[d].spellid) && buffs[d].hit_number > 0 &&
 			    spells[buffs[d].spellid].hit_number_type == static_cast<int>(type)) {
 
-#ifdef BOTS
-				buff_name = spells[buffs[d].spellid].name;
-				buff_counter = (buffs[d].hit_number - 1);
-				buff_update = true;
-#endif
-
 				if (--buffs[d].hit_number == 0) {
 					CastOnNumHitFade(buffs[d].spellid);
 					if (!TryFadeEffect(d))
@@ -6810,28 +6789,6 @@ void Mob::CheckNumHitsRemaining(NumHit type, int32 buff_slot, uint16 spell_id)
 			}
 		}
 	}
-
-#ifdef BOTS
-	if (IsBot() && buff_update) {
-		auto bot_owner = entity_list.GetBotOwnerByBotEntityID(GetID());
-		if (bot_owner && bot_owner->GetBotOption(Client::booBuffCounter)) {
-			bot_owner->CastToClient()->SendMarqueeMessage(
-				Chat::Yellow,
-				510,
-				0,
-				1000,
-				3000,
-				StringFormat(
-					"%s has [%u] hit%s remaining on '%s'",
-					GetCleanName(),
-					buff_counter,
-					(buff_counter == 1 ? "" : "s"),
-					buff_name.c_str()
-				)
-			);
-		}
-	}
-#endif
 }
 
 //for some stupid reason SK procs return theirs one base off...

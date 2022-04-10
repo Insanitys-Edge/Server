@@ -31,10 +31,6 @@
 #include "lua_parser.h"
 #include "string_ids.h"
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 extern QueryServ* QServ;
 
 static uint32 ScaleAAXPBasedOnCurrentAATotal(int earnedAA, uint32 add_aaxp)
@@ -751,17 +747,7 @@ void Client::SetEXP(uint32 set_exp, uint32 set_aaxp, bool isrezzexp) {
 		else
 			MessageString(Chat::Experience, LOSE_LEVEL, ConvertArray(check_level, val1));
 
-#ifdef BOTS
-		uint8 myoldlevel = GetLevel();
-#endif
-
 		SetLevel(check_level);
-
-#ifdef BOTS
-		if(RuleB(Bots, BotLevelsWithOwner))
-			// hack way of doing this..but, least invasive... (same criteria as gain level for sendlvlapp)
-			Bot::LevelBotWithClient(this, GetLevel(), (myoldlevel==check_level-1));
-#endif
 	}
 
 	//If were at max level then stop gaining experience if we make it to the cap

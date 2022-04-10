@@ -1290,92 +1290,6 @@ XS(XS_EntityList_GetClientList) {
 	XSRETURN(num_clients);
 }
 
-#ifdef BOTS
-XS(XS_EntityList_GetBotByID);
-XS(XS_EntityList_GetBotByID) {
-	dXSARGS;
-	int bot_count = 0;
-	if (items != 2)
-		Perl_croak(aTHX_ "Usage: EntityList::GetBotByID(THIS, uint32 bot_id)"); // @categories Script Utility, Bot
-	{
-		EntityList* THIS;
-		Bot* RETVAL;
-		uint32 bot_id = (uint32) SvUV(ST(1));
-		VALIDATE_THIS_IS_ENTITY;
-		RETVAL = THIS->GetBotByBotID(bot_id);
-		ST(0) = sv_newmortal();
-		sv_setref_pv(ST(0), "Bot", (void *) RETVAL);
-	}
-	XSRETURN(1);
-}
-
-XS(XS_EntityList_GetBotByName);
-XS(XS_EntityList_GetBotByName) {
-	dXSARGS;
-	int bot_count = 0;
-	if (items != 2)
-		Perl_croak(aTHX_ "Usage: EntityList::GetBotByName(THIS, string bot_name)"); // @categories Script Utility, Bot
-	{
-		EntityList* THIS;
-		Bot* RETVAL;
-		std::string bot_name = (std::string) SvPV_nolen(ST(1));
-		VALIDATE_THIS_IS_ENTITY;
-		RETVAL = THIS->GetBotByBotName(bot_name);
-		ST(0) = sv_newmortal();
-		sv_setref_pv(ST(0), "Bot", (void *) RETVAL);
-	}
-	XSRETURN(1);
-}
-
-XS(XS_EntityList_GetBotList);
-XS(XS_EntityList_GetBotList) {
-	dXSARGS;
-	int bot_count = 0;
-	if (items != 1)
-		Perl_croak(aTHX_ "Usage: EntityList::GetBotList(THIS)"); // @categories Script Utility, Bot
-	{
-		EntityList *THIS;
-		VALIDATE_THIS_IS_ENTITY;
-		auto current_bot_list = THIS->GetBotList();
-		for (auto bot_iterator : current_bot_list) {
-			ST(0) = sv_newmortal();
-			sv_setref_pv(ST(0), "Bot", (void *)bot_iterator);
-			XPUSHs(ST(0));
-			bot_count++;
-		}
-	}
-	XSRETURN(bot_count);
-}
-
-XS(XS_EntityList_GetBotListByClientName);
-XS(XS_EntityList_GetBotListByClientName) {
-	dXSARGS;
-	if (items != 2) {
-		Perl_croak(aTHX_ "Usage: EntityList::GetBotListByClientName(THIS, string client_name)"); // @categories Script Utility, Bot
-	}
-
-	EntityList *THIS;
-	std::string client_name = (std::string) SvPV_nolen(ST(1));
-	VALIDATE_THIS_IS_ENTITY;
-
-	auto current_bot_list = THIS->GetBotListByClientName(client_name);
-	auto bot_count = current_bot_list.size();
-
-    if (bot_count > 0) {
-        EXTEND(sp, bot_count);
-        for (int index = 0; index < bot_count; ++index) {
-            ST(index) = sv_newmortal();
-			sv_setref_pv(ST(index), "Bot", (void *) current_bot_list[index]);
-			XPUSHs(ST(index));
-        }
-        XSRETURN(bot_count);
-    }
-    SV* return_value = &PL_sv_undef;
-    ST(0) = return_value;
-    XSRETURN(1);
-}
-#endif
-
 XS(XS_EntityList_GetNPCList); /* prototype to pass -Wmissing-prototypes */
 XS(XS_EntityList_GetNPCList) {
 	dXSARGS;
@@ -1572,12 +1486,6 @@ XS(boot_EntityList) {
 	newXSproto(strcpy(buf, "DoubleAggro"), XS_EntityList_DoubleAggro, file, "$$");
 	newXSproto(strcpy(buf, "Fighting"), XS_EntityList_Fighting, file, "$$");
 	newXSproto(strcpy(buf, "FindDoor"), XS_EntityList_FindDoor, file, "$$");
-#ifdef BOTS
-	newXSproto(strcpy(buf, "GetBotByID"), XS_EntityList_GetBotByID, file, "$$");
-	newXSproto(strcpy(buf, "GetBotByName"), XS_EntityList_GetBotByName, file, "$$");
-	newXSproto(strcpy(buf, "GetBotList"), XS_EntityList_GetBotList, file, "$");
-	newXSproto(strcpy(buf, "GetBotListByClientName"), XS_EntityList_GetBotListByClientName, file, "$$");
-#endif
 	newXSproto(strcpy(buf, "GetClientByAccID"), XS_EntityList_GetClientByAccID, file, "$$");
 	newXSproto(strcpy(buf, "GetClientByCharID"), XS_EntityList_GetClientByCharID, file, "$$");
 	newXSproto(strcpy(buf, "GetClientByID"), XS_EntityList_GetClientByID, file, "$$");

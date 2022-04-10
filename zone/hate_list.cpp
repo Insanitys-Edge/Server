@@ -367,19 +367,11 @@ Mob *HateList::GetEntWithMostHateOnList(Mob *center, Mob *skip, bool skip_mezzed
 
 			int64 current_hate = cur->stored_hate_amount;
 
-#ifdef BOTS
-			if (cur->entity_on_hatelist->IsClient() || cur->entity_on_hatelist->IsBot()){
-
-				if (cur->entity_on_hatelist->IsClient() && cur->entity_on_hatelist->CastToClient()->IsSitting()){
-					aggro_mod += RuleI(Aggro, SittingAggroMod);
-				}
-#else
 			if (cur->entity_on_hatelist->IsClient()){
 
 				if (cur->entity_on_hatelist->CastToClient()->IsSitting()){
 					aggro_mod += RuleI(Aggro, SittingAggroMod);
 				}
-#endif
 				
 				if (center){
 					if (center->GetTarget() == cur->entity_on_hatelist)
@@ -429,14 +421,6 @@ Mob *HateList::GetEntWithMostHateOnList(Mob *center, Mob *skip, bool skip_mezzed
 
 		if (top_client_type_in_range != nullptr && top_hate != nullptr) {
 			bool isTopClientType = top_hate->IsClient();
-#ifdef BOTS
-			if (!isTopClientType) {
-				if (top_hate->IsBot()) {
-					isTopClientType = true;
-					top_client_type_in_range = top_hate;
-				}
-			}
-#endif //BOTS
 
 			if (!isTopClientType) {
 				if (top_hate->IsMerc()) {
@@ -835,57 +819,6 @@ std::list<struct_HateList*> HateList::GetHateListByDistance(int distance)
 	}
 	return hate_list;
 }
-
-#ifdef BOTS
-Bot* HateList::GetRandomBotOnHateList(bool skip_mezzed)
-{
-	int count = list.size();
-	if (count <= 0) { //If we don't have any entries it'll crash getting a random 0, -1 position.
-		return nullptr;
-	}
-
-	if (count == 1) { //No need to do all that extra work if we only have one hate entry
-		if (*list.begin() && (*list.begin())->entity_on_hatelist->IsBot() && (!skip_mezzed || !(*list.begin())->entity_on_hatelist->IsMezzed())) {
-			return (*list.begin())->entity_on_hatelist->CastToBot();
-		}
-		return nullptr;
-	}
-
-	if (skip_mezzed) {
-		for (auto iter : list) {
-			if (iter->entity_on_hatelist->IsMezzed()) {
-				--count;
-			}
-		}
-
-		if (count <= 0) {
-			return nullptr;
-		}
-	}
-
-	int random = zone->random.Int(0, count - 1);
-	int counter = 0;
-
-	for (auto iter : list) {
-		if (!iter->entity_on_hatelist->IsBot()) {
-			continue;
-		}
-
-		if (skip_mezzed && iter->entity_on_hatelist->IsMezzed()) {
-			continue;
-		}
-
-		if (counter < random) {
-			++counter;
-			continue;
-		}
-
-		return iter->entity_on_hatelist->CastToBot();
-	}
-
-	return nullptr;
-}
-#endif
 
 Client* HateList::GetRandomClientOnHateList(bool skip_mezzed)
 {

@@ -130,10 +130,6 @@ int command_init(void)
 		command_add("bestz", "- Ask map for a good Z coord for your x,y coords.", AccountStatus::Player, command_bestz) ||
 		command_add("bind", "- Sets your targets bind spot to their current location", AccountStatus::GMMgmt, command_bind) ||
 
-#ifdef BOTS
-		command_add("bot", "- Type \"#bot help\" or \"^help\" to the see the list of available commands for bots.", AccountStatus::Player, command_bot) ||
-#endif
-
 		command_add("camerashake",  "[Duration (Milliseconds)] [Intensity (1-10)] - Shakes the camera on everyone's screen globally.", AccountStatus::QuestTroupe, command_camerashake) ||
 		command_add("castspell", "[Spell ID] [Instant (0 = False, 1 = True, Default is 1 if Unused)] - Cast a spell", AccountStatus::Guide, command_castspell) ||
 		command_add("chat", "[channel num] [message] - Send a channel message to all zones", AccountStatus::GMMgmt, command_chat) ||
@@ -704,12 +700,6 @@ void command_zone(Client *c, const Seperator *sep)
 		}
 	}
 
-#ifdef BOTS
-	// This block is necessary to clean up any bot objects owned by a Client
-	if(zoneid != c->GetZoneID())
-		Bot::ProcessClientZoneChange(c);
-#endif
-
 	if (sep->IsNumber(2) || sep->IsNumber(3) || sep->IsNumber(4)){
 		//zone to specific coords
 		c->MovePC(zoneid, (float)atof(sep->arg[2]), atof(sep->arg[3]), atof(sep->arg[4]), 0.0f, 0);
@@ -784,10 +774,6 @@ void command_level(Client *c, const Seperator *sep)
 	}
 	else if (c->Admin() < RuleI(GM, MinStatusToLevelTarget)) {
 		c->SetLevel(level, true);
-#ifdef BOTS
-		if(RuleB(Bots, BotLevelsWithOwner))
-			Bot::LevelBotWithClient(c, level, true);
-#endif
 	}
 	else if (!c->GetTarget()) {
 		c->Message(Chat::White, "Error: #Level: No target");
@@ -800,10 +786,6 @@ void command_level(Client *c, const Seperator *sep)
 			c->GetTarget()->SetLevel(level, true);
 			if(c->GetTarget()->IsClient()) {
 				c->GetTarget()->CastToClient()->SendLevelAppearance();
-#ifdef BOTS
-				if(RuleB(Bots, BotLevelsWithOwner))
-					Bot::LevelBotWithClient(c->GetTarget()->CastToClient(), level, true);
-#endif
 			}
 		}
 	}
@@ -1147,33 +1129,3 @@ void command_emptyinventory(Client *c, const Seperator *sep)
 		);
 	}
 }
-
-// All new code added to command.cpp should be BEFORE this comment line. Do no append code to this file below the BOTS code block.
-#ifdef BOTS
-#include "bot_command.h"
-// Function delegate to support the command interface for Bots with the client.
-void command_bot(Client *c, const Seperator *sep)
-{
-	std::string bot_message = sep->msg;
-	if (bot_message.compare("#bot") == 0) {
-		bot_message[0] = BOT_COMMAND_CHAR;
-	}
-	else {
-		bot_message = bot_message.substr(bot_message.find_first_not_of("#bot"));
-		bot_message[0] = BOT_COMMAND_CHAR;
-	}
-
-	if (bot_command_dispatch(c, bot_message.c_str()) == -2) {
-		if (parse->PlayerHasQuestSub(EVENT_BOT_COMMAND)) {
-			int i = parse->EventPlayer(EVENT_BOT_COMMAND, c, bot_message, 0);
-			if (i == 0 && !RuleB(Chat, SuppressCommandErrors)) {
-				c->Message(Chat::Red, "Bot command '%s' not recognized.", bot_message.c_str());
-			}
-		}
-		else {
-			if (!RuleB(Chat, SuppressCommandErrors))
-				c->Message(Chat::Red, "Bot command '%s' not recognized.", bot_message.c_str());
-		}
-	}
-}
-#endif

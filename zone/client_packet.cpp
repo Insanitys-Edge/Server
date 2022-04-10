@@ -69,11 +69,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include "gm_commands/door_manipulation.h"
 #include "client.h"
 
-
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 extern QueryServ* QServ;
 extern Zone* zone;
 extern volatile bool is_zone_loaded;
@@ -1509,12 +1504,6 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 		group->UpdatePlayer(this);
 		LFG = false;
 	}
-
-#ifdef BOTS
-	database.botdb.LoadOwnerOptions(this);
-	// TODO: mod below function for loading spawned botgroups
-	Bot::LoadAndSpawnAllZonedBots(this);
-#endif
 
 	m_inv.SetGMInventory((bool)m_pp.gm); // set to current gm state for calc
 	CalcBonuses();
@@ -3855,13 +3844,6 @@ void Client::Handle_OP_BuffRemoveRequest(const EQApplicationPacket *app)
 	{
 		m = entity_list.GetMobID(brrs->EntityID);
 	}
-#ifdef BOTS
-	else {
-		Mob* bot_test = entity_list.GetMob(brrs->EntityID);
-		if (bot_test && bot_test->IsBot() && bot_test->GetOwner() == this)
-			m = bot_test;
-	}
-#endif
 
 	if (!m)
 		return;
@@ -3900,15 +3882,6 @@ void Client::Handle_OP_Bug(const EQApplicationPacket *app)
 
 void Client::Handle_OP_Camp(const EQApplicationPacket *app)
 {
-#ifdef BOTS
-	// This block is necessary to clean up any bot objects owned by a Client
-	Bot::BotOrderCampAll(this);
-	// Evidently, this is bad under certain conditions and causes crashes...
-	// Group and Raid code really needs to be overhauled to account for non-client types (mercs and bots)
-	//auto group = GetGroup();
-	//if (group && group->GroupCount() < 2)
-	//	group->DisbandGroup();
-#endif
 	if (IsLFP())
 		worldserver.StopLFP(CharacterID());
 
@@ -6749,32 +6722,6 @@ void Client::Handle_OP_GroupDisband(const EQApplicationPacket *app)
 	if (!group)
 		return;
 
-#ifdef BOTS
-	// this block is necessary to allow more control over controlling how bots are zoned or camped.
-	if (Bot::GroupHasBot(group)) {
-		if (group->IsLeader(this)) {
-			if ((GetTarget() == 0 || GetTarget() == this) || (group->GroupCount() < 3)) {
-				Bot::ProcessBotGroupDisband(this, std::string());
-			}
-			else {
-				Mob* tempMember = entity_list.GetMob(gd->name1); //Name1 is the target you are disbanding
-				if (tempMember && tempMember->IsBot()) {
-					tempMember->CastToBot()->RemoveBotFromGroup(tempMember->CastToBot(), group);
-					if (LFP)
-					{
-						// If we are looking for players, update to show we are on our own now.
-						UpdateLFP();
-					}
-					return; //No need to continue from here we were removing a bot from party
-				}
-			}
-		}
-	}
-
-	group = GetGroup();
-	if (!group) //We must recheck this here.. incase the final bot disbanded the party..otherwise we crash
-		return;
-#endif
 	Mob* memberToDisband = GetTarget();
 
 	if (!memberToDisband)
@@ -6964,11 +6911,6 @@ void Client::Handle_OP_GroupInvite2(const EQApplicationPacket *app)
 				}
 			}
 		}
-#ifdef BOTS
-		else if (Invitee->IsBot()) {
-			Bot::ProcessBotGroupInvite(this, std::string(Invitee->GetName()));
-		}
-#endif
 	}
 	else
 	{
@@ -7677,13 +7619,6 @@ void Client::Handle_OP_GuildInvite(const EQApplicationPacket *app)
 				return;
 			}
 		}
-#ifdef BOTS
-		else if (invitee->IsBot()) {
-			// The guild system is too tightly coupled with the character_data table so we have to avoid using much of the system
-			Bot::ProcessGuildInvite(this, invitee->CastToBot());
-			return;
-		}
-#endif
 	}
 }
 
@@ -8050,10 +7985,6 @@ void Client::Handle_OP_GuildRemove(const EQApplicationPacket *app)
 	else if (!worldserver.Connected())
 		Message(0, "Error: World server disconnected");
 	else {
-#ifdef BOTS
-		if (Bot::ProcessGuildRemoval(this, gc->othername))
-			return;
-#endif
 		uint32 char_id;
 		Client* client = entity_list.GetClientByName(gc->othername);
 
@@ -8406,10 +8337,6 @@ void Client::Handle_OP_InspectRequest(const EQApplicationPacket *app)
 		else { ProcessInspectRequest(tmp->CastToClient(), this); }
 	}
 
-#ifdef BOTS
-	if (tmp != 0 && tmp->IsBot()) { Bot::ProcessBotInspectionRequest(tmp->CastToBot(), this); }
-#endif
-
 	return;
 }
 
@@ -8482,11 +8409,6 @@ void Client::Handle_OP_ItemLinkClick(const EQApplicationPacket *app)
 					if (response[0] == '#' && parse->PlayerHasQuestSub(EVENT_COMMAND)) {
 						parse->EventPlayer(EVENT_COMMAND, this, response, 0);
 					}
-#ifdef BOTS
-					else if (response[0] == '^' && parse->PlayerHasQuestSub(EVENT_BOT_COMMAND)) {
-						parse->EventPlayer(EVENT_BOT_COMMAND, this, response, 0);
-					}
-#endif
 					else {
 						parse->EventPlayer(EVENT_SAY, this, response, 0);
 					}
@@ -8502,11 +8424,6 @@ void Client::Handle_OP_ItemLinkClick(const EQApplicationPacket *app)
 					if (response[0] == '#' && parse->PlayerHasQuestSub(EVENT_COMMAND)) {
 						parse->EventPlayer(EVENT_COMMAND, this, response, 0);
 					}
-#ifdef BOTS
-					else if (response[0] == '^' && parse->PlayerHasQuestSub(EVENT_BOT_COMMAND)) {
-						parse->EventPlayer(EVENT_BOT_COMMAND, this, response, 0);
-					}
-#endif
 					else {
 						parse->EventPlayer(EVENT_SAY, this, response, 0);
 					}
@@ -13884,9 +13801,6 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 			}
 			if (GetGM() || RuleB(Spells, AlwaysSendTargetsBuffs) || nt == this || inspect_buffs || (nt->IsClient() && !nt->CastToClient()->GetPVP()) ||
 				(nt->IsPet() && nt->GetOwner() && nt->GetOwner()->IsClient() && !nt->GetOwner()->CastToClient()->GetPVP()) ||
-#ifdef BOTS
-				(nt->IsBot() && nt->GetOwner() && nt->GetOwner()->IsClient() && !nt->GetOwner()->CastToClient()->GetPVP()) || // TODO: bot pets
-#endif
 				(nt->IsMerc() && nt->GetOwner() && nt->GetOwner()->IsClient() && !nt->GetOwner()->CastToClient()->GetPVP()))
 			{
 				nt->SendBuffsToClient(this);
@@ -14323,11 +14237,6 @@ void Client::Handle_OP_TradeAcceptClick(const EQApplicationPacket *app)
 				FinishTrade(with->CastToNPC());
 			}
 		}
-#ifdef BOTS
-		// TODO: Log Bot trades
-		else if (with->IsBot())
-			with->CastToBot()->FinishTrade(this, Bot::BotTradeClientNormal);
-#endif
 		trade->Reset();
 	}
 

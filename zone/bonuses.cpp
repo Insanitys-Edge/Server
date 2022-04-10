@@ -26,10 +26,6 @@
 #include "entity.h"
 #include "mob.h"
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 #include "quest_parser_collection.h"
 
 

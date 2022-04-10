@@ -42,10 +42,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include <stdlib.h>
 #include <boost/concept_check.hpp>
 
-#ifdef BOTS
-#include "bot.h"
-#endif
-
 extern QueryServ* QServ;
 extern WorldServer worldserver;
 extern FastMath g_Math;
@@ -905,9 +901,6 @@ int Mob::ACSum(bool skip_caps)
 		ac = 0;
 
 	if (!skip_caps && (IsClient()
-#ifdef BOTS
-		|| IsBot()
-#endif
 	)) {
 		auto softcap = GetACSoftcap();
 		auto returns = GetSoftcapReturns();
@@ -2403,12 +2396,6 @@ bool NPC::Death(Mob* killer_mob, int32 damage, uint16 spell, EQ::skills::SkillTy
 			ownerInGroup = true;
 
 		give_exp = give_exp->GetUltimateOwner();
-
-#ifdef BOTS
-		if (!RuleB(Bots, BotGroupXP) && !ownerInGroup) {
-			give_exp = nullptr;
-		}
-#endif //BOTS
 	}
 
 	if (give_exp && give_exp->IsTempPet() && give_exp->IsPetOwnerClient()) {
@@ -2861,33 +2848,6 @@ void Mob::AddToHateList(Mob* other, uint32 hate /*= 0*/, int32 damage /*= 0*/, b
 
 	if (other->IsClient() && !on_hatelist && !IsOnFeignMemory(other))
 		other->CastToClient()->AddAutoXTarget(this);
-
-#ifdef BOTS
-	// if other is a bot, add the bots client to the hate list
-	while (other->IsBot()) {
-
-		auto other_ = other->CastToBot();
-		if (!other_ || !other_->GetBotOwner()) {
-			break;
-		}
-
-		auto owner_ = other_->GetBotOwner()->CastToClient();
-		if (!owner_ || owner_->IsDead() || !owner_->InZone()) { // added isdead and inzone checks to avoid issues in AddAutoXTarget(...) below
-			break;
-		}
-
-		if (owner_->GetFeigned()) {
-			AddFeignMemory(owner_);
-		}
-		else if (!hate_list.IsEntOnHateList(owner_)) {
-
-			hate_list.AddEntToHateList(owner_, 0, 0, false, true);
-			owner_->AddAutoXTarget(this); // this was being called on dead/out-of-zone clients
-		}
-
-		break;
-	}
-#endif //BOTS
 
 	// if other is a merc, add the merc client to the hate list
 	if (other->IsMerc()) {
@@ -4629,13 +4589,6 @@ void Mob::TryCriticalHit(Mob *defender, DamageHitInfo &hit, ExtraAttackOptions *
 		return;
 	}
 
-#ifdef BOTS
-	if (this->IsPet() && this->GetOwner() && this->GetOwner()->IsBot()) {
-		this->TryPetCriticalHit(defender, hit);
-		return;
-	}
-#endif // BOTS
-
 	if (IsNPC() && !RuleB(Combat, NPCCanCrit))
 		return;
 
@@ -5093,9 +5046,6 @@ void Mob::ApplyDamageTable(DamageHitInfo &hit)
 
 	// someone may want to add this to custom servers, can remove this if that's the case
 	if (!IsClient()
-#ifdef BOTS
-		&& !IsBot()
-#endif
 		)
 		return;
 	// this was parsed, but we do see the min of 10 and the normal minus factor is 105, so makes sense

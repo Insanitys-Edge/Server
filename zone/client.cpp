@@ -50,9 +50,6 @@ extern volatile bool RunLoops;
 #include "petitions.h"
 #include "command.h"
 #include "water_map.h"
-#ifdef BOTS
-#include "bot_command.h"
-#endif
 #include "string_ids.h"
 
 #include "guild_mgr.h"
@@ -363,30 +360,12 @@ Client::Client(EQStreamInterface* ieqs)
 	SetDisplayMobInfoWindow(true);
 	SetDevToolsEnabled(true);
 
-#ifdef BOTS
-	bot_owner_options[booDeathMarquee] = false;
-	bot_owner_options[booStatsUpdate] = false;
-	bot_owner_options[booSpawnMessageSay] = false;
-	bot_owner_options[booSpawnMessageTell] = true;
-	bot_owner_options[booSpawnMessageClassSpecific] = true;
-	bot_owner_options[booAltCombat] = RuleB(Bots, AllowOwnerOptionAltCombat);
-	bot_owner_options[booAutoDefend] = RuleB(Bots, AllowOwnerOptionAutoDefend);
-	bot_owner_options[booBuffCounter] = false;
-	bot_owner_options[booMonkWuMessage] = false;
-
-	SetBotPulling(false);
-	SetBotPrecombat(false);
-#endif
-
 	AI_Init();
 }
 
 Client::~Client() {
 	mMovementManager->RemoveClient(this);
 
-#ifdef BOTS
-	Bot::ProcessBotOwnerRefDelete(this);
-#endif
 	if(IsInAGuild())
 		guild_mgr.SendGuildMemberUpdateToWorld(GetName(), GuildID(), 0, time(nullptr));
 
@@ -1133,31 +1112,6 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 			}
 			break;
 		}
-
-#ifdef BOTS
-		if (message[0] == BOT_COMMAND_CHAR) {
-			if (bot_command_dispatch(this, message) == -2) {
-				if (parse->PlayerHasQuestSub(EVENT_BOT_COMMAND)) {
-					int i = parse->EventPlayer(EVENT_BOT_COMMAND, this, message, 0);
-					if (i == 0 && !RuleB(Chat, SuppressCommandErrors)) {
-						Message(Chat::Red, "Bot command '%s' not recognized.", message);
-					}
-				}
-				else if (parse->PlayerHasQuestSub(EVENT_SAY)) {
-					int i = parse->EventPlayer(EVENT_SAY, this, message, 0);
-					if (i == 0 && !RuleB(Chat, SuppressCommandErrors)) {
-						Message(Chat::Red, "Bot command '%s' not recognized.", message);
-					}
-				}
-				else {
-					if (!RuleB(Chat, SuppressCommandErrors)) {
-						Message(Chat::Red, "Bot command '%s' not recognized.", message);
-					}
-				}
-			}
-			break;
-		}
-#endif
 
 		if (EQ::ProfanityManager::IsCensorshipActive()) {
 			EQ::ProfanityManager::RedactMessage(message);
@@ -7807,11 +7761,6 @@ void Client::GarbleMessage(char *message, uint8 variance)
 	if (message[0] == COMMAND_CHAR)
 		return;
 
-#ifdef BOTS
-	if (message[0] == BOT_COMMAND_CHAR)
-		return;
-#endif
-
 	for (size_t i = 0; i < strlen(message); i++) {
 		// Client expects hex values inside of a text link body
 		if (message[i] == delimiter) {
@@ -9353,26 +9302,6 @@ void Client::SetLastPositionBeforeBulkUpdate(glm::vec4 in_last_position_before_b
 {
 	Client::last_position_before_bulk_update = in_last_position_before_bulk_update;
 }
-
-#ifdef BOTS
-
-bool Client::GetBotOption(BotOwnerOption boo) const {
-
-	if (boo < _booCount) {
-		return bot_owner_options[boo];
-	}
-
-	return false;
-}
-
-void Client::SetBotOption(BotOwnerOption boo, bool flag) {
-
-	if (boo < _booCount) {
-		bot_owner_options[boo] = flag;
-	}
-}
-
-#endif
 
 void Client::SendToGuildHall()
 {
