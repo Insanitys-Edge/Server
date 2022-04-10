@@ -10,10 +10,6 @@ SET(zone_sources
     aura.cpp
     beacon.cpp
     bonuses.cpp
-    bot.cpp
-    bot_command.cpp
-    bot_database.cpp
-    botspellsai.cpp
     cheat_manager.cpp
     client.cpp
     client_mods.cpp
@@ -43,11 +39,9 @@ SET(zone_sources
     guild.cpp
     guild_mgr.cpp
     hate_list.cpp
-    heal_rotation.cpp
     horse.cpp
     inventory.cpp
     loottables.cpp
-    lua_bot.cpp
     lua_bit.cpp
     lua_corpse.cpp
     lua_client.cpp
@@ -97,7 +91,6 @@ SET(zone_sources
     mob_info.cpp
     mod_functions.cpp
     npc.cpp
-    npc_ai.cpp
     npc_scale_manager.cpp
     object.cpp
     oriented_bounding_box.cpp
@@ -105,7 +98,6 @@ SET(zone_sources
     pathfinder_nav_mesh.cpp
     pathfinder_null.cpp
     pathing.cpp
-    perl_bot.cpp
     perl_client.cpp
     perl_doors.cpp
     perl_entity.cpp
@@ -172,10 +164,6 @@ SET(zone_headers
     aura.h
     basic_functions.h
     beacon.h
-    bot.h
-    bot_command.h
-    bot_database.h
-    bot_structs.h
     cheat_manager.h
     client.h
     client_packet.h
@@ -202,9 +190,7 @@ SET(zone_headers
     groups.h
     guild_mgr.h
     hate_list.h
-    heal_rotation.h
     horse.h
-    lua_bot.h
     lua_bit.h
     lua_client.h
     lua_corpse.h
