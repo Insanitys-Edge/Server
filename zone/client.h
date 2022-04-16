@@ -583,7 +583,7 @@ public:
 	int32 CalcEnduranceRegenCap();
 	int32 CalcHPRegenCap();
 	inline uint8 GetEndurancePercent() { return (uint8)((float)current_endurance / (float)max_end * 100.0f); }
-	void SetEndurance(int32 newEnd); //This sets the current endurance to the new value
+	virtual void SetEndurance(int32 newEnd); //This sets the current endurance to the new value
 	void DoEnduranceRegen(); //This Regenerates endurance
 	void DoEnduranceUpkeep(); //does the endurance upkeep
 
@@ -721,6 +721,30 @@ public:
 	int GetClientMaxLevel() const { return client_max_level; }
 	void SetClientMaxLevel(int max_level) { client_max_level = max_level; }
 
+	int GetMercCharacterID() const { return m_epp.edge_merc_character_id; }
+	void SetMercCharacterID(int character_id);
+
+	void OutputAccountCharacters();
+
+	void SaveMercData();
+
+	MercCharacter_Struct* GetMercCharacterDataByName(const char* merc_name);
+
+	void SwapWithMercenary();
+
+	void FakeDeleteItemInInventory(int16 slot_id);
+	void SwapInventoryWithMerc(EQ::InventoryProfile& m_TargetPlayerInv, EQ::InventoryProfile& m_MercInv);
+	void SendSpellSuppressionPacket(bool shouldSuppress);
+	void SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProfile_Struct& m_PlayerPP);
+
+	void FakeMemSpell(uint16 spellid, int slot);
+	void FakeUnmemSpell(uint16 spellid, int slot);
+
+	void FakeScribeSpell(uint16 spell_id, int slot);
+	void FakeUnscribeSpell(int slot);
+
+	virtual void SwapReferences(uint32 in_character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
+
 	void CheckManaEndUpdate();
 	void SendManaUpdate();
 	void SendEnduranceUpdate();
@@ -814,6 +838,8 @@ public:
 	uint16 GetClassTrackingDistanceMultiplier(uint16 class_);
 
 	bool CanThisClassTrack();
+
+	void LoadCharacterAltMercenaries();
 
 	// defer save used when bulk saving
 	void UnscribeSpell(int slot, bool update_client = true, bool defer_save = false);
@@ -1518,6 +1544,7 @@ public:
 	MercInfo& GetMercInfo() { return m_mercinfo[mercSlot]; }
 	uint8 GetNumMercs();
 	void SetMerc(Merc* newmerc);
+	uint32 GetMercIndexByCharacterID(uint32 character_id);
 	void SendMercResponsePackets(uint32 ResponseType);
 	void SendMercMerchantResponsePacket(int32 response_type);
 	void SendMercenaryUnknownPacket(uint8 type);
@@ -1635,6 +1662,9 @@ public:
 	glm::vec4 &GetLastPositionBeforeBulkUpdate();
 
 	Raid *p_raid_instance;
+
+
+	std::map<uint32, MercCharacter_Struct*>& GetValidMercenaries() { return validMercCharacterData; };
 
 	void ShowDevToolsMenu();
 	CheatManager cheat_manager;
@@ -1984,6 +2014,7 @@ private:
 	Timer ItemTickTimer;
 	Timer ItemQuestTimer;
 	std::map<std::string,std::string> accountflags;
+	std::map<uint32, MercCharacter_Struct*> validMercCharacterData;
 
 	uint8 initial_respawn_selection;
 

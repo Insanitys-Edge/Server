@@ -603,6 +603,7 @@ public:
 	int32 GetItemHPBonuses();
 	int32 GetSpellHPBonuses();
 	virtual const int32& SetMana(int32 amount);
+	virtual void SetEndurance(int32 newEnd); //This sets the current endurance to the new value
 	inline float GetManaRatio() const { return max_mana == 0 ? 100 :
 		((static_cast<float>(current_mana) / max_mana) * 100); }
 	virtual int32 CalcMaxMana();
@@ -1334,6 +1335,8 @@ public:
 	std::string GetBucketKey();
 	std::string GetBucketRemaining(std::string bucket_name);
 	void SetBucket(std::string bucket_name, std::string bucket_value, std::string expiration = "");
+
+	virtual void SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
 
 protected:
 	void CommonDamage(Mob* other, int &damage, const uint16 spell_id, const EQ::skills::SkillType attack_skill, bool &avoidable, const int8 buffslot, const bool iBuffTic, eSpecialAttacks specal = eSpecialAttacks::None);

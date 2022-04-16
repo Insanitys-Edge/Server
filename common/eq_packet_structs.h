@@ -1304,6 +1304,16 @@ struct Action_Struct
 // /* 36 */	uint32 item_cast_type;
 };
 
+struct EdgeDamage_Struct
+{
+	/* 00 */	uint16	target;
+	/* 02 */	uint16	source;
+	/* 04 */	uint8	type; //slashing, etc. 231 (0xE7) for spells, skill
+	/* 05 */	uint16	spellid;
+	/* 07 */	int64 damage;
+	/* 08 */	uint8 hitType;
+};
+
 // this is what prints the You have been struck. and the regular
 // melee messages like You try to pierce, etc. It's basically the melee
 // and spell damage message
@@ -1318,6 +1328,79 @@ struct CombatDamage_Struct
 /* 15 */	float hit_heading;	// see above notes in Action_Struct
 /* 19 */	float hit_pitch;
 /* 23 */	uint32 special; // 2 = Rampage, 1 = Wild Rampage
+};
+
+
+struct EdgeSuppressSpellMsg_Struct
+{
+	/* 00 */	uint8	suppress;
+};
+
+enum eStatEntry
+{
+	eStatClassless = 1,
+	eStatCurHP,
+	eStatCurMana,
+	eStatCurEndur,
+	eStatMaxHP,
+	eStatMaxMana,
+	eStatMaxEndur,
+	eStatATK,
+	eStatAC,
+	eStatSTR,
+	eStatSTA,
+	eStatDEX,
+	eStatAGI,
+	eStatINT,
+	eStatWIS,
+	eStatCHA,
+	eStatMR,
+	eStatFR,
+	eStatCR,
+	eStatPR,
+	eStatDR,
+	eStatWalkspeed,
+	eStatRunspeed,
+	eStatWeight,
+	eStatMaxWeight,
+	eStatMeleePower,
+	eStatSpellPower,
+	eStatHealingPower,
+	eStatMeleeHaste,
+	eStatSpellHaste,
+	eStatHealingHaste,
+	eStatMeleeCrit,
+	eStatSpellCrit,
+	eStatHealingCrit,
+	eStatTotalPower,
+	eStatSynergyLevel,
+	eStatMitigation,
+	eStatAAPoints,
+	eStatSynergyLevel1,
+	eStatSynergyLevel2,
+	eStatSynergyLevel3,
+	eStatSynergyLevel4,
+	eStatSynergyLevel5,
+	eStatSynergyLevel6,
+	eStatSynergyLevel7,
+	eStatSynergyLevel8,
+	eStatSynergyLevel9,
+	eStatSynergyLevel10,
+	eStatSynergyLevel11,
+	eStatSynergyLevel12,
+	eStatDummyStat,
+	eStatMax
+};
+
+struct EdgeStatEntry_Struct {
+	uint32_t statKey;
+	uint64_t statValue;
+};
+
+struct EdgeStat_Struct
+{
+	uint32_t count;
+	EdgeStatEntry_Struct entries[0];
 };
 
 /*

@@ -1232,6 +1232,11 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	database.LoadCharacterLeadershipAA(cid, &m_pp); /* Load Character Leadership AA's */
 	database.LoadCharacterTribute(cid, &m_pp); /* Load CharacterTribute */
 
+	if (RuleB(Mercs, UseAltAsMercSystem))
+	{
+		LoadCharacterAltMercenaries();
+	}
+
 	/* Load AdventureStats */
 	AdventureStats_Struct as;
 	if (database.GetAdventureStats(cid, &as))

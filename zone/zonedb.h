@@ -242,6 +242,20 @@ struct ClientMercEntry {
 	uint32 npcid;
 };
 
+struct MercCharacter_Struct
+{
+	PlayerProfile_Struct m_pp;
+	ExtendedProfile_Struct m_epp;
+	EQ::InventoryProfile m_inv;
+
+	MercCharacter_Struct()
+	{
+		m_pp = PlayerProfile_Struct();
+		m_epp = ExtendedProfile_Struct();
+		m_inv = EQ::InventoryProfile();
+	}
+};
+
 namespace BeastlordPetData {	
 	struct PetStruct {
 		uint16 race_id = WOLF;
@@ -350,6 +364,8 @@ public:
 	bool LoadCharacterSkills(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterSpellBook(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterTribute(uint32 character_id, PlayerProfile_Struct* pp);
+
+	std::map<uint32, MercCharacter_Struct*> LoadCharactersOnAccount(uint32 AccID, uint32 InitiatorCharacterID);
 
 	bool SaveCharacterAA(uint32 character_id, uint32 aa_id, uint32 current_level, uint32 charges);
 	bool SaveCharacterBandolier(uint32 character_id, uint8 bandolier_id, uint8 bandolier_slot, uint32 item_id, uint32 icon, const char* bandolier_name);

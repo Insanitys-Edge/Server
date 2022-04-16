@@ -63,6 +63,10 @@ Merc::Merc(const NPCType* d, float x, float y, float z, float heading)
 	_lost_confidence = false;
 	_hatedCount = 0;
 
+	_characterID = 0;
+	_accountID = 0;
+	owner_char_id = 0;
+
 	memset(equipment, 0, sizeof(equipment));
 
 	SetMercID(0);
@@ -85,8 +89,6 @@ Merc::Merc(const NPCType* d, float x, float y, float z, float heading)
 	SetHP(GetMaxHP());
 	SetMana(GetMaxMana());
 	SetEndurance(GetMaxEndurance());
-
-	AI_Start();
 }
 
 Merc::~Merc() {
@@ -4667,7 +4669,50 @@ const char* Merc::GetRandomName(){
 	return name;
 }
 
+bool Merc::LoadPlayerMercSpells() {
+	// loads mercs spells into list. this uses elixir, so we don't classify anything - the original code for that was akin to committing war crimes.
+	merc_spells.clear();
+
+	int idx = 1;
+
+	for (uint32 z = 0; z < EQ::spells::SPELL_GEM_COUNT; z++) {
+
+		auto spell_id = GetPP() ? GetPP()->mem_spells[z] : SPELL_UNKNOWN;
+
+		if (!IsValidSpell(spell_id))
+		{
+			continue;
+		}
+		MercSpell mercSpell;
+
+		mercSpell.spellid = spell_id;
+		mercSpell.type = 0;
+		mercSpell.stance = 0;
+		mercSpell.slot = idx;
+		mercSpell.proc_chance = 0;
+		mercSpell.time_cancast = 0;
+		merc_spells.push_back(mercSpell);
+		idx++;
+	}
+	//std::sort(merc_spells.begin(), merc_spells.end(), [](const MercSpell a, const MercSpell b) {
+	//	return a.slot > b.slot;
+	//});
+
+	if (merc_spells.empty())
+		AIautocastspell_timer->Disable();
+	else {
+		HasAISpell = true;
+		AIautocastspell_timer->Trigger();
+	}
+
+	return true;
+}
+
 bool Merc::LoadMercSpells() {
+	if (RuleB(Mercs, UseAltAsMercSystem))
+	{
+		return LoadPlayerMercSpells();
+	}
 	// loads mercs spells into list
 	merc_spells.clear();
 
@@ -5100,10 +5145,162 @@ void Merc::AddItem(uint8 slot, uint32 item_id) {
 	UpdateEquipmentLight();
 }
 
+
+uint32 Client::GetMercIndexByCharacterID(uint32 character_id) {
+
+	auto entry = validMercCharacterData.find(character_id);
+
+	if (entry == validMercCharacterData.end())
+	{
+		return -1;
+	}
+
+	return entry->first;
+}
+
+bool Merc::SpawnPlayerMerc(Client* owner) {
+	if (!owner)
+	{
+		Log(Logs::General, Logs::Mercenaries, "SpawnMerc: Fail! Owner nullptr.");
+		return false;
+	}
+
+	auto mapOfValidMercs = owner->GetValidMercenaries();
+
+	auto mapItr = mapOfValidMercs.find(owner->GetMercCharacterID());
+
+	_characterID = owner->GetMercCharacterID();
+	_accountID = owner->AccountID();
+
+	if (mapItr == mapOfValidMercs.end())
+		return false;
+
+	owner->SetMerc(this);
+
+	if (!GetPP())
+	{
+		owner->SetMerc(nullptr);
+		return false;
+	}
+
+	/* Set Mob variables for spawn */
+	class_ = GetPP()->class_;
+	level = GetPP()->level;
+	SetPosition(owner->GetX(), owner->GetY(), owner->GetZ());
+	m_RewindLocation = glm::vec3();
+	race = GetPP()->race;
+	base_race = GetPP()->race;
+	gender = GetPP()->gender;
+	base_gender = GetPP()->gender;
+	deity = GetPP()->deity;
+	haircolor = GetPP()->haircolor;
+	beardcolor = GetPP()->beardcolor;
+	eyecolor1 = GetPP()->eyecolor1;
+	eyecolor2 = GetPP()->eyecolor2;
+	hairstyle = GetPP()->hairstyle;
+	luclinface = GetPP()->face;
+	beard = GetPP()->beard;
+	drakkin_heritage = GetPP()->drakkin_heritage;
+	drakkin_tattoo = GetPP()->drakkin_tattoo;
+	drakkin_details = GetPP()->drakkin_details;
+	switch (race)
+	{
+	case OGRE:
+		size = 9; break;
+	case TROLL:
+		size = 8; break;
+	case VAHSHIR: case BARBARIAN:
+		size = 7; break;
+	case HUMAN: case HIGH_ELF: case ERUDITE: case IKSAR: case DRAKKIN:
+		size = 6; break;
+	case HALF_ELF:
+		size = 5.5; break;
+	case WOOD_ELF: case DARK_ELF: case FROGLOK:
+		size = 5; break;
+	case DWARF:
+		size = 4; break;
+	case HALFLING:
+		size = 3.5; break;
+	case GNOME:
+		size = 3; break;
+	default:
+		size = 0;
+	}
+
+	/* Check for Invalid points */
+	if (GetPP()->ldon_points_guk < 0 || GetPP()->ldon_points_guk > 2000000000) { GetPP()->ldon_points_guk = 0; }
+	if (GetPP()->ldon_points_mir < 0 || GetPP()->ldon_points_mir > 2000000000) { GetPP()->ldon_points_mir = 0; }
+	if (GetPP()->ldon_points_mmc < 0 || GetPP()->ldon_points_mmc > 2000000000) { GetPP()->ldon_points_mmc = 0; }
+	if (GetPP()->ldon_points_ruj < 0 || GetPP()->ldon_points_ruj > 2000000000) { GetPP()->ldon_points_ruj = 0; }
+	if (GetPP()->ldon_points_tak < 0 || GetPP()->ldon_points_tak > 2000000000) { GetPP()->ldon_points_tak = 0; }
+	if (GetPP()->ldon_points_available < 0 || GetPP()->ldon_points_available > 2000000000) { GetPP()->ldon_points_available = 0; }
+
+	if (RuleB(World, UseClientBasedExpansionSettings)) {
+		GetPP()->expansions = EQ::expansions::ConvertClientVersionToExpansionsMask(EQ::versions::ClientVersion::RoF2);
+	}
+	else {
+		GetPP()->expansions = (RuleI(World, ExpansionSettings) & EQ::expansions::ConvertClientVersionToExpansionsMask(EQ::versions::ClientVersion::RoF2));
+	}
+
+	if (SPDAT_RECORDS > 0) {
+		for (uint32 z = 0; z < EQ::spells::SPELL_GEM_COUNT; z++) {
+			if (GetPP()->mem_spells[z] >= (uint32)SPDAT_RECORDS)
+				GetPP()->mem_spells[z] = 0xFFFFFFFF;
+		}
+	}
+
+	SetHP(GetPP()->cur_hp);
+	Mob::SetMana(GetPP()->mana); // mob function doesn't send the packet
+	SetEndurance(GetPP()->endurance);
+
+	LoadMercSpells();
+
+
+	p_timers.SetCharID(_characterID);
+	/* Load Spell Slot Refresh from Currently Memoried Spells */
+	for (unsigned int i = 0; i < EQ::spells::SPELL_GEM_COUNT; ++i)
+		if (IsValidSpell(GetPP()->mem_spells[i]))
+			GetPP()->spellSlotRefresh[i] = p_timers.GetRemainingTime(pTimerSpellStart + GetPP()->mem_spells[i]) * 1000;
+
+	/* Ability slot refresh send SK/PAL */
+	if (GetPP()->class_ == SHADOWKNIGHT || GetPP()->class_ == PALADIN) {
+		uint32 abilitynum = 0;
+		if (GetPP()->class_ == SHADOWKNIGHT) { abilitynum = pTimerHarmTouch; }
+		else { abilitynum = pTimerLayHands; }
+
+		uint32 remaining = p_timers.GetRemainingTime(abilitynum);
+		if (remaining > 0 && remaining < 15300)
+			GetPP()->abilitySlotRefresh = remaining * 1000;
+		else
+			GetPP()->abilitySlotRefresh = 0;
+	}
+	entity_list.AddMerc(this, true, true);
+	strn0cpy(owner_swap_name, owner->GetName(), 64);
+	// Remove Numbers before making name unique
+	EntityList::RemoveNumbers(owner_swap_name);
+	// Make the new name unique and set it
+	entity_list.MakeNameUnique(owner_swap_name);
+
+	CalcBonuses();
+	AI_Start();
+
+	SentPositionPacket(0.0f, 0.0f, 0.0f, 0.0f, 0);
+	SendArmorAppearance();
+
+	Log(Logs::General, Logs::Mercenaries, "Spawn Mercenary %s.", GetName());
+
+	return true;
+}
+
 bool Merc::Spawn(Client *owner) {
 
 	if(!owner)
 		return false;
+
+	if (RuleB(Mercs, UseAltAsMercSystem))
+	{
+		return SpawnPlayerMerc(owner);
+	}
 
 	MercTemplate* merc_template = zone->GetMercTemplate(GetMercTemplateID());
 
@@ -5112,12 +5309,12 @@ bool Merc::Spawn(Client *owner) {
 
 	entity_list.AddMerc(this, true, true);
 
+	CalcBonuses();
+	AI_Start();
+
 	SentPositionPacket(0.0f, 0.0f, 0.0f, 0.0f, 0);
 
 	Log(Logs::General, Logs::Mercenaries, "Spawn Mercenary %s.", GetName());
-
-	//UpdateMercAppearance();
-
 
 	return true;
 }
@@ -6360,4 +6557,155 @@ uint32 Merc::CalcUpkeepCost(uint32 templateID , uint8 level, uint8 currency_type
 	}
 
 	return cost;
+}
+
+
+MercCharacter_Struct* Merc::GetOwnerEntryForThisMerc()
+{
+	if (_characterID == 0)
+		return nullptr;
+
+	auto mercClientOwner = GetMercOwner();
+
+	if (mercClientOwner)
+	{
+		auto ValidMercs = mercClientOwner->GetValidMercenaries();
+
+		auto ValidMercItr = ValidMercs.find(_characterID);
+		if (ValidMercItr != ValidMercs.end())
+		{
+			return ValidMercItr->second;
+		}
+	}
+	return nullptr;
+}
+
+PlayerProfile_Struct* Merc::GetPP()
+{
+	auto ourClientMerc = GetOwnerEntryForThisMerc();
+	if (ourClientMerc)
+	{
+		return &ourClientMerc->m_pp;
+	}
+
+	return nullptr;
+}
+
+ExtendedProfile_Struct* Merc::GetEPP()
+{
+	auto ourClientMerc = GetOwnerEntryForThisMerc();
+	if (ourClientMerc)
+	{
+		return &ourClientMerc->m_epp;
+	}
+
+	return nullptr;
+}
+
+EQ::InventoryProfile* Merc::GetInv()
+{
+	auto ourClientMerc = GetOwnerEntryForThisMerc();
+	if (ourClientMerc)
+	{
+		return &ourClientMerc->m_inv;
+	}
+
+	return nullptr;
+}
+
+void Merc::SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP)
+{
+	if (GetMercOwner())
+	{
+		SwapsBuffsWithOwner();
+		auto current_owner_char_id = owner_char_id;
+		auto current_self_char_id = _characterID;
+		owner_char_id = current_self_char_id;
+		_characterID = current_owner_char_id;
+		Mob::SwapReferences(character_id, in_MercPP, in_MercEPP);
+		SendArmorAppearance();
+	};
+}
+
+void Merc::SwapsBuffsWithOwner()
+{
+
+	auto ownerClient = GetMercOwner();
+	if (ownerClient)
+	{
+
+		const uint16 entityIdOfMerc = this->GetID();
+		const uint16 entityIdOfClient = ownerClient->GetID();
+		//init merc/owner buffs
+		int max_slots = GetMaxTotalSlots();
+		Buffs_Struct* newmercbuffs = new Buffs_Struct[max_slots];
+		for (int x = 0; x < max_slots; x++)
+		{
+			memset(&newmercbuffs[x], 0, sizeof(Buffs_Struct));
+			newmercbuffs[x].spellid = SPELL_UNKNOWN;
+			newmercbuffs[x].UpdateClient = false;
+		}
+		Buffs_Struct* newownerbuffs = new Buffs_Struct[max_slots];
+		for (int x = 0; x < max_slots; x++)
+		{
+			memset(&newownerbuffs[x], 0, sizeof(Buffs_Struct));
+			newownerbuffs[x].spellid = SPELL_UNKNOWN;
+			newownerbuffs[x].UpdateClient = false;
+		}
+
+		//loop through existing, update new with proper flags
+		int buffslot = 0;
+		for (buffslot = 0; buffslot < max_slots; buffslot++) {
+			Buffs_Struct& curbuf = buffs[buffslot];
+			memcpy(&newownerbuffs[buffslot], &curbuf, sizeof(Buffs_Struct));
+		}
+
+		for (buffslot = 0; buffslot < max_slots; buffslot++) {
+			Buffs_Struct& owner_buffs = ownerClient->buffs[buffslot];
+			memcpy(&newmercbuffs[buffslot], &owner_buffs, sizeof(Buffs_Struct));
+		}
+
+		ownerClient->FakeBuffFadeAll();
+		FakeBuffFadeAll();
+
+		for (buffslot = 0; buffslot < max_slots; buffslot++) {
+			Buffs_Struct& owner_buffs = newmercbuffs[buffslot];
+			if (entityIdOfClient == buffs[buffslot].casterid)
+			{
+				owner_buffs.casterid = entityIdOfMerc;
+			}
+			if (entityIdOfMerc == buffs[buffslot].casterid)
+			{
+				owner_buffs.casterid = entityIdOfClient;
+			}
+			memcpy(&buffs[buffslot], &owner_buffs, sizeof(Buffs_Struct));
+		}
+
+		for (buffslot = 0; buffslot < max_slots; buffslot++) {
+			Buffs_Struct& owner_buffs = newownerbuffs[buffslot];
+			if (entityIdOfClient == buffs[buffslot].casterid)
+			{
+				owner_buffs.casterid = entityIdOfMerc;
+			}
+			if (entityIdOfMerc == buffs[buffslot].casterid)
+			{
+				owner_buffs.casterid = entityIdOfClient;
+			}
+			memcpy(&ownerClient->buffs[buffslot], &owner_buffs, sizeof(Buffs_Struct));
+		}
+
+		if (ownerClient)
+		{
+			EQApplicationPacket* outapp = ownerClient->MakeBuffsPacket(false);
+			ownerClient->CastToClient()->FastQueuePacket(&outapp);
+		}
+		EQApplicationPacket* outapp2 = MakeBuffsPacket();
+
+		entity_list.QueueClientsByTarget(this, outapp2, false, nullptr, true, false, EQ::versions::maskSoDAndLater);
+		safe_delete(outapp2);
+
+		safe_delete_array(newmercbuffs);
+		safe_delete_array(newownerbuffs);
+
+	}
 }

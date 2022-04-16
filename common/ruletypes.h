@@ -207,6 +207,7 @@ RULE_INT(Mercs, AggroRadiusPuller, 25, "Determines the distance from which a mer
 RULE_INT(Mercs, ResurrectRadius, 50, "Determines the distance from which a healer merc will attempt to resurrect a group member's corpse")
 RULE_INT(Mercs, ScaleRate, 100, "Merc scale factor")
 RULE_BOOL(Mercs, AllowMercSuspendInCombat, true, "Allow merc suspend in combat")
+RULE_BOOL(Mercs, UseAltAsMercSystem, true, "Enables a custom system where you can use alternate characters on the account as mercenaries.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Guild)

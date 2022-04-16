@@ -3148,6 +3148,11 @@ void Mob::SetTargetable(bool on) {
 	}
 }
 
+void Mob::SetEndurance(int32 newEnd)
+{
+	return;
+}
+
 const int32& Mob::SetMana(int32 amount)
 {
 	CalcMaxMana();
@@ -6641,3 +6646,252 @@ void Mob::SetBucket(std::string bucket_name, std::string bucket_value, std::stri
 	std::string full_bucket_name = fmt::format("{}-{}", GetBucketKey(), bucket_name);
 	DataBucket::SetData(full_bucket_name, bucket_value, expiration);
 }
+
+void Mob::SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP)
+{
+	if (in_MercPP.name) {
+		strn0cpy(name, &in_MercPP.name[0], 64);
+	}
+	if (&in_MercPP.last_name[0]) {
+		strn0cpy(lastname, in_MercPP.last_name, 32);
+	}
+	memset(clean_name, 0, 64);
+	targeted = 0;
+	currently_fleeing = false;
+	SetMoving(false);
+	moved = false;
+	m_RewindLocation = glm::vec3();
+	m_RelativePosition = glm::vec4();
+	gender = in_MercPP.gender;
+	race = in_MercPP.race;
+	base_gender = in_MercPP.gender;
+	base_race = in_MercPP.race;
+	use_model = false;
+	class_ = in_MercPP.class_;
+	bodytype = BT_Humanoid;
+	orig_bodytype = BT_Humanoid;
+	deity = in_MercPP.deity;
+	level = in_MercPP.level;
+	orig_level = in_MercPP.level;
+	npctype_id = 0;
+
+
+	switch (in_MercPP.race)
+	{
+	case OGRE:
+		size = 9; break;
+	case TROLL:
+		size = 8; break;
+	case VAHSHIR: case BARBARIAN:
+		size = 7; break;
+	case HUMAN: case HIGH_ELF: case ERUDITE: case IKSAR: case DRAKKIN:
+		size = 6; break;
+	case HALF_ELF:
+		size = 5.5; break;
+	case WOOD_ELF: case DARK_ELF: case FROGLOK:
+		size = 5; break;
+	case DWARF:
+		size = 4; break;
+	case HALFLING:
+		size = 3.5; break;
+	case GNOME:
+		size = 3; break;
+	default:
+		size = 5;
+	}
+	base_size = size;
+	runspeed = IsClient() ? 0.7f : 1.25f;
+	// neotokyo: sanity check
+	if (runspeed < 0 || runspeed > 20) {
+		runspeed = 1.25f;
+	}
+
+	// clients -- todo movement this doesn't take into account gm speed we need to fix that.
+	base_runspeed = (int)((float)runspeed * 40.0f);
+	if (runspeed == 0.7f) {
+		base_runspeed = 28;
+		walkspeed = 0.3f;
+		base_walkspeed = 12;
+		fearspeed = 0.625f;
+		base_fearspeed = 25;
+		// npcs
+	}
+	else {
+		base_walkspeed = base_runspeed * 100 / 265;
+		walkspeed = ((float)base_walkspeed) * 0.025f;
+		base_fearspeed = base_runspeed * 100 / 127;
+		fearspeed = ((float)base_fearspeed) * 0.025f;
+	}
+	last_hp_percent = 0;
+	last_hp = 0;
+	last_max_hp = 0;
+	current_speed = base_runspeed;
+	m_PlayerState = 0;
+
+	QuestSpawned = false;
+	QuestLootEntity = 0;
+	// sanity check
+	if (runspeed < 0 || runspeed > 20) {
+		runspeed = 1.25f;
+	}
+	haircolor = in_MercPP.haircolor;
+	beardcolor = in_MercPP.beardcolor;
+	eyecolor1 = in_MercPP.eyecolor1;
+	eyecolor2 = in_MercPP.eyecolor2;
+	hairstyle = in_MercPP.hairstyle;
+	luclinface = in_MercPP.face;
+	beard = in_MercPP.beard;
+	drakkin_heritage = in_MercPP.drakkin_heritage;
+	drakkin_tattoo = in_MercPP.drakkin_tattoo;
+	drakkin_details = in_MercPP.drakkin_details;
+	attack_speed = 0;
+	attack_delay = 0;
+	slow_mitigation = 0;
+	findable = false;
+	trackable = true;
+	has_shieldequiped = false;
+	has_twohandbluntequiped = false;
+	has_twohanderequipped = false;
+	can_facestab = false;
+	has_numhits = false;
+	has_MGB = false;
+	has_ProjectIllusion = false;
+	SpellPowerDistanceMod = 0;
+	last_los_check = false;
+	aa_title = 0xFF;
+	AC = 0;
+	ATK = 0;
+	ExtraHaste = 0;
+	bEnraged = false;
+	shield_target = nullptr;
+	current_mana = 0;
+	max_mana = 0;
+	hp_regen = 0;
+	mana_regen = 0;
+	ooc_regen = RuleI(NPC, OOCRegen); //default Out of Combat Regen
+	maxlevel = level;
+	scalerate = 0;
+	invisible = 0;
+
+
+	MR = CR = FR = DR = PR = Corrup = 0;
+	invisible = 0;
+	invisible_undead = false;
+	invisible_animals = false;
+	sneaking = false;
+	hidden = false;
+	improved_hidden = false;
+	invulnerable = false;
+	qglobal = 0;
+	spawned = false;
+	rare_spawn = false;
+	always_aggro = false;
+	current_endurance = 0;
+	std::fill(std::begin(m_spellHitsLeft), std::end(m_spellHitsLeft), 0);
+
+	m_Delta = glm::vec4();
+	animation = 0;
+
+	isgrouped = false;
+	israidgrouped = false;
+
+	IsHorse = false;
+
+	entity_id_being_looted = 0;
+	_appearance = eaStanding;
+	pRunAnimSpeed = 0;
+
+	spellend_timer.Disable();
+	bardsong_timer.Disable();
+	bardsong = 0;
+	bardsong_target_id = 0;
+	casting_spell_id = 0;
+	casting_spell_timer = 0;
+	casting_spell_timer_duration = 0;
+	casting_spell_inventory_slot = 0;
+	casting_spell_aa_id = 0;
+	target = 0;
+
+	ActiveProjectileATK = false;
+	for (int i = 0; i < MAX_SPELL_PROJECTILE; i++) {
+		ProjectileAtk[i].increment = 0;
+		ProjectileAtk[i].hit_increment = 0;
+		ProjectileAtk[i].target_id = 0;
+		ProjectileAtk[i].wpn_dmg = 0;
+		ProjectileAtk[i].origin_x = 0.0f;
+		ProjectileAtk[i].origin_y = 0.0f;
+		ProjectileAtk[i].origin_z = 0.0f;
+		ProjectileAtk[i].tlast_x = 0.0f;
+		ProjectileAtk[i].tlast_y = 0.0f;
+		ProjectileAtk[i].ranged_id = 0;
+		ProjectileAtk[i].ammo_id = 0;
+		ProjectileAtk[i].ammo_slot = 0;
+		ProjectileAtk[i].skill = 0;
+		ProjectileAtk[i].speed_mod = 0.0f;
+	}
+	memset(&itembonuses, 0, sizeof(StatBonuses));
+	memset(&spellbonuses, 0, sizeof(StatBonuses));
+	memset(&aabonuses, 0, sizeof(StatBonuses));
+	spellbonuses.AggroRange = -1;
+	spellbonuses.AssistRange = -1;
+	typeofpet = petNone; // default to not a pet
+	petpower = 0;
+	held = false;
+	gheld = false;
+	nocast = false;
+	focused = false;
+	pet_stop = false;
+	pet_regroup = false;
+	_IsTempPet = false;
+	pet_owner_client = false;
+	pet_targetlock_id = 0;
+	attacked_count = 0;
+	mezzed = false;
+	stunned = false;
+	silenced = false;
+	amnesiad = false;
+	inWater = false;
+	int m;
+	for (m = 0; m < MAX_SHIELDERS; m++) {
+		shielder[m].shielder_id = 0;
+		shielder[m].shielder_bonus = 0;
+	}
+
+	destructibleobject = false;
+	flee_mode = false;
+	currently_fleeing = false;
+
+	pause_timer_complete = false;
+	ForcedMovement = 0;
+	roamer = false;
+	rooted = false;
+	charmed = false;
+	has_virus = false;
+	for (int i = 0; i < MAX_SPELL_TRIGGER * 2; i++) {
+		viral_spells[i] = 0;
+	}
+
+	pStandingPetOrder = SPO_Follow;
+	pseudo_rooted = false;
+	// Bind wound
+	bindwound_timer.Disable();
+	bindwound_target = 0;
+	// hp event
+	nexthpevent = -1;
+	nextinchpevent = -1;
+
+	hasTempPet = false;
+	count_TempPet = 0;
+
+	m_is_running = false;
+	for (int i = 0; i < EQ::skills::HIGHEST_SKILL + 2; i++) {
+		SkillDmgTaken_Mod[i] = 0;
+	}
+
+	for (int i = 0; i < HIGHEST_RESIST + 2; i++) {
+		Vulnerability_Mod[i] = 0;
+	}
+
+	emoteid = 0;
+	endur_upkeep = false;
+	degenerating_effects = false;
