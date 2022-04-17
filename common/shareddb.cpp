@@ -2002,12 +2002,6 @@ void SharedDatabase::LoadLootTables(void *data, uint32 size) {
 			lt->mincash = static_cast<uint32>(atoul(row[1]));
 			lt->maxcash = static_cast<uint32>(atoul(row[2]));
 			lt->avgcoin = static_cast<uint32>(atoul(row[3]));
-
-			lt->content_flags.min_expansion = static_cast<int16>(atoi(row[9]));
-			lt->content_flags.max_expansion = static_cast<int16>(atoi(row[10]));
-
-			strn0cpy(lt->content_flags.content_flags,          row[11], sizeof(lt->content_flags.content_flags));
-			strn0cpy(lt->content_flags.content_flags_disabled, row[12],  sizeof(lt->content_flags.content_flags_disabled));
 		}
 
         if(current_entry > 128)
