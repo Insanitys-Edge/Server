@@ -30,20 +30,20 @@
 
 void RegisterAllPatches(EQStreamIdentifier &into)
 {
-	Titanium::Register(into);
+	/*Titanium::Register(into);
 	SoF::Register(into);
 	SoD::Register(into);
 	UF::Register(into);
-	RoF::Register(into);
+	RoF::Register(into);*/
 	RoF2::Register(into);
 }
 
 void ReloadAllPatches()
 {
-	Titanium::Reload();
-	SoF::Reload();
-	SoD::Reload();
-	UF::Reload();
-	RoF::Reload();
+	//Titanium::Reload();
+	//SoF::Reload();
+	//SoD::Reload();
+	//UF::Reload();
+	//RoF::Reload();
 	RoF2::Reload();
 }

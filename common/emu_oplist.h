@@ -582,4 +582,10 @@ N(OP_ZoneSpawns),
 N(OP_ZoneUnavail),
 N(OP_ResetAA),
 N(OP_UnderWorld),
+//Custom
+N(OP_EdgeDamage),
+N(OP_EdgeStats),
+N(OP_EdgeBankRequest),
+N(OP_EdgeSuppressSpellMsg),
+
 // mail and chat opcodes located in ../mail_oplist.h

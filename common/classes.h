@@ -146,5 +146,6 @@ bool IsChainClass(uint8 class_id);
 bool IsLeatherClass(uint8 class_id);
 bool IsClothClass(uint8 class_id);
 uint8 ClassArmorType(uint8 class_id);
+const char* GetEQClassName(uint8 class_, uint8 level = 0);
 
 #endif

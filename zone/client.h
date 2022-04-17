@@ -268,7 +268,7 @@ public:
 	void Trader_CustomerBrowsing(Client *Customer);
 	void Trader_EndTrader();
 	void Trader_StartTrader();
-	uint8 WithCustomer(uint16 NewCustomer);
+	uint8 WithCustomer(uint16 NewCustomer, uint8 clear);
 	void KeyRingLoad();
 	void KeyRingAdd(uint32 item_id);
 	bool KeyRingCheck(uint32 item_id);
@@ -280,6 +280,7 @@ public:
 	void SendBuyerPacket(Client* Buyer);
 	GetItems_Struct* GetTraderItems();
 	void SendBazaarWelcome();
+	void SendBazaarTraders();
 	void DyeArmor(EQ::TintProfile* dye);
 	void DyeArmorBySlot(uint8 slot, uint8 red, uint8 green, uint8 blue, uint8 use_tint = 0x00);
 	uint8 SlotConvert(uint8 slot,bool bracer=false);
@@ -296,14 +297,15 @@ public:
 					const char *message9 = nullptr);
 	void Tell_StringID(uint32 string_id, const char *who, const char *message);
 	void SendColoredText(uint32 color, std::string message);
-	void SendBazaarResults(uint32 trader_id, uint32 in_class, uint32 in_race, uint32 item_stat, uint32 item_slot, uint32 item_type, char item_name[64], uint32 min_price, uint32 max_price);
-	void SendTraderItem(uint32 item_id,uint16 quantity);
-	uint16 FindTraderItem(int32 SerialNumber,uint16 Quantity);
-	uint32 FindTraderItemSerialNumber(int32 ItemID);
-	EQ::ItemInstance* FindTraderItemBySerialNumber(int32 SerialNumber);
-	void FindAndNukeTraderItem(int32 item_id,int16 quantity,Client* customer,uint16 traderslot);
-	void NukeTraderItem(uint16 slot, int16 charges, int16 quantity, Client* customer, uint16 traderslot, int32 uniqueid, int32 itemid = 0);
-	void ReturnTraderReq(const EQApplicationPacket* app,int16 traderitemcharges, uint32 itemid = 0);
+	void SendBazaarResults(uint32 trader_id, uint32 class_, uint32 race, uint32 stat, uint32 slot, uint32 type, char name[64], uint32 minprice, uint32 maxprice);
+	void SendTraderItem(const EQ::ItemInstance* iinst, int16 quantity);
+	uint16 FindTraderItem(uint32 SerialNumber, uint16 Quantity);
+	uint32 FindTraderItemSerialNumber(uint32 ItemID);
+	void UpdateTraderCustomerPriceChanged(uint32 TraderID, uint16 CustomerID, TraderCharges_Struct* gis, uint32 ItemID, int32 Charges, uint32 NewPrice, uint32 SerialNumber);
+	EQ::ItemInstance* FindTraderItemBySerialNumber(uint32 SerialNumber);
+	void FindAndNukeTraderItem(uint32 item_id, uint16 quantity, Client* customer, uint16 traderslot);
+	void NukeTraderItem(uint16 slot, int16 charges, uint16 quantity, Client* customer, uint16 traderslot, uint32 uniqueid, uint32 itemid = 0);
+	void ReturnTraderReq(const EQApplicationPacket* app, int16 traderitemcharges, uint32 TraderID, uint32 itemid = 0);
 	void TradeRequestFailed(const EQApplicationPacket* app);
 	void BuyTraderItem(TraderBuy_Struct* tbs,Client* trader,const EQApplicationPacket* app);
 	void TraderUpdate(uint16 slot_id,uint32 trader_id);
@@ -443,9 +445,9 @@ public:
 	void DisableAreaRegens();
 
 	void ServerFilter(SetServerFilter_Struct* filter);
-	void BulkSendTraderInventory(uint32 char_id);
+	void BulkSendTraderInventory(Client* trader);
 	void SendSingleTraderItem(uint32 char_id, int uniqueid);
-	void BulkSendMerchantInventory(int merchant_id, int npcid);
+	void BulkSendMerchantInventory(int merchant_id, int npcid, bool bSpecialLogic = false);
 
 	inline uint8 GetLanguageSkill(uint16 n) const { return m_pp.languages[n]; }
 
@@ -922,6 +924,7 @@ public:
 	void Undye();
 	int32 GetItemIDAt(int16 slot_id);
 	int32 GetAugmentIDAt(int16 slot_id, uint8 augslot);
+	std::list<BazaarSearchResultsNew_Struct> QueryBazaar(uint32 TraderID, uint32 Class_, uint32 Race, uint32 ItemStat, uint32 Slot, uint32 Type, char Name[64], uint32 MinPrice, uint32 MaxPrice);
 	bool PutItemInInventory(int16 slot_id, const EQ::ItemInstance& inst, bool client_update = false);
 	bool PushItemOnCursor(const EQ::ItemInstance& inst, bool client_update = false);
 	void SendCursorBuffer();
@@ -932,6 +935,8 @@ public:
 	void SwapItemResync(MoveItem_Struct* move_slots);
 	void QSSwapItemAuditor(MoveItem_Struct* move_in, bool postaction_call = false);
 	void PutLootInInventory(int16 slot_id, const EQ::ItemInstance &inst, ServerLootItem_Struct** bag_item_data = 0);
+	bool TryForceStack(uint32 new_item_id, int32 count, uint8 type = ItemPacketTrade);
+	bool TryAutoVendor(uint32 new_item_id, int32 count, uint8 type = ItemPacketTrade);
 	bool AutoPutLootInInventory(EQ::ItemInstance& inst, bool try_worn = false, bool try_cursor = true, ServerLootItem_Struct** bag_item_data = 0);
 	bool SummonItem(uint32 item_id, int16 charges = -1, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0, bool attuned = false, uint16 to_slot = EQ::invslot::slotCursor, uint32 ornament_icon = 0, uint32 ornament_idfile = 0, uint32 ornament_hero_model = 0);
 	void SummonBaggedItems(uint32 bag_item_id, const std::vector<ServerLootItem_Struct>& bag_items);
@@ -945,8 +950,18 @@ public:
 	void SendItemLink(const EQ::ItemInstance* inst, bool sendtoall=false);
 	void SendLootItemInPacket(const EQ::ItemInstance* inst, int16 slot_id);
 	void SendItemPacket(int16 slot_id, const EQ::ItemInstance* inst, ItemPacketType packet_type);
+	void SendEdgeStatBulkUpdate();
+	void SendEdgeHPStats();
+	void SendEdgeManaStats();
+	void SendEdgeEnduranceStats();
+	void SendEdgeMovementStats();
+
+	void ForceMerchantWindow(uint32 entityId, uint8 type, uint32 merchant_id = 0);
+	int64_t GetStatValueEdgeType(eStatEntry eLabel);
 	bool IsValidSlot(uint32 slot);
 	bool IsBankSlot(uint32 slot);
+
+	std::map<uint32, LootLockout> loot_lockouts;
 
 	inline bool IsTrader() const { return(Trader); }
 	inline bool IsBuyer() const { return(Buyer); }
@@ -1757,6 +1772,7 @@ private:
 	uint16 duel_target;
 	bool duelaccepted;
 	std::list<uint32> keyring;
+	uint32 merchant_id_interacting_with;
 	bool tellsoff; // GM /toggle
 	bool gm_hide_me;
 	bool LFG;
@@ -1781,7 +1797,7 @@ private:
 	uint16 controlling_boat_id;
 	uint16 controlled_mob_id;
 	uint16 TrackingID;
-	uint16 CustomerID;
+	std::list<uint16> CustomerID;
 	uint16 TraderID;
 	uint32 account_creation;
 	uint8 firstlogon;

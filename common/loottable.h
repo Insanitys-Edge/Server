@@ -28,6 +28,7 @@ struct LootTableEntries_Struct {
 	uint8	mindrop;
 	uint8	multiplier;
 	float	probability;
+	uint8	multiplier_min;
 };
 
 struct ContentFlags {
@@ -51,8 +52,6 @@ struct LootDropEntries_Struct {
 	int8   item_charges;
 	uint8  equip_item;
 	float  chance;
-	uint16 trivial_min_level;
-	uint16 trivial_max_level;
 	uint16 npc_min_level;
 	uint16 npc_max_level;
 	uint8  multiplier;

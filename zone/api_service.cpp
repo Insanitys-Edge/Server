@@ -214,7 +214,7 @@ Json::Value ApiGetNpcListDetail(EQ::Net::WebsocketServerConnection *connection, 
 		row["ldon_locked_skill"]             = npc->GetLDoNLockedSkill();
 		row["ldon_trap_spell_id"]            = npc->GetLDoNTrapSpellID();
 		row["ldon_trap_type"]                = npc->GetLDoNTrapType();
-		row["loottable_id"]                  = npc->GetLoottableID();
+		row["loottable_id"]                  = npc->GetLoottableID().size() ? npc->GetLoottableID().at(0) : 0;
 		row["max_dmg"]                       = npc->GetMaxDMG();
 		row["max_wp"]                        = npc->GetMaxWp();
 		row["min_damage"]                    = npc->GetMinDamage();

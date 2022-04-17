@@ -10,6 +10,7 @@
 #include "../common/eqemu_logsys.h"
 #include "aa_ability.h"
 #include "event_codes.h"
+#include "zonedump.h"
 #include "../common/repositories/doors_repository.h"
 
 #define WOLF 42
@@ -165,10 +166,16 @@ struct ZoneSpellsBlocked {
 };
 
 struct TraderCharges_Struct {
-	uint32 ItemID[80];
-	int32 SerialNumber[80];
-	uint32 ItemCost[80];
-	int32 Charges[80];
+	uint32 ItemID[100];
+	uint32 AugID1[100];
+	uint32 AugID2[100];
+	uint32 AugID3[100];
+	uint32 AugID4[100];
+	uint32 AugID5[100];
+	uint32 AugID6[100];
+	uint32 SerialNumber[100];
+	uint32 ItemCost[100];
+	int32 Charges[100];
 };
 
 const int MaxMercStanceID = 9;
@@ -291,13 +298,14 @@ public:
 	Ground_Spawns*	LoadGroundSpawns(uint32 zone_id, int16 version, Ground_Spawns* gs);
 
 	/* Traders  */
-	void	SaveTraderItem(uint32 char_id,uint32 itemid,uint32 uniqueid, int32 charges,uint32 itemcost,uint8 slot);
+	void	SaveTraderItem(uint32 char_id,uint32 itemid,uint32 uniqueid, int32 charges,uint32 itemcost,uint8 slot, uint32 aug1, uint32 aug2, uint32 aug3, uint32 aug4, uint32 aug5, uint32 aug6);
 	void	UpdateTraderItemCharges(int char_id, uint32 ItemInstID, int32 charges);
-	void	UpdateTraderItemPrice(int CharID, uint32 ItemID, uint32 Charges, uint32 NewPrice);
+	void	UpdateTraderItemPrice(int CharID, uint32 SerialNumber, uint32 ItemID, uint32 Charges, uint32 NewPrice);
 	void	DeleteTraderItem(uint32 char_id);
 	void	DeleteTraderItem(uint32 char_id,uint16 slot_id);
 
 	EQ::ItemInstance* LoadSingleTraderItem(uint32 char_id, int uniqueid);
+	uint32 GetCharIDByItemSerial(int uniqueid);
 	Trader_Struct* LoadTraderItem(uint32 char_id);
 	TraderCharges_Struct* LoadTraderItemWithCharges(uint32 char_id);
 
@@ -354,7 +362,7 @@ public:
 	bool SaveCharacterAA(uint32 character_id, uint32 aa_id, uint32 current_level, uint32 charges);
 	bool SaveCharacterBandolier(uint32 character_id, uint8 bandolier_id, uint8 bandolier_slot, uint32 item_id, uint32 icon, const char* bandolier_name);
 	bool SaveCharacterBindPoint(uint32 character_id, const BindStruct &bind, uint32 bind_number);
-	bool SaveCharacterCurrency(uint32 character_id, PlayerProfile_Struct* pp);
+	bool SaveCharacterCurrency(uint32 account_id, PlayerProfile_Struct* pp);
 	bool SaveCharacterData(uint32 character_id, uint32 account_id, PlayerProfile_Struct* pp, ExtendedProfile_Struct* m_epp);
 	bool SaveCharacterDisc(uint32 character_id, uint32 slot_id, uint32 disc_id);
 	bool SaveCharacterLanguage(uint32 character_id, uint32 lang_id, uint32 value);
@@ -370,6 +378,9 @@ public:
 	double GetEXPModifier(uint32 character_id, uint32 zone_id) const;
 	void SetAAEXPModifier(uint32 character_id, uint32 zone_id, double aa_modifier);
 	void SetEXPModifier(uint32 character_id, uint32 zone_id, double exp_modifier);
+
+	bool SaveCharacterLootLockout(std::map<uint32, LootLockout>& loot_lockout_list, uint32 account_id, uint32 ip_addr, uint32 expiry, uint32 npctype_id);
+
 
 	/* Character Inventory  */
 	bool	NoRentExpired(const char* name);
@@ -496,8 +507,20 @@ public:
 	bool		GetPoweredPetEntry(const char *pet_type, int16 petpower, PetRecord *into);
 	bool		GetBasePetItems(int32 equipmentset, uint32 *items);
 	BeastlordPetData::PetStruct GetBeastlordPetData(uint16 race_id);
+	void		GenerateMoney(uint32 loottable_id, uint32* copper, uint32 * silver, uint32 * gold, uint32 * plat);
+	void		GenerateLootTableList_Legacy(uint32 loottable_id, std::list<ServerLootItem_Struct*>& itemlist);
+	void		GenerateLootDropList_Legacy(std::list<ServerLootItem_Struct*>& item_in, uint32 lootdrop_id, uint8 droplimit, uint8 mindrop);
+
+	void		GenerateLootTableList(uint32 loottable_id, std::list<ServerLootItem_Struct*>& itemlist, bool lootdebug = false);
+
+	//These are for debug rule overrides
+	void		DisplayFullLootTableList(Client* c, uint32 loottable_id);
+	void		DisplayFullLootDropList(Client* c, uint32 lootdrop_id);
+
+	void		GenerateFullLootTableList(uint32 loottable_id, std::list<ServerLootItem_Struct*>& itemlist);
+	void		GenerateFullLootDropList(std::list<ServerLootItem_Struct*>& item_in, uint32 lootdrop_id, uint8 droplimit, uint8 mindrop);
 	void		AddLootTableToNPC(NPC* npc, uint32 loottable_id, ItemList* itemlist, uint32* copper, uint32* silver, uint32* gold, uint32* plat);
-	void		AddLootDropToNPC(NPC* npc, uint32 lootdrop_id, ItemList* item_list, uint8 droplimit, uint8 mindrop);
+	void		AddLootDropToNPC(NPC* npc, uint32 lootdrop_id, ItemList* itemlist, uint8 droplimit, uint8 mindrop);
 	uint32		GetMaxNPCSpellsID();
 	uint32		GetMaxNPCSpellsEffectsID();
 	bool GetAuraEntry(uint16 spell_id, AuraRecord &record);

@@ -16,11 +16,6 @@ void command_viewzoneloot(Client *c, const Seperator *sep)
 		return;
 	}
 
-	for (auto npc_entity : npc_list) {
-		auto current_npc_item_list = npc_entity.second->GetItemList();
-		zone_loot_list.insert({npc_entity.second->GetID(), current_npc_item_list});
-	}
-
 	for (auto loot_item : zone_loot_list) {
 		uint32      current_entity_id = loot_item.first;
 		auto        current_item_list = loot_item.second;

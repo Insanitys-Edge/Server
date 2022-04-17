@@ -134,6 +134,23 @@ public:
 	void MerchantCloseShop();
 	int GetRawAC();
 	int GetAvoidanceRating();
+
+	void AddQuestLoot(int itemid);
+	void AddQuestLoot(int itemid, int charges);
+	void AddPetLoot(int itemid);
+	void AddPetLoot(int itemid, int charges);
+	bool GetQuestLoot(int itemid);
+	bool GetPetLoot(int itemid);
+	bool HasQuestLoot();
+	void DeleteQuestLoot();
+	void DeleteQuestLoot(int itemid1);
+	void DeleteQuestLoot(int itemid1, int itemid2);
+	void DeleteQuestLoot(int itemid1, int itemid2, int itemid3);
+	void DeleteQuestLoot(int itemid1, int itemid2, int itemid3, int itemid4);
+	bool HasRequiredQuestLoot(int itemid1, int itemid2, int itemid3, int itemid4);
+	int QuestLootCount(int itemid);
+	bool CanTalk();
+
 	void SetSimpleRoamBox(float box_size);
 	void SetSimpleRoamBox(float box_size, float move_distance);
 	void SetSimpleRoamBox(float box_size, float move_distance, int move_delay);

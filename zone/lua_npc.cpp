@@ -24,42 +24,34 @@ int Lua_NPC::CheckNPCFactionAlly(int faction) {
 
 void Lua_NPC::AddItem(int item_id, int charges) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges);
 }
 
 void Lua_NPC::AddItem(int item_id, int charges, bool equip) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges, equip);
 }
 
 void Lua_NPC::AddItem(int item_id, int charges, bool equip, int aug1) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges, equip, aug1);
 }
 
 void Lua_NPC::AddItem(int item_id, int charges, bool equip, int aug1, int aug2) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges, equip, aug1, aug2);
 }
 
 void Lua_NPC::AddItem(int item_id, int charges, bool equip, int aug1, int aug2, int aug3) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges, equip, aug1, aug2, aug3);
 }
 
 void Lua_NPC::AddItem(int item_id, int charges, bool equip, int aug1, int aug2, int aug3, int aug4) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges, equip, aug1, aug2, aug3, aug4);
 }
 
 void Lua_NPC::AddItem(int item_id, int charges, bool equip, int aug1, int aug2, int aug3, int aug4, int aug5) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges, equip, aug1, aug2, aug3, aug4, aug5);
 }
 
 void Lua_NPC::AddItem(int item_id, int charges, bool equip, int aug1, int aug2, int aug3, int aug4, int aug5, int aug6) {
 	Lua_Safe_Call_Void();
-	self->AddItem(item_id, charges, equip, aug1, aug2, aug3, aug4, aug5, aug6);
 }
 
 void Lua_NPC::AddLootTable() {
@@ -74,15 +66,17 @@ void Lua_NPC::AddLootTable(int id) {
 
 void Lua_NPC::RemoveItem(int item_id) {
 	Lua_Safe_Call_Void();
-	self->RemoveItem(item_id);
+	ServerLootItem_Struct* sitem = self->GetItemByID(item_id);
+	self->RemoveItem(sitem);
 }
 
-void Lua_NPC::RemoveItem(int item_id, int quantity) {
+void Lua_NPC::RemoveItem(int item_id, int slot) {
 	Lua_Safe_Call_Void();
-	self->RemoveItem(item_id, quantity);
+	ServerLootItem_Struct* sitem = self->GetItem(slot, item_id);
+	self->RemoveItem(sitem);
 }
 
-void Lua_NPC::RemoveItem(int item_id, int quantity, int slot) {
+void Lua_NPC::RemoveItem(int item_id, int slot, int quantity) {
 	Lua_Safe_Call_Void();
 	self->RemoveItem(item_id, quantity, slot);
 }
@@ -109,7 +103,7 @@ int Lua_NPC::CountLoot() {
 
 int Lua_NPC::GetLoottableID() {
 	Lua_Safe_Call_Int();
-	return self->GetLoottableID();
+	return self->GetLoottableID().empty() ? 0 : self->GetLoottableID().at(0);
 }
 
 uint32 Lua_NPC::GetCopper() {
@@ -538,6 +532,89 @@ int Lua_NPC::GetAvoidanceRating()
 	Lua_Safe_Call_Int();
 	return self->GetAvoidanceRating();
 }
+void Lua_NPC::AddQuestLoot(int itemid)
+{
+	Lua_Safe_Call_Void();
+	self->AddQuestLoot(itemid);
+}
+
+void Lua_NPC::AddQuestLoot(int itemid, int charges)
+{
+	Lua_Safe_Call_Void();
+	self->AddQuestLoot(itemid, charges);
+}
+
+void Lua_NPC::AddPetLoot(int itemid)
+{
+	Lua_Safe_Call_Void();
+	self->AddPetLoot(itemid, 1, true);
+}
+
+void Lua_NPC::AddPetLoot(int itemid, int charges)
+{
+	Lua_Safe_Call_Void();
+	self->AddPetLoot(itemid, charges, true);
+}
+
+bool Lua_NPC::GetQuestLoot(int itemid)
+{
+	Lua_Safe_Call_Bool();
+	return self->HasQuestLootItem(itemid);
+}
+
+bool Lua_NPC::GetPetLoot(int itemid)
+{
+	Lua_Safe_Call_Bool();
+	return self->HasPetLootItem(itemid);
+}
+
+bool Lua_NPC::HasQuestLoot()
+{
+	Lua_Safe_Call_Bool();
+	return self->HasQuestLoot();
+}
+
+void Lua_NPC::DeleteQuestLoot()
+{
+	Lua_Safe_Call_Void();
+	self->DeleteQuestLoot(0);
+}
+
+void Lua_NPC::DeleteQuestLoot(int itemid1)
+{
+	Lua_Safe_Call_Void();
+	self->DeleteQuestLoot(itemid1);
+}
+
+void Lua_NPC::DeleteQuestLoot(int itemid1, int itemid2)
+{
+	Lua_Safe_Call_Void();
+	self->DeleteQuestLoot(itemid1, itemid2);
+}
+
+void Lua_NPC::DeleteQuestLoot(int itemid1, int itemid2, int itemid3)
+{
+	Lua_Safe_Call_Void();
+	self->DeleteQuestLoot(itemid1, itemid2, itemid3);
+}
+
+void Lua_NPC::DeleteQuestLoot(int itemid1, int itemid2, int itemid3, int itemid4)
+{
+	Lua_Safe_Call_Void();
+	self->DeleteQuestLoot(itemid1, itemid2, itemid3, itemid4);
+}
+
+bool Lua_NPC::HasRequiredQuestLoot(int itemid1, int itemid2, int itemid3, int itemid4)
+{
+	Lua_Safe_Call_Bool();
+	return self->HasRequiredQuestLoot(itemid1, itemid2, itemid3, itemid4);
+}
+
+int Lua_NPC::QuestLootCount(int itemid)
+{
+	Lua_Safe_Call_Int();
+	return self->CountQuestItem(itemid);
+}
 
 void Lua_NPC::SetSimpleRoamBox(float box_size)
 {
@@ -590,25 +667,25 @@ void Lua_NPC::ClearLastName()
 bool Lua_NPC::HasItem(uint32 item_id)
 {
 	Lua_Safe_Call_Bool();
-	return self->HasItem(item_id);
+	return false;
 }
 
 uint16 Lua_NPC::CountItem(uint32 item_id)
 {
 	Lua_Safe_Call_Int();
-	return self->CountItem(item_id);
+	return 0;
 }
 
 uint32 Lua_NPC::GetItemIDBySlot(uint16 loot_slot)
 {
 	Lua_Safe_Call_Int();
-	return self->GetItemIDBySlot(loot_slot);
+	return 0;
 }
 
 uint16 Lua_NPC::GetFirstSlotByItemID(uint32 item_id)
 {
 	Lua_Safe_Call_Int();
-	return self->GetFirstSlotByItemID(item_id);
+	return 0;
 }
 
 float Lua_NPC::GetHealScale()
@@ -621,18 +698,6 @@ float Lua_NPC::GetSpellScale()
 {
 	Lua_Safe_Call_Real();
 	return self->GetSpellScale();
-}
-
-Lua_NPC_Loot_List Lua_NPC::GetLootList(lua_State* L) {
-	Lua_Safe_Call_Class(Lua_NPC_Loot_List);
-	Lua_NPC_Loot_List ret;
-	auto loot_list = self->GetLootList();
-
-	for (auto item_id : loot_list) {
-		ret.entries.push_back(item_id);
-	}
-
-	return ret;
 }
 
 void Lua_NPC::AddAISpellEffect(int spell_effect_id, int base_value, int limit_value, int max_value)
@@ -659,6 +724,12 @@ float Lua_NPC::GetNPCStat(const char* identifier)
 	return self->GetNPCStat(identifier);
 }
 
+bool Lua_NPC::CanTalk()
+{
+	Lua_Safe_Call_Bool();
+	return self->CanTalk();
+}
+
 luabind::scope lua_register_npc() {
 	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")	
 	.def(luabind::constructor<>())
@@ -676,8 +747,12 @@ luabind::scope lua_register_npc() {
 	.def("AddItem", (void(Lua_NPC::*)(int,int,bool,int,int,int,int))&Lua_NPC::AddItem)
 	.def("AddItem", (void(Lua_NPC::*)(int,int,bool,int,int,int,int,int))&Lua_NPC::AddItem)
 	.def("AddItem", (void(Lua_NPC::*)(int,int,bool,int,int,int,int,int,int))&Lua_NPC::AddItem)
-	.def("AddLootTable", (void(Lua_NPC::*)(int))&Lua_NPC::AddLootTable)
 	.def("AddLootTable", (void(Lua_NPC::*)(void))&Lua_NPC::AddLootTable)
+	.def("AddLootTable", (void(Lua_NPC::*)(int))&Lua_NPC::AddLootTable)
+	.def("RemoveItem", (void(Lua_NPC::*)(int))&Lua_NPC::RemoveItem)
+	.def("RemoveItem", (void(Lua_NPC::*)(int,int))&Lua_NPC::RemoveItem)
+	.def("RemoveItem", (void(Lua_NPC::*)(int,int,int))&Lua_NPC::RemoveItem)
+
 	.def("AssignWaypoints", (void(Lua_NPC::*)(int))&Lua_NPC::AssignWaypoints)
 	.def("CalculateNewWaypoint", (void(Lua_NPC::*)(void))&Lua_NPC::CalculateNewWaypoint)
 	.def("ChangeLastName", (void(Lua_NPC::*)(const char*))&Lua_NPC::ChangeLastName)
@@ -700,93 +775,107 @@ luabind::scope lua_register_npc() {
 	.def("GetGold", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetGold)
 	.def("GetGrid", (int(Lua_NPC::*)(void))&Lua_NPC::GetGrid)
 	.def("GetGuardPointX", (float(Lua_NPC::*)(void))&Lua_NPC::GetGuardPointX)
-	.def("GetGuardPointY", (float(Lua_NPC::*)(void))&Lua_NPC::GetGuardPointY)
-	.def("GetGuardPointZ", (float(Lua_NPC::*)(void))&Lua_NPC::GetGuardPointZ)
-	.def("GetHealScale", (float(Lua_NPC::*)(void))&Lua_NPC::GetHealScale)
-	.def("GetItemIDBySlot", (uint32(Lua_NPC::*)(uint16))&Lua_NPC::GetItemIDBySlot)
-	.def("GetLootList", (Lua_NPC_Loot_List(Lua_NPC::*)(lua_State* L))&Lua_NPC::GetLootList)
-	.def("GetLoottableID", (int(Lua_NPC::*)(void))&Lua_NPC::GetLoottableID)
-	.def("GetMaxDMG", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetMaxDMG)
-	.def("GetMaxDamage", (uint32(Lua_NPC::*)(int))&Lua_NPC::GetMaxDamage)
-	.def("GetMaxWp", (int(Lua_NPC::*)(void))&Lua_NPC::GetMaxWp)
-	.def("GetMinDMG", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetMinDMG)
-	.def("GetNPCFactionID", (int(Lua_NPC::*)(void))&Lua_NPC::GetNPCFactionID)
-	.def("GetNPCHate", (int(Lua_NPC::*)(Lua_Mob))&Lua_NPC::GetNPCHate)
-	.def("GetNPCSpellsID", (int(Lua_NPC::*)(void))&Lua_NPC::GetNPCSpellsID)
-	.def("GetNPCSpellsID", (int(Lua_NPC::*)(void))&Lua_NPC::GetNPCSpellsID)
-	.def("GetNPCStat", (float(Lua_NPC::*)(const char*))&Lua_NPC::GetNPCStat)
-	.def("GetPetSpellID", (int(Lua_NPC::*)(void))&Lua_NPC::GetPetSpellID)
-	.def("GetPlatinum", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetPlatinum)
-	.def("GetPrimSkill", (int(Lua_NPC::*)(void))&Lua_NPC::GetPrimSkill)
-	.def("GetPrimaryFaction", (int(Lua_NPC::*)(void))&Lua_NPC::GetPrimaryFaction)
-	.def("GetRawAC", (int(Lua_NPC::*)(void))&Lua_NPC::GetRawAC)
-	.def("GetScore", (int(Lua_NPC::*)(void))&Lua_NPC::GetScore)
-	.def("GetSecSkill", (int(Lua_NPC::*)(void))&Lua_NPC::GetSecSkill)
-	.def("GetSilver", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetSilver)
-	.def("GetSlowMitigation", (int(Lua_NPC::*)(void))&Lua_NPC::GetSlowMitigation)
-	.def("GetSp2", (uint32(Lua_NPC::*)(void))&Lua_NPC::GetSp2)
-	.def("GetSpawnKillCount", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnKillCount)
-	.def("GetSpawnPointH", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointH)
-	.def("GetSpawnPointID", (int(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointID)
-	.def("GetSpawnPointX", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointX)
-	.def("GetSpawnPointY", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointY)
-	.def("GetSpawnPointZ", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpawnPointZ)
-	.def("GetSpellFocusDMG", (void(Lua_NPC::*)(int))&Lua_NPC::GetSpellFocusDMG)
-	.def("GetSpellFocusHeal", (void(Lua_NPC::*)(int))&Lua_NPC::GetSpellFocusHeal)
-	.def("GetSpellScale", (float(Lua_NPC::*)(void))&Lua_NPC::GetSpellScale)
-	.def("GetSwarmOwner", (int(Lua_NPC::*)(void))&Lua_NPC::GetSwarmOwner)
-	.def("GetSwarmTarget", (int(Lua_NPC::*)(void))&Lua_NPC::GetSwarmTarget)
-	.def("GetWaypointMax", (int(Lua_NPC::*)(void))&Lua_NPC::GetWaypointMax)
-	.def("HasAISpellEffect", (bool(Lua_NPC::*)(int))&Lua_NPC::HasAISpellEffect)
-	.def("HasItem", (bool(Lua_NPC::*)(uint32))&Lua_NPC::HasItem)
-	.def("IsAnimal", (bool(Lua_NPC::*)(void))&Lua_NPC::IsAnimal)
-	.def("IsGuarding", (bool(Lua_NPC::*)(void))&Lua_NPC::IsGuarding)
-	.def("IsOnHatelist", (bool(Lua_NPC::*)(Lua_Mob))&Lua_NPC::IsOnHatelist)
-	.def("IsRaidTarget", (bool(Lua_NPC::*)(void))&Lua_NPC::IsRaidTarget)
-	.def("IsTaunting", (bool(Lua_NPC::*)(void))&Lua_NPC::IsTaunting)
-	.def("MerchantCloseShop", (void(Lua_NPC::*)(void))&Lua_NPC::MerchantCloseShop)
-	.def("MerchantOpenShop", (void(Lua_NPC::*)(void))&Lua_NPC::MerchantOpenShop)
-	.def("ModifyNPCStat", (void(Lua_NPC::*)(const char*,const char*))&Lua_NPC::ModifyNPCStat)
-	.def("MoveTo", (void(Lua_NPC::*)(float,float,float,float,bool))&Lua_NPC::MoveTo)
-	.def("NextGuardPosition", (void(Lua_NPC::*)(void))&Lua_NPC::NextGuardPosition)
-	.def("PauseWandering", (void(Lua_NPC::*)(int))&Lua_NPC::PauseWandering)
-	.def("PickPocket", (void(Lua_NPC::*)(Lua_Client))&Lua_NPC::PickPocket)
-	.def("RecalculateSkills", (void(Lua_NPC::*)(void))&Lua_NPC::RecalculateSkills)
-	.def("RemoveAISpell", (void(Lua_NPC::*)(int))&Lua_NPC::RemoveAISpell)
-	.def("RemoveAISpellEffect", (void(Lua_NPC::*)(int))&Lua_NPC::RemoveAISpellEffect)
-	.def("RemoveCash", (void(Lua_NPC::*)(void))&Lua_NPC::RemoveCash)
-	.def("RemoveItem", (void(Lua_NPC::*)(int))&Lua_NPC::RemoveItem)
-	.def("RemoveItem", (void(Lua_NPC::*)(int,int))&Lua_NPC::RemoveItem)
-	.def("RemoveItem", (void(Lua_NPC::*)(int,int,int))&Lua_NPC::RemoveItem)
-	.def("ResumeWandering", (void(Lua_NPC::*)(void))&Lua_NPC::ResumeWandering)
-	.def("SaveGuardSpot", (void(Lua_NPC::*)(float,float,float,float))&Lua_NPC::SaveGuardSpot)
-	.def("ScaleNPC", (void(Lua_NPC::*)(uint8))&Lua_NPC::ScaleNPC)
-	.def("SetCopper", (void(Lua_NPC::*)(uint32))&Lua_NPC::SetCopper)
-	.def("SetFollowCanRun", (void(Lua_NPC::*)(bool))&Lua_NPC::SetFollowCanRun)
-	.def("SetFollowDistance", (void(Lua_NPC::*)(int))&Lua_NPC::SetFollowDistance)
-	.def("SetFollowID", (void(Lua_NPC::*)(int))&Lua_NPC::SetFollowID)
-	.def("SetGold", (void(Lua_NPC::*)(uint32))&Lua_NPC::SetGold)
-	.def("SetGrid", (void(Lua_NPC::*)(int))&Lua_NPC::SetGrid)
-	.def("SetNPCFactionID", (void(Lua_NPC::*)(int))&Lua_NPC::SetNPCFactionID)
-	.def("SetPetSpellID", (void(Lua_NPC::*)(int))&Lua_NPC::SetPetSpellID)
-	.def("SetPlatinum", (void(Lua_NPC::*)(uint32))&Lua_NPC::SetPlatinum)
-	.def("SetPrimSkill", (void(Lua_NPC::*)(int))&Lua_NPC::SetPrimSkill)
-	.def("SetSaveWaypoint", (void(Lua_NPC::*)(int))&Lua_NPC::SetSaveWaypoint)
-	.def("SetSecSkill", (void(Lua_NPC::*)(int))&Lua_NPC::SetSecSkill)
-	.def("SetSilver", (void(Lua_NPC::*)(uint32))&Lua_NPC::SetSilver)
-	.def("SetSimpleRoamBox", (void(Lua_NPC::*)(float))&Lua_NPC::SetSimpleRoamBox)
-	.def("SetSimpleRoamBox", (void(Lua_NPC::*)(float, float))&Lua_NPC::SetSimpleRoamBox)
-	.def("SetSimpleRoamBox", (void(Lua_NPC::*)(float, float, int))&Lua_NPC::SetSimpleRoamBox)
-	.def("SetSp2", (void(Lua_NPC::*)(int))&Lua_NPC::SetSp2)
-	.def("SetSpellFocusDMG", (void(Lua_NPC::*)(int))&Lua_NPC::SetSpellFocusDMG)
-	.def("SetSpellFocusHeal", (void(Lua_NPC::*)(int))&Lua_NPC::SetSpellFocusHeal)
-	.def("SetSwarmTarget", (void(Lua_NPC::*)(int))&Lua_NPC::SetSwarmTarget)
-	.def("SetTaunting", (void(Lua_NPC::*)(bool))&Lua_NPC::SetTaunting)
-	.def("SetWaypointPause", (void(Lua_NPC::*)(void))&Lua_NPC::SetWaypointPause)
-	.def("Signal", (void(Lua_NPC::*)(int))&Lua_NPC::Signal)
-	.def("StartSwarmTimer", (void(Lua_NPC::*)(uint32))&Lua_NPC::StartSwarmTimer)
-	.def("StopWandering", (void(Lua_NPC::*)(void))&Lua_NPC::StopWandering)
-	.def("UpdateWaypoint", (void(Lua_NPC::*)(int))&Lua_NPC::UpdateWaypoint);
+	.def("GetGuardPointY", (float(Lua_NPC::*)(void))& Lua_NPC::GetGuardPointY)
+	.def("GetGuardPointZ", (float(Lua_NPC::*)(void))& Lua_NPC::GetGuardPointZ)
+	.def("GetHealScale", (float(Lua_NPC::*)(void))& Lua_NPC::GetHealScale)
+	.def("GetItemIDBySlot", (uint32(Lua_NPC::*)(uint16))& Lua_NPC::GetItemIDBySlot)
+	.def("GetLoottableID", (int(Lua_NPC::*)(void))& Lua_NPC::GetLoottableID)
+	.def("GetMaxDMG", (uint32(Lua_NPC::*)(void))& Lua_NPC::GetMaxDMG)
+	.def("GetMaxDamage", (uint32(Lua_NPC::*)(int))& Lua_NPC::GetMaxDamage)
+	.def("GetMaxWp", (int(Lua_NPC::*)(void))& Lua_NPC::GetMaxWp)
+	.def("GetMinDMG", (uint32(Lua_NPC::*)(void))& Lua_NPC::GetMinDMG)
+	.def("GetNPCFactionID", (int(Lua_NPC::*)(void))& Lua_NPC::GetNPCFactionID)
+	.def("GetNPCHate", (int(Lua_NPC::*)(Lua_Mob))& Lua_NPC::GetNPCHate)
+	.def("GetNPCSpellsID", (int(Lua_NPC::*)(void))& Lua_NPC::GetNPCSpellsID)
+	.def("GetNPCSpellsID", (int(Lua_NPC::*)(void))& Lua_NPC::GetNPCSpellsID)
+	.def("GetNPCStat", (float(Lua_NPC::*)(const char*))& Lua_NPC::GetNPCStat)
+	.def("GetPetSpellID", (int(Lua_NPC::*)(void))& Lua_NPC::GetPetSpellID)
+	.def("GetPlatinum", (uint32(Lua_NPC::*)(void))& Lua_NPC::GetPlatinum)
+	.def("GetPrimSkill", (int(Lua_NPC::*)(void))& Lua_NPC::GetPrimSkill)
+	.def("GetPrimaryFaction", (int(Lua_NPC::*)(void))& Lua_NPC::GetPrimaryFaction)
+	.def("GetRawAC", (int(Lua_NPC::*)(void))& Lua_NPC::GetRawAC)
+	.def("GetScore", (int(Lua_NPC::*)(void))& Lua_NPC::GetScore)
+	.def("GetSecSkill", (int(Lua_NPC::*)(void))& Lua_NPC::GetSecSkill)
+	.def("GetSilver", (uint32(Lua_NPC::*)(void))& Lua_NPC::GetSilver)
+	.def("GetSlowMitigation", (int(Lua_NPC::*)(void))& Lua_NPC::GetSlowMitigation)
+	.def("GetSp2", (uint32(Lua_NPC::*)(void))& Lua_NPC::GetSp2)
+	.def("GetSpawnKillCount", (int(Lua_NPC::*)(void))& Lua_NPC::GetSpawnKillCount)
+	.def("GetSpawnPointH", (float(Lua_NPC::*)(void))& Lua_NPC::GetSpawnPointH)
+	.def("GetSpawnPointID", (int(Lua_NPC::*)(void))& Lua_NPC::GetSpawnPointID)
+	.def("GetSpawnPointX", (float(Lua_NPC::*)(void))& Lua_NPC::GetSpawnPointX)
+	.def("GetSpawnPointY", (float(Lua_NPC::*)(void))& Lua_NPC::GetSpawnPointY)
+	.def("GetSpawnPointZ", (float(Lua_NPC::*)(void))& Lua_NPC::GetSpawnPointZ)
+	.def("GetSpellFocusDMG", (void(Lua_NPC::*)(int))& Lua_NPC::GetSpellFocusDMG)
+	.def("GetSpellFocusHeal", (void(Lua_NPC::*)(int))& Lua_NPC::GetSpellFocusHeal)
+	.def("GetSpellScale", (float(Lua_NPC::*)(void))& Lua_NPC::GetSpellScale)
+	.def("GetSwarmOwner", (int(Lua_NPC::*)(void))& Lua_NPC::GetSwarmOwner)
+	.def("GetSwarmTarget", (int(Lua_NPC::*)(void))& Lua_NPC::GetSwarmTarget)
+	.def("GetWaypointMax", (int(Lua_NPC::*)(void))& Lua_NPC::GetWaypointMax)
+	.def("HasAISpellEffect", (bool(Lua_NPC::*)(int))& Lua_NPC::HasAISpellEffect)
+	.def("HasItem", (bool(Lua_NPC::*)(uint32))& Lua_NPC::HasItem)
+	.def("IsAnimal", (bool(Lua_NPC::*)(void))& Lua_NPC::IsAnimal)
+	.def("IsGuarding", (bool(Lua_NPC::*)(void))& Lua_NPC::IsGuarding)
+	.def("IsOnHatelist", (bool(Lua_NPC::*)(Lua_Mob))& Lua_NPC::IsOnHatelist)
+	.def("IsRaidTarget", (bool(Lua_NPC::*)(void))& Lua_NPC::IsRaidTarget)
+	.def("IsTaunting", (bool(Lua_NPC::*)(void))& Lua_NPC::IsTaunting)
+	.def("MerchantCloseShop", (void(Lua_NPC::*)(void))& Lua_NPC::MerchantCloseShop)
+	.def("MerchantOpenShop", (void(Lua_NPC::*)(void))& Lua_NPC::MerchantOpenShop)
+	.def("ModifyNPCStat", (void(Lua_NPC::*)(const char*, const char*))& Lua_NPC::ModifyNPCStat)
+	.def("MoveTo", (void(Lua_NPC::*)(float, float, float, float, bool))& Lua_NPC::MoveTo)
+	.def("NextGuardPosition", (void(Lua_NPC::*)(void))& Lua_NPC::NextGuardPosition)
+	.def("PauseWandering", (void(Lua_NPC::*)(int))& Lua_NPC::PauseWandering)
+	.def("PickPocket", (void(Lua_NPC::*)(Lua_Client))& Lua_NPC::PickPocket)
+	.def("RecalculateSkills", (void(Lua_NPC::*)(void))& Lua_NPC::RecalculateSkills)
+	.def("RemoveAISpell", (void(Lua_NPC::*)(int))& Lua_NPC::RemoveAISpell)
+	.def("RemoveAISpellEffect", (void(Lua_NPC::*)(int))& Lua_NPC::RemoveAISpellEffect)
+	.def("RemoveCash", (void(Lua_NPC::*)(void))& Lua_NPC::RemoveCash)
+	.def("RemoveItem", (void(Lua_NPC::*)(int))& Lua_NPC::RemoveItem)
+	.def("RemoveItem", (void(Lua_NPC::*)(int, int))& Lua_NPC::RemoveItem)
+	.def("RemoveItem", (void(Lua_NPC::*)(int, int, int))& Lua_NPC::RemoveItem)
+	.def("ResumeWandering", (void(Lua_NPC::*)(void))& Lua_NPC::ResumeWandering)
+	.def("SaveGuardSpot", (void(Lua_NPC::*)(float, float, float, float))& Lua_NPC::SaveGuardSpot)
+	.def("ScaleNPC", (void(Lua_NPC::*)(uint8))& Lua_NPC::ScaleNPC)
+	.def("SetCopper", (void(Lua_NPC::*)(uint32))& Lua_NPC::SetCopper)
+	.def("SetFollowCanRun", (void(Lua_NPC::*)(bool))& Lua_NPC::SetFollowCanRun)
+	.def("SetFollowDistance", (void(Lua_NPC::*)(int))& Lua_NPC::SetFollowDistance)
+	.def("SetFollowID", (void(Lua_NPC::*)(int))& Lua_NPC::SetFollowID)
+	.def("SetGold", (void(Lua_NPC::*)(uint32))& Lua_NPC::SetGold)
+	.def("SetGrid", (void(Lua_NPC::*)(int))& Lua_NPC::SetGrid)
+	.def("SetNPCFactionID", (void(Lua_NPC::*)(int))& Lua_NPC::SetNPCFactionID)
+	.def("SetPetSpellID", (void(Lua_NPC::*)(int))& Lua_NPC::SetPetSpellID)
+	.def("SetPlatinum", (void(Lua_NPC::*)(uint32))& Lua_NPC::SetPlatinum)
+	.def("SetPrimSkill", (void(Lua_NPC::*)(int))& Lua_NPC::SetPrimSkill)
+	.def("SetSaveWaypoint", (void(Lua_NPC::*)(int))& Lua_NPC::SetSaveWaypoint)
+	.def("SetSecSkill", (void(Lua_NPC::*)(int))& Lua_NPC::SetSecSkill)
+	.def("SetSilver", (void(Lua_NPC::*)(uint32))& Lua_NPC::SetSilver)
+	.def("SetSimpleRoamBox", (void(Lua_NPC::*)(float))& Lua_NPC::SetSimpleRoamBox)
+	.def("SetSimpleRoamBox", (void(Lua_NPC::*)(float, float))& Lua_NPC::SetSimpleRoamBox)
+	.def("SetSimpleRoamBox", (void(Lua_NPC::*)(float, float, int))& Lua_NPC::SetSimpleRoamBox)
+	.def("SetSp2", (void(Lua_NPC::*)(int))& Lua_NPC::SetSp2)
+	.def("SetSpellFocusDMG", (void(Lua_NPC::*)(int))& Lua_NPC::SetSpellFocusDMG)
+	.def("SetSpellFocusHeal", (void(Lua_NPC::*)(int))& Lua_NPC::SetSpellFocusHeal)
+	.def("SetSwarmTarget", (void(Lua_NPC::*)(int))& Lua_NPC::SetSwarmTarget)
+	.def("SetTaunting", (void(Lua_NPC::*)(bool))& Lua_NPC::SetTaunting)
+	.def("SetWaypointPause", (void(Lua_NPC::*)(void))& Lua_NPC::SetWaypointPause)
+	.def("Signal", (void(Lua_NPC::*)(int))& Lua_NPC::Signal)
+	.def("StartSwarmTimer", (void(Lua_NPC::*)(uint32))& Lua_NPC::StartSwarmTimer)
+	.def("StopWandering", (void(Lua_NPC::*)(void))& Lua_NPC::StopWandering)
+	.def("UpdateWaypoint", (void(Lua_NPC::*)(int))& Lua_NPC::UpdateWaypoint)
+	.def("CanTalk", (bool(Lua_NPC::*)(void))& Lua_NPC::CanTalk)
+	.def("AddQuestLoot", (void(Lua_NPC::*)(int))& Lua_NPC::AddQuestLoot)
+	.def("AddQuestLoot", (void(Lua_NPC::*)(int, int))& Lua_NPC::AddQuestLoot)
+	.def("AddPetLoot", (void(Lua_NPC::*)(int))& Lua_NPC::AddPetLoot)
+	.def("AddPetLoot", (void(Lua_NPC::*)(int, int))& Lua_NPC::AddPetLoot)
+	.def("GetQuestLoot", (bool(Lua_NPC::*)(int))& Lua_NPC::GetQuestLoot)
+	.def("GetPetLoot", (bool(Lua_NPC::*)(int))& Lua_NPC::GetPetLoot)
+	.def("HasQuestLoot", (bool(Lua_NPC::*)(void))& Lua_NPC::HasQuestLoot)
+	.def("DeleteQuestLoot", (void(Lua_NPC::*)(void))& Lua_NPC::DeleteQuestLoot)
+	.def("DeleteQuestLoot", (void(Lua_NPC::*)(int))& Lua_NPC::DeleteQuestLoot)
+	.def("DeleteQuestLoot", (void(Lua_NPC::*)(int, int))& Lua_NPC::DeleteQuestLoot)
+	.def("DeleteQuestLoot", (void(Lua_NPC::*)(int, int, int))& Lua_NPC::DeleteQuestLoot)
+	.def("DeleteQuestLoot", (void(Lua_NPC::*)(int, int, int, int))& Lua_NPC::DeleteQuestLoot)
+	.def("HasRequiredQuestLoot", (bool(Lua_NPC::*)(int, int, int, int))& Lua_NPC::HasRequiredQuestLoot)
+	.def("QuestLootCount", (int(Lua_NPC::*)(int))& Lua_NPC::QuestLootCount);
 }
 
 luabind::scope lua_register_npc_loot_list() {

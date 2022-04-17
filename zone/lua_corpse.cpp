@@ -89,12 +89,12 @@ void Lua_Corpse::AddItem(uint32 itemnum, uint16 charges, int16 slot, uint32 aug1
 
 uint32 Lua_Corpse::GetWornItem(int16 equipSlot) {
 	Lua_Safe_Call_Int();
-	return self->GetWornItem(equipSlot);
+	return -1;
 }
 
-void Lua_Corpse::RemoveItem(uint16 lootslot) {
+void Lua_Corpse::RemoveItem(Client* c, uint16 lootslot) {
 	Lua_Safe_Call_Void();
-	self->RemoveItem(lootslot);
+	self->RemoveItem(c, lootslot);
 }
 
 void Lua_Corpse::SetCash(uint32 copper, uint32 silver, uint32 gold, uint32 platinum) {
@@ -109,7 +109,7 @@ void Lua_Corpse::RemoveCash() {
 
 bool Lua_Corpse::IsEmpty() {
 	Lua_Safe_Call_Bool();
-	return self->IsEmpty();
+	return true;
 }
 
 void Lua_Corpse::SetDecayTimer(uint32 decaytime) {
@@ -159,45 +159,45 @@ void Lua_Corpse::AddLooter(Lua_Mob who) {
 
 bool Lua_Corpse::HasItem(uint32 item_id) {
 	Lua_Safe_Call_Bool();
-	return self->HasItem(item_id);
+	return false;
 }
 
 uint16 Lua_Corpse::CountItem(uint32 item_id) {
 	Lua_Safe_Call_Int();
-	return self->CountItem(item_id);
+	return 0;
 }
 
 uint32 Lua_Corpse::GetItemIDBySlot(uint16 loot_slot) {
 	Lua_Safe_Call_Int();
-	return self->GetItemIDBySlot(loot_slot);
+	return 0;
 }
 
 uint16 Lua_Corpse::GetFirstSlotByItemID(uint32 item_id) {
 	Lua_Safe_Call_Int();
-	return self->GetFirstSlotByItemID(item_id);
+	return 0;
 }
 
 void Lua_Corpse::RemoveItemByID(uint32 item_id) {
 	Lua_Safe_Call_Void();
-	self->RemoveItemByID(item_id);
+//	self->RemoveItemByID(item_id);
 }
 
 void Lua_Corpse::RemoveItemByID(uint32 item_id, int quantity) {
 	Lua_Safe_Call_Void();
-	self->RemoveItemByID(item_id, quantity);	
+//	self->RemoveItemByID(item_id, quantity);	
 }
 
-Lua_Corpse_Loot_List Lua_Corpse::GetLootList(lua_State* L) {
-	Lua_Safe_Call_Class(Lua_Corpse_Loot_List);
-	Lua_Corpse_Loot_List ret;
-	auto loot_list = self->GetLootList();
-	
-	for (auto item_id : loot_list) {
-		ret.entries.push_back(item_id);
-	}
-
-	return ret;
-}
+//Lua_Corpse_Loot_List Lua_Corpse::GetLootList(lua_State* L) {
+//	Lua_Safe_Call_Class(Lua_Corpse_Loot_List);
+//	Lua_Corpse_Loot_List ret;
+//	auto loot_list = self->GetLootList();
+//	
+//	for (auto item_id : loot_list) {
+//		ret.entries.push_back(item_id);
+//	}
+//
+//	return ret;
+//}
 
 luabind::scope lua_register_corpse() {
 	return luabind::class_<Lua_Corpse, Lua_Mob>("Corpse")
@@ -220,7 +220,7 @@ luabind::scope lua_register_corpse() {
 	.def("GetFirstSlotByItemID", (uint16(Lua_Corpse::*)(uint32))&Lua_Corpse::GetFirstSlotByItemID)
 	.def("GetGold", (uint32(Lua_Corpse::*)(void))&Lua_Corpse::GetGold)
 	.def("GetItemIDBySlot", (uint32(Lua_Corpse::*)(uint16))&Lua_Corpse::GetItemIDBySlot)
-	.def("GetLootList", (Lua_Corpse_Loot_List(Lua_Corpse::*)(lua_State* L))&Lua_Corpse::GetLootList)
+	//.def("GetLootList", (Lua_Corpse_Loot_List(Lua_Corpse::*)(lua_State* L))&Lua_Corpse::GetLootList)
 	.def("GetOwnerName", (const char *(Lua_Corpse::*)(void))&Lua_Corpse::GetOwnerName)
 	.def("GetPlatinum", (uint32(Lua_Corpse::*)(void))&Lua_Corpse::GetPlatinum)
 	.def("GetSilver", (uint32(Lua_Corpse::*)(void))&Lua_Corpse::GetSilver)
@@ -231,7 +231,7 @@ luabind::scope lua_register_corpse() {
 	.def("IsRezzed", (bool(Lua_Corpse::*)(void))&Lua_Corpse::IsRezzed)
 	.def("Lock", (void(Lua_Corpse::*)(void))&Lua_Corpse::Lock)
 	.def("RemoveCash", (void(Lua_Corpse::*)(void))&Lua_Corpse::RemoveCash)
-	.def("RemoveItem", (void(Lua_Corpse::*)(uint16))&Lua_Corpse::RemoveItem)
+	.def("RemoveItem", (void(Lua_Corpse::*)(Client*, uint16))&Lua_Corpse::RemoveItem)
 	.def("RemoveItemByID", (void(Lua_Corpse::*)(uint32))&Lua_Corpse::RemoveItemByID)
 	.def("RemoveItemByID", (void(Lua_Corpse::*)(uint32,int))&Lua_Corpse::RemoveItemByID)
 	.def("ResetLooter", (void(Lua_Corpse::*)(void))&Lua_Corpse::ResetLooter)

@@ -1613,5 +1613,8 @@ namespace PlayerAppearance
 #define RACE_PEGASUS_732 732
 #define RACE_INTERACTIVE_OBJECT_2250 2250
 
+const char* GetRaceName(uint16 race);
+const char* GetRaceNamePlural(uint16 race);
+
 #endif
 

@@ -81,35 +81,24 @@ public:
 	uint32 GetTotalTimeEntitledOnAccount(uint32 AccountID);
 	void SetMailKey(int CharID, int IPAddress, int MailKey);
 	std::string GetMailKey(int CharID, bool key_only = false);
-	bool SaveCursor(
-		uint32 char_id,
-		std::list<EQ::ItemInstance *>::const_iterator &start,
-		std::list<EQ::ItemInstance *>::const_iterator &end
-	);
-	bool SaveInventory(uint32 char_id, const EQ::ItemInstance *inst, int16 slot_id);
+
+		/*
+		    Character InventoryProfile
+		*/
+		bool	SaveCursor(uint32 char_id, uint32 account_id, std::list<EQ::ItemInstance*>::const_iterator &start, std::list<EQ::ItemInstance*>::const_iterator &end);
+		bool	SaveInventory(uint32 char_id, uint32 account_id, const EQ::ItemInstance* inst, int16 slot_id);
 	bool DeleteSharedBankSlot(uint32 char_id, int16 slot_id);
-	bool DeleteInventorySlot(uint32 char_id, int16 slot_id);
-	bool UpdateInventorySlot(uint32 char_id, const EQ::ItemInstance *inst, int16 slot_id);
-	bool UpdateSharedBankSlot(uint32 char_id, const EQ::ItemInstance *inst, int16 slot_id);
+		bool    DeleteInventorySlot(uint32 char_id, uint32 account_id, int16 slot_id);
+		bool    UpdateInventorySlot(uint32 char_id, uint32 account_id, const EQ::ItemInstance* inst, int16 slot_id);
 	bool VerifyInventory(uint32 account_id, int16 slot_id, const EQ::ItemInstance *inst);
-	bool GetSharedBank(uint32 id, EQ::InventoryProfile *inv, bool is_charid);
 	int32 GetSharedPlatinum(uint32 account_id);
 	bool SetSharedPlatinum(uint32 account_id, int32 amount_to_add);
-	bool GetInventory(uint32 char_id, EQ::InventoryProfile *inv);
-	bool GetInventory(uint32 account_id, char *name, EQ::InventoryProfile *inv); // deprecated
+		bool	GetInventory(uint32 char_id, uint32 account_id, EQ::InventoryProfile* inv);
 	std::map<uint32, uint32> GetItemRecastTimestamps(uint32 char_id);
 	uint32 GetItemRecastTimestamp(uint32 char_id, uint32 recast_type);
 	void ClearOldRecastTimestamps(uint32 char_id);
-	bool SetStartingItems(
-		PlayerProfile_Struct *pp,
-		EQ::InventoryProfile *inv,
-		uint32 si_race,
-		uint32 si_class,
-		uint32 si_deity,
-		uint32 si_current_zone,
-		char *si_name,
-		int admin
-	);
+		bool	SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryProfile* inv, uint32 si_race, uint32 si_class, uint32 si_deity, uint32 si_current_zone, char* si_name, int admin);
+
 
 	std::string GetBook(const char *txtfile, int16 *language);
 
@@ -179,7 +168,7 @@ public:
 	 */
 	int GetMaxSpellID();
 	bool LoadSpells(const std::string &prefix, int32 *records, const SPDat_Spell_Struct **sp);
-	void LoadSpells(void *data, int max_spells);
+		void LoadSpells(void *data, int max_spells, bool bForExport = false);
 	void LoadDamageShieldTypes(SPDat_Spell_Struct *sp, int32 iMaxSpellID);
 
 	/**

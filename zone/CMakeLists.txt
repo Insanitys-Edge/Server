@@ -73,6 +73,7 @@ SET(zone_sources
     lua_spawn.cpp
     lua_spell.cpp
     lua_stat_bonuses.cpp
+	elixir.cpp
     embperl.cpp
     embxs.cpp
     entity.cpp
@@ -184,6 +185,7 @@ SET(zone_headers
     corpse.h
     data_bucket.h
     doors.h
+   	elixir.h
     dialogue_window.h
     dynamic_zone.h
     embparser.h

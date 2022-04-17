@@ -219,7 +219,7 @@ XS(XS_NPC_GetLoottableID) {
 		uint32 RETVAL;
 		dXSTARG;
 		VALIDATE_THIS_IS_NPC;
-		RETVAL = THIS->GetLoottableID();
+		RETVAL = 0;
 		XSprePUSH;
 		PUSHu((UV) RETVAL);
 	}
@@ -1746,7 +1746,7 @@ XS(XS_NPC_HasItem) {
 		bool has_item = false;
 		uint32 item_id = (uint32) SvUV(ST(1));
 		VALIDATE_THIS_IS_NPC;
-		has_item = THIS->HasItem(item_id);
+		has_item = false;
 		ST(0) = boolSV(has_item);
 		sv_2mortal(ST(0));
 	}
@@ -1764,7 +1764,7 @@ XS(XS_NPC_CountItem) {
 		uint32 item_id = (uint32) SvUV(ST(1));
 		dXSTARG;
 		VALIDATE_THIS_IS_NPC;
-		item_count = THIS->CountItem(item_id);
+		item_count = 0;
 		XSprePUSH;
 		PUSHu((UV) item_count);
 	}
@@ -1782,7 +1782,7 @@ XS(XS_NPC_GetItemIDBySlot) {
 		uint16 loot_slot = (uint16) SvUV(ST(1));
 		dXSTARG;
 		VALIDATE_THIS_IS_NPC;
-		item_id = THIS->GetItemIDBySlot(loot_slot);
+		item_id = 0;
 		XSprePUSH;
 		PUSHu((UV) item_id);
 	}
@@ -1800,7 +1800,7 @@ XS(XS_NPC_GetFirstSlotByItemID) {
 		uint32 item_id = (uint32) SvUV(ST(1));
 		dXSTARG;
 		VALIDATE_THIS_IS_NPC;
-		loot_slot = THIS->GetFirstSlotByItemID(item_id);
+		loot_slot = 0;
 		XSprePUSH;
 		PUSHu((UV) loot_slot);
 	}
@@ -1841,28 +1841,28 @@ XS(XS_NPC_GetSpellScale) {
 	XSRETURN(1);
 }
 
-XS(XS_NPC_GetLootList);
-XS(XS_NPC_GetLootList) {
-	dXSARGS;
-	if (items != 1)
-		Perl_croak(aTHX_ "Usage: NPC::GetLootList(THIS)"); // @categories Script Utility
-	{
-		NPC *THIS;
-		VALIDATE_THIS_IS_NPC;
-		auto npc_items = THIS->GetLootList();
-		auto item_count = npc_items.size();
-		if (item_count > 0) {
-			EXTEND(sp, item_count);
-			for (int index = 0; index < item_count; ++index) {
-				ST(index) = sv_2mortal(newSVuv(npc_items[index]));
-			}
-			XSRETURN(item_count);
-		}
-		SV* return_value = &PL_sv_undef;
-		ST(0) = return_value;
-		XSRETURN(1);
-	}
-}
+//XS(XS_NPC_GetLootList);
+//XS(XS_NPC_GetLootList) {
+//	dXSARGS;
+//	if (items != 1)
+//		Perl_croak(aTHX_ "Usage: NPC::GetLootList(THIS)"); // @categories Script Utility
+//	{
+//		NPC *THIS;
+//		VALIDATE_THIS_IS_NPC;
+//		auto npc_items = THIS->GetLootList();
+//		auto item_count = npc_items.size();
+//		if (item_count > 0) {
+//			EXTEND(sp, item_count);
+//			for (int index = 0; index < item_count; ++index) {
+//				ST(index) = sv_2mortal(newSVuv(npc_items[index]));
+//			}
+//			XSRETURN(item_count);
+//		}
+//		SV* return_value = &PL_sv_undef;
+//		ST(0) = return_value;
+//		XSRETURN(1);
+//	}
+//}
 
 XS(XS_NPC_AddAISpellEffect); /* prototype to pass -Wmissing-prototypes */
 XS(XS_NPC_AddAISpellEffect) {
@@ -1964,7 +1964,7 @@ XS(boot_NPC) {
 	newXSproto(strcpy(buf, "GetGuardPointZ"), XS_NPC_GetGuardPointZ, file, "$");
 	newXSproto(strcpy(buf, "GetHealScale"), XS_NPC_GetHealScale, file, "$");
 	newXSproto(strcpy(buf, "GetItemIDBySlot"), XS_NPC_GetItemIDBySlot, file, "$$");
-	newXSproto(strcpy(buf, "GetLootList"), XS_NPC_GetLootList, file, "$");
+	//newXSproto(strcpy(buf, "GetLootList"), XS_NPC_GetLootList, file, "$");
 	newXSproto(strcpy(buf, "GetLoottableID"), XS_NPC_GetLoottableID, file, "$");
 	newXSproto(strcpy(buf, "GetMaxDMG"), XS_NPC_GetMaxDMG, file, "$");
 	newXSproto(strcpy(buf, "GetMaxDamage"), XS_NPC_GetMaxDamage, file, "$$");

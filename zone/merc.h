@@ -70,6 +70,10 @@ public:
 	virtual bool AICastSpell(int8 iChance, uint32 iSpellTypes);
 	virtual bool AIDoSpellCast(uint16 spellid, Mob* tar, int32 mana_cost, uint32* oDontDoAgainBefore = 0);
 	virtual bool AI_EngagedCastCheck();
+	void AI_Event_MercSpellCastFinished(bool iCastSucceeded, int32 spell_id);
+	virtual bool ElixirAIDetermineSpellToCast();
+	virtual bool ElixirAITryCastSpell(uint16 spellID, bool isHeal);
+	virtual bool AIElixirDoSpellCast(uint16 spellID, Mob* tar, int32 mana_cost);
 	//virtual bool AI_PursueCastCheck();
 	virtual bool AI_IdleCastCheck();
 

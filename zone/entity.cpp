@@ -668,7 +668,7 @@ void EntityList::AddNPC(NPC *npc, bool SendSpawnPacket, bool dontqueue)
 
 	uint16 emoteid = npc->GetEmoteID();
 	if (emoteid != 0)
-		npc->DoNPCEmote(ONSPAWN, emoteid);
+		npc->DoNPCEmote(ONSPAWN, emoteid, npc);
 	npc->SetSpawned();
 	if (SendSpawnPacket) {
 		if (dontqueue) { // aka, SEND IT NOW BITCH!
@@ -1407,15 +1407,15 @@ void EntityList::SendZonePVPUpdates(Client *to)
 	}
 }
 
-void EntityList::SendZoneCorpses(Client *client)
+void EntityList::SendZoneCorpses(Client* client)
 {
-	EQApplicationPacket *app;
+	EQApplicationPacket* app;
 
 	for (auto it = corpse_list.begin(); it != corpse_list.end(); ++it) {
-		Corpse *ent = it->second;
+		Corpse* ent = it->second;
 		app = new EQApplicationPacket;
 		ent->CreateSpawnPacket(app);
-		client->QueuePacket(app, true, Client::CLIENT_CONNECTED);
+		entity_list.QueueCorpseClients(ent, app);
 		safe_delete(app);
 	}
 }
@@ -1735,6 +1735,27 @@ void EntityList::QueueClients(
 		if ((!ignore_sender || ent != sender))
 			ent->QueuePacket(app, ackreq, Client::CLIENT_CONNECTED);
 
+		++it;
+	}
+}
+
+void EntityList::QueueCorpseClients(
+	Corpse* sender, const EQApplicationPacket* app,
+	bool ignore_sender, bool ackreq
+)
+{
+	if (!sender)
+		return;
+
+	auto clientsRemaining = sender->GetCorpseAccessList();
+
+	auto it = client_list.begin();
+	while (it != client_list.end()) {
+		Client* ent = it->second;
+		if (sender->IsPlayerCorpse() || clientsRemaining.find(ent) != clientsRemaining.end())
+		{
+			ent->QueuePacket(app, ackreq, Client::CLIENT_CONNECTED);
+		}
 		++it;
 	}
 }

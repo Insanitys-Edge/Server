@@ -1802,6 +1802,12 @@ void Merc::AI_Stop() {
 bool Merc::AI_EngagedCastCheck() {
 	bool result = false;
 	bool failedToCast = false;
+	if (RuleB(Merc, IsMercsElixirEnabled) && AIautocastspell_timer->Check(false)) {
+		if (ElixirAIDetermineSpellToCast()) {
+			return true;
+		}
+		return false;
+	}
 
 	if (GetTarget() && AIautocastspell_timer->Check(false))
 	{
@@ -1859,6 +1865,13 @@ bool Merc::AI_EngagedCastCheck() {
 bool Merc::AI_IdleCastCheck() {
 	bool result = false;
 	bool failedToCast = false;
+
+	if (RuleB(Merc, IsMercsElixirEnabled) && AIautocastspell_timer->Check(false)) {
+		if (ElixirAIDetermineSpellToCast()) {
+			return true;
+		}
+		return false;
+	}
 
 	if (AIautocastspell_timer->Check(false)) {
 #if MercAI_DEBUG_Spells >= 25
@@ -4844,6 +4857,7 @@ Merc* Merc::LoadMerc(Client *c, MercTemplate* merc_template, uint32 merchant_id,
 	return 0;
 }
 
+
 void Merc::UpdateMercInfo(Client *c) {
 	snprintf(c->GetMercInfo().merc_name, 64, "%s", name);
 	c->GetMercInfo().mercid = GetMercID();
@@ -6360,4 +6374,78 @@ uint32 Merc::CalcUpkeepCost(uint32 templateID , uint8 level, uint8 currency_type
 	}
 
 	return cost;
+}
+
+
+bool Merc::ElixirAIDetermineSpellToCast() {
+	int8 spellAIResult;
+	Group* grp = GetGroup();
+
+	for (const MercSpell& aispell : merc_spells) {
+		if (aispell.spellid <= 0) continue;
+
+		if (CheckSpellRecastTimers(this, aispell.spellid))
+		{
+			if (ElixirAITryCastSpell(aispell.spellid, true)) {
+				return true;
+			}
+		}
+	}
+	//failed to cast spell. that's fine, start a 'check again soon' timer
+	AIautocastspell_timer->Start(2250, false); // avg human response is much less than 5 seconds..even for non-combat situations... let's try and recast in default recovery time.
+	return false;
+}
+
+	// ElixirAITryCastSpell takes a provided spell id and does a spell check to determine if the spell is valid
+	// Once valid, it will cast on returned mob candidate
+bool Merc::ElixirAITryCastSpell(uint16 spellID, bool isHeal) {
+	if (spellID == 0) return false;
+
+	Mob* outMob = nullptr;
+	auto spellAIResult = ElixirCastSpellCheck(spellID, &outMob);
+
+	if (spellAIResult < 0) return false;
+
+	if (spellAIResult == 0) {
+
+		if (outMob == nullptr && GetTarget() != nullptr) outMob = GetTarget();
+		if (outMob == nullptr) outMob = this;
+		AIElixirDoSpellCast(spellID, outMob, -1);
+		if (GetTarget() == this) return true;
+		return true;
+	}
+
+	if (outMob == nullptr) {
+		return false;
+	}
+
+	AIElixirDoSpellCast(spellID, outMob, -1);
+	if (outMob == this) return true;
+	return true;
+}
+
+bool Merc::AIElixirDoSpellCast(uint16 spellID, Mob* tar, int32 mana_cost) {
+	// manacost has special values, -1 is no mana cost, -2 is instant cast (no mana)
+	int32 manaCost = mana_cost;
+
+	if (manaCost == -1)
+		manaCost = spells[spellID].mana;
+	else if (manaCost == -2)
+		manaCost = 0;
+
+	int32 extraMana = 0;
+	int32 hasMana = GetMana();
+
+	Log(Logs::General, Logs::Mercenaries, "Attempting to cast %s on %s", spells[spellID].name, tar == nullptr ? "no target" : tar->GetCleanName());
+
+	bool result = NPC::CastSpell(spellID, tar->GetID(), EQ::spells::CastingSlot::Gem2, spells[spellID].mana == -2 ? 0 : -1, mana_cost, 0, -1, -1, 0, 0);
+
+	// if the spell wasn't casted, then take back any extra mana that was given to the bot to cast that spell
+	if (!result) {
+		SetMana(hasMana);
+		extraMana = false;
+		return result;
+	}
+
+	return result;
 }

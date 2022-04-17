@@ -1774,7 +1774,7 @@ bool Client::Death(Mob* killerMob, int32 damage, uint16 spell, EQ::skills::Skill
 
 			uint16 emoteid = killerMob->GetEmoteID();
 			if (emoteid != 0)
-				killerMob->CastToNPC()->DoNPCEmote(KILLEDPC, emoteid);
+				killerMob->CastToNPC()->DoNPCEmote(KILLEDPC, emoteid, killerMob);
 			killerMob->TrySpellOnKill(killed_level, spell);
 		}
 
@@ -2578,15 +2578,12 @@ bool NPC::Death(Mob* killer_mob, int32 damage, uint16 spell, EQ::skills::SkillTy
 		if (killer != 0) {
 			if (killer->GetOwner() != 0 && killer->GetOwner()->IsClient())
 				killer = killer->GetOwner();
-
-			if (killer->IsClient() && !killer->CastToClient()->GetGM())
-				this->CheckTrivialMinMaxLevelDrop(killer);
 		}
 
 		entity_list.RemoveFromAutoXTargets(this);
 
 		uint16 emoteid = this->GetEmoteID();
-		auto corpse = new Corpse(this, &itemlist, GetNPCTypeID(), &NPCTypedata,
+		auto corpse = new Corpse(this, GetNPCTypeID(), &NPCTypedata, give_exp_client,
 			level > 54 ? RuleI(NPC, MajorNPCCorpseDecayTimeMS)
 			: RuleI(NPC, MinorNPCCorpseDecayTimeMS));
 		entity_list.LimitRemoveNPC(this);
@@ -2601,7 +2598,7 @@ bool NPC::Death(Mob* killer_mob, int32 damage, uint16 spell, EQ::skills::SkillTy
 		ApplyIllusionToCorpse(illusion_spell_id, corpse);
 
 		if (killer != 0 && emoteid != 0)
-			corpse->CastToNPC()->DoNPCEmote(AFTERDEATH, emoteid);
+			corpse->CastToNPC()->DoNPCEmote(AFTERDEATH, emoteid, killer);
 		if (killer != 0 && killer->IsClient()) {
 			corpse->AllowPlayerLoot(killer, 0);
 			if (killer->IsGrouped()) {
@@ -2685,12 +2682,12 @@ bool NPC::Death(Mob* killer_mob, int32 damage, uint16 spell, EQ::skills::SkillTy
 
 		uint16 emoteid = this->GetEmoteID();
 		if (emoteid != 0)
-			this->DoNPCEmote(ONDEATH, emoteid);
+			this->DoNPCEmote(ONDEATH, emoteid, oos);
 		if (oos->IsNPC()) {
 			parse->EventNPC(EVENT_NPC_SLAY, oos->CastToNPC(), this, "", 0);
 			uint16 emoteid = oos->GetEmoteID();
 			if (emoteid != 0)
-				oos->CastToNPC()->DoNPCEmote(KILLEDNPC, emoteid);
+				oos->CastToNPC()->DoNPCEmote(KILLEDNPC, emoteid, oos);
 			killer_mob->TrySpellOnKill(killed_level, spell);
 		}
 	}

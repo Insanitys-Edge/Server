@@ -747,7 +747,7 @@ Trader_Struct* ZoneDatabase::LoadTraderItem(uint32 char_id)
 	auto loadti = new Trader_Struct;
 	memset(loadti,0,sizeof(Trader_Struct));
 
-	std::string query = StringFormat("SELECT * FROM trader WHERE char_id = %i ORDER BY slot_id LIMIT 80", char_id);
+	std::string query = StringFormat("SELECT * FROM trader WHERE char_id = %i ORDER BY slot_id LIMIT 100", char_id);
 	auto results = QueryDatabase(query);
 	if (!results.Success()) {
 		LogTrading("Failed to load trader information!\n");
@@ -756,7 +756,7 @@ Trader_Struct* ZoneDatabase::LoadTraderItem(uint32 char_id)
 
 	loadti->Code = BazaarTrader_ShowItems;
 	for (auto row = results.begin(); row != results.end(); ++row) {
-		if (atoi(row[5]) >= 80 || atoi(row[4]) < 0) {
+		if (atoi(row[5]) >= 100 || atoi(row[4]) < 0) {
 			LogTrading("Bad Slot number when trying to load trader information!\n");
 			continue;
 		}
@@ -772,7 +772,7 @@ TraderCharges_Struct* ZoneDatabase::LoadTraderItemWithCharges(uint32 char_id)
 	auto loadti = new TraderCharges_Struct;
 	memset(loadti,0,sizeof(TraderCharges_Struct));
 
-	std::string query = StringFormat("SELECT * FROM trader WHERE char_id=%i ORDER BY slot_id LIMIT 80", char_id);
+	std::string query = StringFormat("SELECT char_id, item_id, serialnumber, charges, item_cost, slot_id, aug1, aug2, aug3, aug4, aug5, aug6 FROM trader WHERE char_id=%i ORDER BY slot_id LIMIT 100", char_id);
 	auto results = QueryDatabase(query);
 	if (!results.Success()) {
 		LogTrading("Failed to load trader information!\n");
@@ -780,7 +780,7 @@ TraderCharges_Struct* ZoneDatabase::LoadTraderItemWithCharges(uint32 char_id)
 	}
 
 	for (auto row = results.begin(); row != results.end(); ++row) {
-		if (atoi(row[5]) >= 80 || atoi(row[5]) < 0) {
+		if (atoi(row[5]) >= 100 || atoi(row[5]) < 0) {
 			LogTrading("Bad Slot number when trying to load trader information!\n");
 			continue;
 		}
@@ -789,13 +789,19 @@ TraderCharges_Struct* ZoneDatabase::LoadTraderItemWithCharges(uint32 char_id)
 		loadti->SerialNumber[atoi(row[5])] = atoi(row[2]);
 		loadti->Charges[atoi(row[5])] = atoi(row[3]);
 		loadti->ItemCost[atoi(row[5])] = atoi(row[4]);
+		loadti->AugID1[atoi(row[5])] = atoi(row[6]);
+		loadti->AugID2[atoi(row[5])] = atoi(row[7]);
+		loadti->AugID3[atoi(row[5])] = atoi(row[8]);
+		loadti->AugID4[atoi(row[5])] = atoi(row[9]);
+		loadti->AugID5[atoi(row[5])] = atoi(row[10]);
+		loadti->AugID6[atoi(row[5])] = atoi(row[11]);
 	}
 	return loadti;
 }
 
 EQ::ItemInstance* ZoneDatabase::LoadSingleTraderItem(uint32 CharID, int SerialNumber) {
-	std::string query = StringFormat("SELECT * FROM trader WHERE char_id = %i AND serialnumber = %i "
-                                    "ORDER BY slot_id LIMIT 80", CharID, SerialNumber);
+	std::string query = StringFormat("SELECT char_id, item_id, serialnumber, charges, item_cost, slot_id, aug1, aug2, aug3, aug4, aug5, aug6 FROM trader WHERE char_id = %i AND serialnumber = %i "
+		"ORDER BY slot_id LIMIT 100", CharID, SerialNumber);
     auto results = QueryDatabase(query);
     if (!results.Success())
         return nullptr;
@@ -811,7 +817,7 @@ EQ::ItemInstance* ZoneDatabase::LoadSingleTraderItem(uint32 CharID, int SerialNu
 	int Charges = atoi(row[3]);
 	int Cost = atoi(row[4]);
 
-	const EQ::ItemData *item = database.GetItem(ItemID);
+	const EQ::ItemData* item = database.GetItem(ItemID);
 
 	if(!item) {
 		LogTrading("Unable to create item\n");
@@ -834,16 +840,41 @@ EQ::ItemInstance* ZoneDatabase::LoadSingleTraderItem(uint32 CharID, int SerialNu
 	inst->SetMerchantSlot(SerialNumber);
 	inst->SetPrice(Cost);
 
+	inst->PutAugment(&database, 0, atoi(row[6]) );
+	inst->PutAugment(&database, 1, atoi(row[7]) );
+	inst->PutAugment(&database, 2, atoi(row[8]) );
+	inst->PutAugment(&database, 3, atoi(row[9]) );
+	inst->PutAugment(&database, 4, atoi(row[10]) );
+	inst->PutAugment(&database, 5, atoi(row[11]) );
 	if(inst->IsStackable())
 		inst->SetMerchantCount(Charges);
 
 	return inst;
 }
 
-void ZoneDatabase::SaveTraderItem(uint32 CharID, uint32 ItemID, uint32 SerialNumber, int32 Charges, uint32 ItemCost, uint8 Slot){
+uint32 ZoneDatabase::GetCharIDByItemSerial(int SerialNumber) {
+	std::string query = StringFormat("SELECT char_id FROM trader WHERE serialnumber = %i "
+                                    "ORDER BY slot_id LIMIT 1", SerialNumber);
+    auto results = QueryDatabase(query);
+    if (!results.Success())
+        return 0;
 
-	std::string query = StringFormat("REPLACE INTO trader VALUES(%i, %i, %i, %i, %i, %i)",
-                                    CharID, ItemID, SerialNumber, Charges, ItemCost, Slot);
+	if (results.RowCount() == 0) {
+        LogTrading("Bad result from query\n"); 
+		fflush(stdout);
+        return 0;
+    }
+
+    auto row = results.begin();
+
+    int CharID = atoi(row[0]) > 0 ? atoi(row[0]) : 0;
+	return CharID;
+}
+
+void ZoneDatabase::SaveTraderItem(uint32 CharID, uint32 ItemID, uint32 SerialNumber, int32 Charges, uint32 ItemCost, uint8 Slot, uint32 aug1, uint32 aug2, uint32 aug3, uint32 aug4, uint32 aug5, uint32 aug6){
+
+	std::string query = StringFormat("REPLACE INTO trader VALUES(%i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i)",
+                                    CharID, ItemID, SerialNumber, Charges, ItemCost, Slot, aug1, aug2, aug3, aug4, aug5, aug6);
     auto results = QueryDatabase(query);
     if (!results.Success())
         LogDebug("[CLIENT] Failed to save trader item: [{}] for char_id: [{}], the error was: [{}]\n", ItemID, CharID, results.ErrorMessage().c_str());
@@ -861,11 +892,11 @@ void ZoneDatabase::UpdateTraderItemCharges(int CharID, uint32 SerialNumber, int3
 
 }
 
-void ZoneDatabase::UpdateTraderItemPrice(int CharID, uint32 ItemID, uint32 Charges, uint32 NewPrice) {
+void ZoneDatabase::UpdateTraderItemPrice(int CharID, uint32 ItemID, uint32 SerialNumber, uint32 Charges, uint32 NewPrice) {
 
 	LogTrading("ZoneDatabase::UpdateTraderPrice([{}], [{}], [{}], [{}])", CharID, ItemID, Charges, NewPrice);
 
-	const EQ::ItemData *item = database.GetItem(ItemID);
+	const EQ::ItemData* item = database.GetItem(ItemID);
 
 	if(!item)
 		return;
@@ -873,7 +904,7 @@ void ZoneDatabase::UpdateTraderItemPrice(int CharID, uint32 ItemID, uint32 Charg
 	if(NewPrice == 0) {
 		LogTrading("Removing Trader items from the DB for CharID [{}], ItemID [{}]", CharID, ItemID);
 
-        std::string query = StringFormat("DELETE FROM trader WHERE char_id = %i AND item_id = %i",CharID, ItemID);
+        std::string query = StringFormat("DELETE FROM trader WHERE char_id = %i AND serialnumber = %i",CharID, ItemID);
         auto results = QueryDatabase(query);
         if (!results.Success())
 			LogDebug("[CLIENT] Failed to remove trader item(s): [{}] for char_id: [{}], the error was: [{}]\n", ItemID, CharID, results.ErrorMessage().c_str());
@@ -1312,7 +1343,7 @@ bool ZoneDatabase::LoadCharacterSkills(uint32 character_id, PlayerProfile_Struct
 	return true;
 }
 
-bool ZoneDatabase::LoadCharacterCurrency(uint32 character_id, PlayerProfile_Struct* pp){
+bool ZoneDatabase::LoadCharacterCurrency(uint32 account_id, PlayerProfile_Struct* pp){
 	std::string query = StringFormat(
 		"SELECT                  "
 		"platinum,               "
@@ -1332,8 +1363,8 @@ bool ZoneDatabase::LoadCharacterCurrency(uint32 character_id, PlayerProfile_Stru
 		"ebon_crystals,          "
 		"career_ebon_crystals    "
 		"FROM                    "
-		"character_currency      "
-		"WHERE `id` = %i         ", character_id);
+		"account_currency      "
+		"WHERE `id` = %i         ", account_id);
 	auto results = database.QueryDatabase(query);
 	for (auto row = results.begin(); row != results.end(); ++row) {
 		pp->platinum = atoi(row[0]);
@@ -1877,7 +1908,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterCurrency(uint32 character_id, PlayerProfile_Struct* pp){
+bool ZoneDatabase::SaveCharacterCurrency(uint32 account_id, PlayerProfile_Struct* pp){
 	if (pp->copper < 0) { pp->copper = 0; }
 	if (pp->silver < 0) { pp->silver = 0; }
 	if (pp->gold < 0) { pp->gold = 0; }
@@ -1891,12 +1922,12 @@ bool ZoneDatabase::SaveCharacterCurrency(uint32 character_id, PlayerProfile_Stru
 	if (pp->silver_cursor < 0) { pp->silver_cursor = 0; }
 	if (pp->copper_cursor < 0) { pp->copper_cursor = 0; }
 	std::string query = StringFormat(
-		"REPLACE INTO `character_currency` (id, platinum, gold, silver, copper,"
+		"REPLACE INTO `account_currency` (id, platinum, gold, silver, copper,"
 		"platinum_bank, gold_bank, silver_bank, copper_bank,"
 		"platinum_cursor, gold_cursor, silver_cursor, copper_cursor, "
 		"radiant_crystals, career_radiant_crystals, ebon_crystals, career_ebon_crystals)"
 		"VALUES (%u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u)",
-		character_id,
+		account_id,
 		pp->platinum,
 		pp->gold,
 		pp->silver,
@@ -1914,7 +1945,7 @@ bool ZoneDatabase::SaveCharacterCurrency(uint32 character_id, PlayerProfile_Stru
 		pp->currentEbonCrystals,
 		pp->careerEbonCrystals);
 	auto results = database.QueryDatabase(query);
-	LogDebug("Saving Currency for character ID: [{}], done", character_id);
+	LogDebug("Saving Currency for character ID: [{}], done", account_id);
 	return true;
 }
 
@@ -1940,6 +1971,54 @@ bool ZoneDatabase::SaveCharacterSpell(uint32 character_id, uint32 spell_id, uint
 	QueryDatabase(query);
 	return true;
 }
+
+bool ZoneDatabase::SaveCharacterLootLockout(std::map<uint32, LootLockout>& loot_lockout_list, uint32 character_id, uint32 ip_addr, uint32 expiry, uint32 npctype_id)
+{
+	auto zone_id_number = zone ? zone->GetZoneID() : 0;
+
+	std::string query = StringFormat("REPLACE INTO `server_lockouts` (character_id, ip_addr, expiry, npctype_id, zoneid) VALUES (%u, %u, %u, %u, %u)", character_id, ip_addr, expiry, npctype_id);
+	auto results = QueryDatabase(query);
+
+	LootLockout lootLockout;
+	memset(&lootLockout, 0, sizeof(LootLockout));
+
+	lootLockout.character_id = ip_addr;
+	lootLockout.ip_addr = expiry;
+	lootLockout.expirydate = npctype_id;
+	lootLockout.zone_id = zone_id_number;
+	lootLockout.npctype_id = npctype_id;
+	loot_lockout_list[npctype_id] = lootLockout;
+	return true;
+}
+//
+//bool ZoneDatabase::LoadCharacterLootLockouts(std::map<uint32, LootLockout>& loot_lockout_list, uint32 character_id, uint32 ip_addr)
+//{
+//	auto cur_time = time(nullptr);
+//
+//	std::string query = StringFormat(
+//		"SELECT                  "
+//		"character_id,                   "
+//		"ip_addr,                 "
+//		"expiry,                  "
+//		"npctype_id,                  "
+//		"zone_id "
+//		"FROM `server_lockouts` WHERE expiry > %u AND (character_id = %u OR ip_addr = %u)", cur_time, character_id, ip_addr);
+//	auto results = database.QueryDatabase(query);
+//	for (auto row = results.begin(); row != results.end(); ++row) {
+//
+//		LootLockout lootLockout;
+//		memset(&lootLockout, 0, sizeof(LootLockout));
+//		uint32 npctype_id = atoi(row[3]);
+//		lootLockout.character_id = atoi(row[0]);
+//		lootLockout.ip_addr = atoi(row[1]);
+//		lootLockout.expirydate = atoi(row[2]);
+//		lootLockout.zone_id = atoi(row[4]);
+//		lootLockout.npctype_id = npctype_id;
+//		loot_lockout_list[npctype_id] = lootLockout;
+//	}
+//
+//	return true;
+//}
 
 bool ZoneDatabase::DeleteCharacterSpell(uint32 character_id, uint32 spell_id, uint32 slot_id){
 	std::string query = StringFormat("DELETE FROM `character_spells` WHERE `slot_id` = %u AND `id` = %u", slot_id, character_id);
@@ -1999,93 +2078,95 @@ bool ZoneDatabase::NoRentExpired(const char* name){
 }
 
 bool ZoneDatabase::SaveCharacterInvSnapshot(uint32 character_id) {
-	uint32 time_index = time(nullptr);
-	std::string query = StringFormat(
-		"INSERT "
-		"INTO"
-		" `inventory_snapshots` "
-		"(`time_index`,"
-		" `charid`,"
-		" `slotid`,"
-		" `itemid`,"
-		" `charges`,"
-		" `color`,"
-		" `augslot1`,"
-		" `augslot2`,"
-		" `augslot3`,"
-		" `augslot4`,"
-		" `augslot5`,"
-		" `augslot6`,"
-		" `instnodrop`,"
-		" `custom_data`,"
-		" `ornamenticon`,"
-		" `ornamentidfile`,"
-		" `ornament_hero_model`"
-		") "
-		"SELECT"
-		" %u,"
-		" `charid`,"
-		" `slotid`,"
-		" `itemid`,"
-		" `charges`,"
-		" `color`,"
-		" `augslot1`,"
-		" `augslot2`,"
-		" `augslot3`,"
-		" `augslot4`,"
-		" `augslot5`,"
-		" `augslot6`,"
-		" `instnodrop`,"
-		" `custom_data`,"
-		" `ornamenticon`,"
-		" `ornamentidfile`,"
-		" `ornament_hero_model` "
-		"FROM"
-		" `inventory` "
-		"WHERE"
-		" `charid` = %u",
-		time_index,
-		character_id
-	);
-	auto results = database.QueryDatabase(query);
-	LogInventory("ZoneDatabase::SaveCharacterInventorySnapshot [{}] ([{}])", character_id, (results.Success() ? "pass" : "fail"));
-	return results.Success();
+	//uint32 time_index = time(nullptr);
+	//std::string query = StringFormat(
+	//	"INSERT "
+	//	"INTO"
+	//	" `inventory_snapshots` "
+	//	"(`time_index`,"
+	//	" `charid`,"
+	//	" `slotid`,"
+	//	" `itemid`,"
+	//	" `charges`,"
+	//	" `color`,"
+	//	" `augslot1`,"
+	//	" `augslot2`,"
+	//	" `augslot3`,"
+	//	" `augslot4`,"
+	//	" `augslot5`,"
+	//	" `augslot6`,"
+	//	" `instnodrop`,"
+	//	" `custom_data`,"
+	//	" `ornamenticon`,"
+	//	" `ornamentidfile`,"
+	//	" `ornament_hero_model`"
+	//	") "
+	//	"SELECT"
+	//	" %u,"
+	//	" `charid`,"
+	//	" `slotid`,"
+	//	" `itemid`,"
+	//	" `charges`,"
+	//	" `color`,"
+	//	" `augslot1`,"
+	//	" `augslot2`,"
+	//	" `augslot3`,"
+	//	" `augslot4`,"
+	//	" `augslot5`,"
+	//	" `augslot6`,"
+	//	" `instnodrop`,"
+	//	" `custom_data`,"
+	//	" `ornamenticon`,"
+	//	" `ornamentidfile`,"
+	//	" `ornament_hero_model` "
+	//	"FROM"
+	//	" `inventory` "
+	//	"WHERE"
+	//	" `charid` = %u",
+	//	time_index,
+	//	character_id
+	//);
+	//auto results = database.QueryDatabase(query);
+	//LogInventory("ZoneDatabase::SaveCharacterInventorySnapshot [{}] ([{}])", character_id, (results.Success() ? "pass" : "fail"));
+	//return results.Success();
+	return true;
 }
 
 int ZoneDatabase::CountCharacterInvSnapshots(uint32 character_id) {
-	std::string query = StringFormat(
-		"SELECT"
-		" COUNT(*) "
-		"FROM "
-		"("
-		"SELECT * FROM"
-		" `inventory_snapshots` a "
-		"WHERE"
-		" `charid` = %u "
-		"GROUP BY"
-		" `time_index`"
-		") b",
-		character_id
-	);
-	auto results = QueryDatabase(query);
+	//std::string query = StringFormat(
+	//	"SELECT"
+	//	" COUNT(*) "
+	//	"FROM "
+	//	"("
+	//	"SELECT * FROM"
+	//	" `inventory_snapshots` a "
+	//	"WHERE"
+	//	" `charid` = %u "
+	//	"GROUP BY"
+	//	" `time_index`"
+	//	") b",
+	//	character_id
+	//);
+	//auto results = QueryDatabase(query);
 
-	if (!results.Success())
-		return -1;
+	//if (!results.Success())
+	//	return -1;
 
-	auto row = results.begin();
+	//auto row = results.begin();
 
-	int64 count = atoll(row[0]);
-	if (count > 2147483647)
-		return -2;
-	if (count < 0)
-		return -3;
+	//int64 count = atoll(row[0]);
+	//if (count > 2147483647)
+	//	return -2;
+	//if (count < 0)
+	//	return -3;
 
-	return count;
+	//return count;
+	return 0;
 }
 
 void ZoneDatabase::ClearCharacterInvSnapshots(uint32 character_id, bool from_now) {
-	uint32 del_time = time(nullptr);
-	if (!from_now) { del_time -= RuleI(Character, InvSnapshotHistoryD) * 86400; }
+	/*uint32 del_time = time(nullptr);
+
 
 	std::string query = StringFormat(
 		"DELETE "
@@ -2098,11 +2179,11 @@ void ZoneDatabase::ClearCharacterInvSnapshots(uint32 character_id, bool from_now
 		character_id,
 		(unsigned long)del_time
 	);
-	QueryDatabase(query);
+	QueryDatabase(query);*/
 }
 
 void ZoneDatabase::ListCharacterInvSnapshots(uint32 character_id, std::list<std::pair<uint32, int>> &is_list) {
-	std::string query = StringFormat(
+	/*std::string query = StringFormat(
 		"SELECT"
 		" `time_index`,"
 		" COUNT(*) "
@@ -2113,8 +2194,8 @@ void ZoneDatabase::ListCharacterInvSnapshots(uint32 character_id, std::list<std:
 		"GROUP BY"
 		" `time_index` "
 		"ORDER BY"
-		" `time_index` "
-		"DESC",
+
+
 		character_id
 	);
 	auto results = QueryDatabase(query);
@@ -2123,38 +2204,38 @@ void ZoneDatabase::ListCharacterInvSnapshots(uint32 character_id, std::list<std:
 		return;
 
 	for (auto row : results)
-		is_list.push_back(std::pair<uint32, int>(atoul(row[0]), atoi(row[1])));
+		is_list.push_back(std::pair<uint32, int>(atoul(row[0]), atoi(row[1])));*/
 }
 
 bool ZoneDatabase::ValidateCharacterInvSnapshotTimestamp(uint32 character_id, uint32 timestamp) {
-	if (!character_id || !timestamp)
-		return false;
+	//if (!character_id || !timestamp)
+	//	return false;
 
-	std::string query = StringFormat(
-		"SELECT"
-		" * "
-		"FROM"
-		" `inventory_snapshots` "
-		"WHERE"
-		" `charid` = %u "
-		"AND"
-		" `time_index` = %u "
-		"LIMIT 1",
-		character_id,
-		timestamp
-	);
-	auto results = QueryDatabase(query);
+	//std::string query = StringFormat(
+	//	"SELECT"
+	//	" * "
+	//	"FROM"
+	//	" `inventory_snapshots` "
+	//	"WHERE"
+	//	" `charid` = %u "
+	//	"AND"
+	//	" `time_index` = %u "
+	//	"LIMIT 1",
+	//	character_id,
+	//	timestamp
+	//);
+	//auto results = QueryDatabase(query);
 
-	if (!results.Success() || results.RowCount() == 0)
-		return false;
+	//if (!results.Success() || results.RowCount() == 0)
+	//	return false;
 
 	return true;
 }
 
 void ZoneDatabase::ParseCharacterInvSnapshot(uint32 character_id, uint32 timestamp, std::list<std::pair<int16, uint32>> &parse_list) {
-	std::string query = StringFormat(
-		"SELECT"
-		" `slotid`,"
+	/*std::string query = StringFormat(
+
+
 		" `itemid` "
 		"FROM"
 		" `inventory_snapshots` "
@@ -2173,11 +2254,11 @@ void ZoneDatabase::ParseCharacterInvSnapshot(uint32 character_id, uint32 timesta
 		return;
 
 	for (auto row : results)
-		parse_list.push_back(std::pair<int16, uint32>(atoi(row[0]), atoul(row[1])));
+		parse_list.push_back(std::pair<int16, uint32>(atoi(row[0]), atoul(row[1])));*/
 }
 
 void ZoneDatabase::DivergeCharacterInvSnapshotFromInventory(uint32 character_id, uint32 timestamp, std::list<std::pair<int16, uint32>> &compare_list) {
-	std::string query = StringFormat(
+	/*std::string query = StringFormat(
 		"SELECT"
 		" slotid,"
 		" itemid "
@@ -2205,8 +2286,8 @@ void ZoneDatabase::DivergeCharacterInvSnapshotFromInventory(uint32 character_id,
 		"AND"
 		" b.`charid` = %u"
 		")",
-		timestamp,
-		character_id,
+
+
 		timestamp,
 		character_id,
 		character_id
@@ -2217,19 +2298,19 @@ void ZoneDatabase::DivergeCharacterInvSnapshotFromInventory(uint32 character_id,
 		return;
 
 	for (auto row : results)
-		compare_list.push_back(std::pair<int16, uint32>(atoi(row[0]), atoul(row[1])));
+		compare_list.push_back(std::pair<int16, uint32>(atoi(row[0]), atoul(row[1])));*/
 }
 
 void ZoneDatabase::DivergeCharacterInventoryFromInvSnapshot(uint32 character_id, uint32 timestamp, std::list<std::pair<int16, uint32>> &compare_list) {
-	std::string query = StringFormat(
+	/*std::string query = StringFormat(
 		"SELECT"
 		" `slotid`,"
 		" `itemid` "
 		"FROM"
 		" `inventory` "
 		"WHERE"
-		" `charid` = %u "
-		"AND"
+
+
 		" `slotid` NOT IN "
 		"("
 		"SELECT"
@@ -2258,82 +2339,83 @@ void ZoneDatabase::DivergeCharacterInventoryFromInvSnapshot(uint32 character_id,
 		return;
 
 	for (auto row : results)
-		compare_list.push_back(std::pair<int16, uint32>(atoi(row[0]), atoul(row[1])));
+		compare_list.push_back(std::pair<int16, uint32>(atoi(row[0]), atoul(row[1])));*/
 }
 
 bool ZoneDatabase::RestoreCharacterInvSnapshot(uint32 character_id, uint32 timestamp) {
 	// we should know what we're doing by the time we call this function..but,
 	// this is to prevent inventory deletions where no timestamp entries exists
-	if (!ValidateCharacterInvSnapshotTimestamp(character_id, timestamp)) {
-		LogError("ZoneDatabase::RestoreCharacterInvSnapshot() called for id: [{}] without valid snapshot entries @ [{}]", character_id, timestamp);
-		return false;
-	}
+	//if (!ValidateCharacterInvSnapshotTimestamp(character_id, timestamp)) {
+	//	LogError("ZoneDatabase::RestoreCharacterInvSnapshot() called for id: [{}] without valid snapshot entries @ [{}]", character_id, timestamp);
+	//	return false;
+	//}
 
-	std::string query = StringFormat(
-		"DELETE "
-		"FROM"
-		" `inventory` "
-		"WHERE"
-		" `charid` = %u",
-		character_id
-	);
-	auto results = database.QueryDatabase(query);
-	if (!results.Success())
-		return false;
+	//std::string query = StringFormat(
+	//	"DELETE "
+	//	"FROM"
+	//	" `inventory` "
+	//	"WHERE"
+	//	" `charid` = %u",
+	//	character_id
+	//);
+	//auto results = database.QueryDatabase(query);
+	//if (!results.Success())
+	//	return false;
 
-	query = StringFormat(
-		"INSERT "
-		"INTO"
-		" `inventory` "
-		"(`charid`,"
-		" `slotid`,"
-		" `itemid`,"
-		" `charges`,"
-		" `color`,"
-		" `augslot1`,"
-		" `augslot2`,"
-		" `augslot3`,"
-		" `augslot4`,"
-		" `augslot5`,"
-		" `augslot6`,"
-		" `instnodrop`,"
-		" `custom_data`,"
-		" `ornamenticon`,"
-		" `ornamentidfile`,"
-		" `ornament_hero_model`"
-		") "
-		"SELECT"
-		" `charid`,"
-		" `slotid`,"
-		" `itemid`,"
-		" `charges`,"
-		" `color`,"
-		" `augslot1`,"
-		" `augslot2`,"
-		" `augslot3`,"
-		" `augslot4`,"
-		" `augslot5`,"
-		" `augslot6`,"
-		" `instnodrop`,"
-		" `custom_data`,"
-		" `ornamenticon`,"
-		" `ornamentidfile`,"
-		" `ornament_hero_model` "
-		"FROM"
-		" `inventory_snapshots` "
-		"WHERE"
-		" `charid` = %u "
-		"AND"
-		" `time_index` = %u",
-		character_id,
-		timestamp
-	);
-	results = database.QueryDatabase(query);
+	//query = StringFormat(
+	//	"INSERT "
+	//	"INTO"
+	//	" `inventory` "
+	//	"(`charid`,"
+	//	" `slotid`,"
+	//	" `itemid`,"
+	//	" `charges`,"
+	//	" `color`,"
+	//	" `augslot1`,"
+	//	" `augslot2`,"
+	//	" `augslot3`,"
+	//	" `augslot4`,"
+	//	" `augslot5`,"
+	//	" `augslot6`,"
+	//	" `instnodrop`,"
+	//	" `custom_data`,"
+	//	" `ornamenticon`,"
+	//	" `ornamentidfile`,"
+	//	" `ornament_hero_model`"
+	//	") "
+	//	"SELECT"
+	//	" `charid`,"
+	//	" `slotid`,"
+	//	" `itemid`,"
+	//	" `charges`,"
+	//	" `color`,"
+	//	" `augslot1`,"
+	//	" `augslot2`,"
+	//	" `augslot3`,"
+	//	" `augslot4`,"
+	//	" `augslot5`,"
+	//	" `augslot6`,"
+	//	" `instnodrop`,"
+	//	" `custom_data`,"
+	//	" `ornamenticon`,"
+	//	" `ornamentidfile`,"
+	//	" `ornament_hero_model` "
+	//	"FROM"
+	//	" `inventory_snapshots` "
+	//	"WHERE"
+	//	" `charid` = %u "
+	//	"AND"
+	//	" `time_index` = %u",
+	//	character_id,
+	//	timestamp
+	//);
+	//results = database.QueryDatabase(query);
 
-	LogInventory("ZoneDatabase::RestoreCharacterInvSnapshot() [{}] snapshot for [{}] @ [{}]",
-		(results.Success() ? "restored" : "failed to restore"), character_id, timestamp);
+	//LogInventory("ZoneDatabase::RestoreCharacterInvSnapshot() [{}] snapshot for [{}] @ [{}]",
+	//	(results.Success() ? "restored" : "failed to restore"), character_id, timestamp);
 
-	return results.Success();
+	//return results.Success();
+	return true;
 }
 
 const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load /*= false*/)
@@ -4633,7 +4715,7 @@ uint32 ZoneDatabase::GetCharacterCorpseItemAt(uint32 corpse_id, uint16 slotid) {
 	uint32 itemid = 0;
 
 	if (tmp) {
-		itemid = tmp->GetWornItem(slotid);
+		itemid = 0;
 		tmp->DepopPlayerCorpse();
 	}
 	return itemid;

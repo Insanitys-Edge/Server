@@ -35,7 +35,7 @@ void command_countitem(Client *c, const Seperator *sep)
 	if (target->IsClient()) {
 		item_count = target->CastToClient()->CountItem(item_id);
 	} else if (target->IsNPC()) {
-		item_count = target->CastToNPC()->CountItem(item_id);
+		item_count = 0;
 	}
 
 	c->Message(

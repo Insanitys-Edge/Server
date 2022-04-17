@@ -721,3 +721,221 @@ uint8 ClassArmorType(uint8 class_id)
 			return ARMOR_TYPE_UNKNOWN;
 	}
 }
+
+
+const char* GetEQClassName(uint8 class_, uint8 level) {
+	switch (class_) {
+	case WARRIOR:
+		if (level >= 65)
+			return "Overlord"; //Baron-Sprite: LEAVE MY CLASSES ALONE.
+		else if (level >= 60)
+			return "Warlord";
+		else if (level >= 55)
+			return "Myrmidon";
+		else if (level >= 51)
+			return "Champion";
+		else
+			return "Warrior";
+	case CLERIC:
+		if (level >= 65)
+			return "Archon";
+		else if (level >= 60)
+			return "High Priest";
+		else if (level >= 55)
+			return "Templar";
+		else if (level >= 51)
+			return "Vicar";
+		else
+			return "Cleric";
+	case PALADIN:
+		if (level >= 65)
+			return "Lord Protector";
+		else if (level >= 60)
+			return "Crusader";
+		else if (level >= 55)
+			return "Knight";
+		else if (level >= 51)
+			return "Cavalier";
+		else
+			return "Paladin";
+	case RANGER:
+		if (level >= 65)
+			return "Forest Stalker";
+		else if (level >= 60)
+			return "Warder";
+		else if (level >= 55)
+			return "Outrider";
+		else if (level >= 51)
+			return "Pathfinder";
+		else
+			return "Ranger";
+	case SHADOWKNIGHT:
+		if (level >= 65)
+			return "Dread Lord";
+		else if (level >= 60)
+			return "Grave Lord";
+		else if (level >= 55)
+			return "Revenant";
+		else if (level >= 51)
+			return "Reaver";
+		else
+			return "Shadowknight";
+	case DRUID:
+		if (level >= 65)
+			return "Storm Warden";
+		else if (level >= 60)
+			return "Hierophant";
+		else if (level >= 55)
+			return "Preserver";
+		else if (level >= 51)
+			return "Wanderer";
+		else
+			return "Druid";
+	case MONK:
+		if (level >= 65)
+			return "Transcendent";
+		else if (level >= 60)
+			return "Grandmaster";
+		else if (level >= 55)
+			return "Master";
+		else if (level >= 51)
+			return "Disciple";
+		else
+			return "Monk";
+	case BARD:
+		if (level >= 65)
+			return "Maestro";
+		else if (level >= 60)
+			return "Virtuoso";
+		else if (level >= 55)
+			return "Troubadour";
+		else if (level >= 51)
+			return "Minstrel";
+		else
+			return "Bard";
+	case ROGUE:
+		if (level >= 65)
+			return "Deceiver";
+		else if (level >= 60)
+			return "Assassin";
+		else if (level >= 55)
+			return "Blackguard";
+		else if (level >= 51)
+			return "Rake";
+		else
+			return "Rogue";
+	case SHAMAN:
+		if (level >= 65)
+			return "Prophet";
+		else if (level >= 60)
+			return "Oracle";
+		else if (level >= 55)
+			return "Luminary";
+		else if (level >= 51)
+			return "Mystic";
+		else
+			return "Shaman";
+	case NECROMANCER:
+		if (level >= 65)
+			return "Arch Lich";
+		else if (level >= 60)
+			return "Warlock";
+		else if (level >= 55)
+			return "Defiler";
+		else if (level >= 51)
+			return "Heretic";
+		else
+		return "Necromancer";
+	case WIZARD:
+		if (level >= 65)
+			return "Arcanist";
+		else if (level >= 60)
+			return "Sorcerer";
+		else if (level >= 55)
+			return "Evoker";
+		else if (level >= 51)
+			return "Channeler";
+		else
+			return "Wizard";
+	case MAGICIAN:
+		if (level >= 65)
+			return "Arch Convoker";
+		else if (level >= 60)
+			return "Arch Mage";
+		else if (level >= 55)
+			return "Conjurer";
+		if (level >= 51)
+			return "Elementalist";
+		else
+			return "Magician";
+	case ENCHANTER:
+		if (level >= 65)
+			return "Coercer";
+		else if (level >= 60)
+			return "Phantasmist";
+		else if (level >= 55)
+			return "Beguiler";
+		else if (level >= 51)
+			return "Illusionist";
+		else
+			return "Enchanter";
+	case BEASTLORD:
+		if (level >= 65)
+			return "Feral Lord";
+		else if (level >= 60)
+			return "Savage Lord";
+		else if (level >= 55)
+			return "Animist";
+		else if (level >= 51)
+			return "Primalist";
+		else
+			return "Beastlord";
+	case BANKER:
+		if (level >= 65)
+			return "Elder Banker";
+		else if (level >= 60)
+			return "Oldest Banker";
+		else if (level >= 55)
+			return "Older Banker";
+		else if (level >= 51)
+			return "Old Banker";
+		else
+			return "Banker";
+	case WARRIORGM:
+		return "Warrior Guildmaster";
+	case CLERICGM:
+		return "Cleric Guildmaster";
+	case PALADINGM:
+		return "Paladin Guildmaster";
+	case RANGERGM:
+		return "Ranger Guildmaster";
+	case SHADOWKNIGHTGM:
+		return "Shadowknight Guildmaster";
+	case DRUIDGM:
+		return "Druid Guildmaster";
+	case MONKGM:
+		return "Monk Guildmaster";
+	case BARDGM:
+		return "Bard Guildmaster";
+	case ROGUEGM:
+		return "Rogue Guildmaster";
+	case SHAMANGM:
+		return "Shaman Guildmaster";
+	case NECROMANCERGM:
+		return "Necromancer Guildmaster";
+	case WIZARDGM:
+		return "Wizard Guildmaster";
+	case MAGICIANGM:
+		return "Magician Guildmaster";
+	case ENCHANTERGM:
+		return "Enchanter Guildmaster";
+	case BEASTLORDGM:
+		return "Beastlord Guildmaster";
+	case MERCHANT:
+		return "Merchant";
+	case CORPSE_CLASS:
+		return "Corpse Class";
+	default:
+		return "Unknown";
+	}
+}

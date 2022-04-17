@@ -184,11 +184,17 @@ bool Client::Process() {
 			SetDynamicZoneMemberStatus(DynamicZoneMemberStatus::Offline);
 
 			parse->EventPlayer(EVENT_DISCONNECT, this, "", 0);
+			
+			if (Trader && CharacterID() != 0)
+				database.DeleteTraderItem(CharacterID());
 
 			return false; //delete client
 		}
 
 		if (camp_timer.Check()) {
+
+			if (Trader && CharacterID() != 0)
+				database.DeleteTraderItem(CharacterID());
 			LeaveGroup();
 			Save();
 			if (GetMerc())
@@ -701,6 +707,8 @@ void Client::OnDisconnect(bool hard_disconnect) {
 		}
 	}
 
+	if (Trader && CharacterID() != 0)
+		database.DeleteTraderItem(CharacterID());
 	if (!bZoning)
 	{
 		SetDynamicZoneMemberStatus(DynamicZoneMemberStatus::Offline);
@@ -745,7 +753,7 @@ void Client::BulkSendInventoryItems()
 			int16 free_slot_id = m_inv.FindFreeSlot(inst->IsClassBag(), true, inst->GetItem()->Size, is_arrow);
 			LogInventory("Incomplete Trade Transaction: Moving [{}] from slot [{}] to [{}]", inst->GetItem()->Name, slot_id, free_slot_id);
 			PutItemInInventory(free_slot_id, *inst, false);
-			database.SaveInventory(character_id, nullptr, slot_id);
+			database.SaveInventory(character_id, account_id, nullptr, slot_id);
 			safe_delete(inst);
 		}
 	}
@@ -812,7 +820,8 @@ void Client::BulkSendInventoryItems()
 	safe_delete(outapp);
 }
 
-void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
+
+void Client::BulkSendMerchantInventory(int merchant_id, int npcid, bool bSpecialLogic) {
 	const EQ::ItemData* handyitem = nullptr;
 	uint32 numItemSlots = 80; //The max number of items passed in the transaction.
 	if (m_ClientVersionBit & EQ::versions::maskRoFAndLater) { // RoF+ can send 200 items
@@ -828,7 +837,9 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 		if (merlist.size() == 0)
 			return;
 	}
-	std::list<TempMerchantList> tmp_merlist = zone->tmpmerchanttable[npcid];
+	std::list<TempMerchantList> tmp_merlist;
+	if (!bSpecialLogic)
+		tmp_merlist = zone->tmpmerchanttable[npcid];
 	std::list<TempMerchantList>::iterator tmp_itr;
 
 	uint32 i = 1;
@@ -958,32 +969,40 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid) {
 			MessageString(Chat::NPCQuestSay, GENERIC_STRINGID_SAY, merch->GetCleanName(), handy_id, this->GetName());
 	}
 
+	if (bSpecialLogic)
+	{
+		merchant_id_interacting_with = merchant_id;
+	}
+
 //		safe_delete_array(cpi);
 }
 
-uint8 Client::WithCustomer(uint16 NewCustomer){
+uint8 Client::WithCustomer(uint16 NewCustomer, uint8 clear){
 
-	if(NewCustomer == 0) {
-		CustomerID = 0;
-		return 0;
-	}
-
-	if(CustomerID == 0) {
-		CustomerID = NewCustomer;
+	if (NewCustomer == 0) // just assume we do nothing in this case, bugged client
+	{
 		return 1;
 	}
 
-	// Check that the player browsing our wares hasn't gone away.
-
-	Client* c = entity_list.GetClientByID(CustomerID);
-
-	if(!c) {
-		LogTrading("Previous customer has gone away");
-		CustomerID = NewCustomer;
+	if (clear)
+	{
+		auto eraseIt = std::find(CustomerID.begin(), CustomerID.end(), NewCustomer);
+		if (eraseIt != CustomerID.end()) { //already added
+		return 1;
+	}
+		CustomerID.push_front(NewCustomer);
+		return 1;
+	}
+	else
+	{
+		auto eraseIt = std::find(CustomerID.begin(), CustomerID.end(), NewCustomer);
+		if (eraseIt == CustomerID.end()) { //already removed
 		return 1;
 	}
 
-	return 0;
+		CustomerID.erase(eraseIt);
+		return 1;
+	}
 }
 
 void Client::OPRezzAnswer(uint32 Action, uint32 SpellID, uint16 ZoneID, uint16 InstanceID, float x, float y, float z)

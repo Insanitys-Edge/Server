@@ -177,6 +177,8 @@ Client::Client(EQStreamInterface* ieqs)
 
 	for (int client_filter = 0; client_filter < _FilterCount; client_filter++)
 		ClientFilters[client_filter] = FilterShow;
+
+	merchant_id_interacting_with = 0;
 	cheat_manager.SetClient(this);
 	mMovementManager->AddClient(this);
 	character_id = 0;
@@ -191,7 +193,7 @@ Client::Client(EQStreamInterface* ieqs)
 	Trader=false;
 	Buyer = false;
 	Haste = 0;
-	CustomerID = 0;
+	CustomerID.clear();
 	TraderID = 0;
 	TrackingID = 0;
 	WID = 0;
@@ -1897,6 +1899,7 @@ void Client::SendManaUpdate()
 	mana_update->spawn_id = GetID();
 	QueuePacket(mana_app);
 	safe_delete(mana_app);
+	CastToClient()->SendEdgeManaStats();
 }
 
 // sends endurance update to self
@@ -1909,6 +1912,7 @@ void Client::SendEnduranceUpdate()
 	endurance_update->spawn_id = GetID();
 	QueuePacket(end_app);
 	safe_delete(end_app);
+	CastToClient()->SendEdgeEnduranceStats();
 }
 
 void Client::FillSpawnStruct(NewSpawn_Struct* ns, Mob* ForWho)
@@ -2697,7 +2701,7 @@ void Client::Disarm(Client* disarmer, int chance) {
 						mi->number_in_stack = 0;
 					FastQueuePacket(&outapp); // this deletes item from the weapon slot on the client
 					if (PutItemInInventory(slot_id, *InvItem, true))
-						database.SaveInventory(this->CharacterID(), NULL, slot);
+						database.SaveInventory(this->CharacterID(), AccountID(), NULL, slot);
 					auto matslot = (slot == EQ::invslot::slotPrimary ? EQ::textures::weaponPrimary : EQ::textures::weaponSecondary);
 					if (matslot != EQ::textures::materialInvalid)
 						SendWearChange(matslot);
@@ -6120,7 +6124,7 @@ void Client::CheckEmoteHail(Mob *target, const char* message)
 	}
 	uint16 emoteid = target->GetEmoteID();
 	if(emoteid != 0)
-		target->CastToNPC()->DoNPCEmote(HAILED,emoteid);
+		target->CastToNPC()->DoNPCEmote(HAILED,emoteid, this);
 }
 
 void Client::MarkSingleCompassLoc(float in_x, float in_y, float in_z, uint8 count)

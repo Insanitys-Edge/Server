@@ -43,7 +43,7 @@ public:
 	uint32 CountItems();
 	void AddItem(uint32 itemnum, uint16 charges, int16 slot, uint32 aug1, uint32 aug2, uint32 aug3, uint32 aug4, uint32 aug5);
 	uint32 GetWornItem(int16 equipSlot);
-	void RemoveItem(uint16 lootslot);
+	void RemoveItem(Client* c, uint16 lootslot);
 	void RemoveItemByID(uint32 item_id);
 	void RemoveItemByID(uint32 item_id, int quantity);
 	void SetCash(uint32 copper, uint32 silver, uint32 gold, uint32 platinum);

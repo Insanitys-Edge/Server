@@ -56,3 +56,4 @@ bin/
 /client_files/**/CMakeFiles/
 
 .idea
+*.bak

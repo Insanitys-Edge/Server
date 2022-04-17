@@ -343,7 +343,7 @@ int32 Mob::GetHerosForgeModel(uint8 material_slot) const
 	return hero_model;
 }
 
-uint32 NPC::GetEquippedItemFromTextureSlot(uint8 material_slot) const
+uint32 NPC::GetEquippedItemFromTextureSlot(uint8 material_slot)
 {
 	if (material_slot > 8) {
 		return 0;

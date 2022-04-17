@@ -300,7 +300,7 @@ inline std::string GetMobAttributeByString(Mob *mob, const std::string &attribut
 			return std::to_string(npc->GetNPCFactionID());
 		}
 		if (attribute == "loottable") {
-			return std::to_string(npc->GetLoottableID());
+			return std::to_string(npc->GetLoottableID().size() ? npc->GetLoottableID().at(0) : 0);
 		}
 		if (attribute == "prim_skill") {
 			return std::to_string(npc->GetPrimSkill());
@@ -618,7 +618,7 @@ inline void NPCCommandsMenu(Client* client, NPC* npc)
 		menu_commands += "[" + EQ::SayLinkEngine::GenerateQuestSaylink(saylink, false, "Emotes") + "] ";
 	}
 
-	if (npc->GetLoottableID() > 0) {
+	if (npc->GetLoottableID().size() > 0) {
 		menu_commands += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#npcloot show", false, "Loot") + "] ";
 	}
 

@@ -43,7 +43,7 @@ class Corpse : public Mob {
 	static void SendEndLootErrorPacket(Client* client);
 	static void SendLootReqErrorPacket(Client* client, LootResponse response = LootResponse::NotAtThisTime);
 
-	Corpse(NPC* in_npc, ItemList* in_itemlist, uint32 in_npctypeid, const NPCType** in_npctypedata, uint32 in_decaytime = 600000);
+	Corpse(NPC* in_npc,/* ItemList* in_itemlist, */ uint32 in_npctypeid, const NPCType** in_npctypedata, Client* give_exp_client, uint32 in_decaytime = 600000);
 	Corpse(Client* client, int32 in_rezexp);
 	Corpse(uint32 in_corpseid, uint32 in_charid, const char* in_charname, ItemList* in_itemlist, uint32 in_copper, uint32 in_silver, uint32 in_gold, uint32 in_plat, const glm::vec4& position, float in_size, uint8 in_gender, uint16 in_race, uint8 in_class, uint8 in_deity, uint8 in_level, uint8 in_texture, uint8 in_helmtexture, uint32 in_rezexp, bool wasAtGraveyard = false);
 
@@ -60,7 +60,9 @@ class Corpse : public Mob {
 	virtual Group*	GetGroup()			{ return 0; }
 	inline uint32	GetCorpseDBID()		{ return corpse_db_id; }
 	inline char*	GetOwnerName()		{ return corpse_name; }
-	bool			IsEmpty() const;
+	bool			IsEmpty(Client* c);
+	bool			IsInvolvedInKill(Client* c);
+	bool			IsFullyEmpty();
 	bool			IsCorpse()			const { return true; }
 	bool			IsPlayerCorpse()	const { return is_player_corpse; }
 	bool			IsNPCCorpse()		const { return !is_player_corpse; }
@@ -88,14 +90,15 @@ class Corpse : public Mob {
 	void			CalcCorpseName();
 	void			LoadPlayerCorpseDecayTime(uint32 dbid);
 
+	std::map<Client*, std::list<ServerLootItem_Struct*>> GetCorpseAccessList() { return corpseAccessList; }
+
+	void 			DoProceduralLoot(NPC * in_npc, std::list<ServerLootItem_Struct*>& itemlist, Client* client);
+
 	/* Corpse: Items */
-	uint32					GetWornItem(int16 equipSlot) const;
-	ServerLootItem_Struct*	GetItem(uint16 lootslot, ServerLootItem_Struct** bag_item_data = 0);
+	ServerLootItem_Struct*	GetItem(Client* requester, uint16 lootslot);
 	void	SetPlayerKillItemID(int32 pk_item_id) { player_kill_item = pk_item_id; }
 	int32	GetPlayerKillItem() { return player_kill_item; }
-	void	RemoveItem(uint16 lootslot);
-	void	RemoveItem(ServerLootItem_Struct* item_data);
-	void	RemoveItemByID(uint32 item_id, int quantity = 1);
+	void	RemoveItem(Client* c, uint16 lootslot);
 	void	AddItem(uint32 itemnum, uint16 charges, int16 slot = 0, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0, uint8 attuned = 0);
 	
 	/* Corpse: Coin */
@@ -114,11 +117,6 @@ class Corpse : public Mob {
 
 	/* Corpse: Loot */
 	void	QueryLoot(Client* to);
-	bool	HasItem(uint32 item_id);
-	uint16	CountItem(uint32 item_id);
-	uint32	GetItemIDBySlot(uint16 loot_slot);
-	uint16	GetFirstSlotByItemID(uint32 item_id);
-	std::vector<int> GetLootList();
 	void	LootItem(Client* client, const EQApplicationPacket* app);
 	void	EndLoot(Client* client, const EQApplicationPacket* app);
 	void	MakeLootRequestPackets(Client* client, const EQApplicationPacket* app);
@@ -140,8 +138,11 @@ class Corpse : public Mob {
 	void Spawn();
 
 	char		corpse_name[64];
-	uint32		GetEquippedItemFromTextureSlot(uint8 material_slot) const;
-	uint32		GetEquipmentColor(uint8 material_slot) const;
+	uint32		corpse_npctype_id;
+
+	virtual uint32		GetEquippedItemFromTextureSlot(uint8 material_slot);
+	virtual uint32		GetEquipmentColor(uint8 material_slot);
+	virtual int32 GetEquipmentMaterial(uint8 material_slot) { return Mob::GetEquipmentMaterial(material_slot); }
 	inline int	GetRezExp() { return rez_experience; }
 
 	virtual void UpdateEquipmentLight();
@@ -159,7 +160,7 @@ private:
 	uint32		consented_group_id = 0;
 	uint32		consented_raid_id  = 0;
 	uint32		consented_guild_id = 0;
-	ItemList	itemlist; /* Internal Item list used for corpses */
+	std::map<Client*, std::list<ServerLootItem_Struct*>> corpseAccessList; /* Internal Item list used for corpses */
 	uint32		copper;
 	uint32		silver;
 	uint32		gold;

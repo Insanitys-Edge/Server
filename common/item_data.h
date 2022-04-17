@@ -303,6 +303,22 @@ namespace EQ
 /*----*/	BagTypeCount
 		};
 
+		enum EdgeBagType : uint8 {
+			EdgeBagNone = 0,
+			EdgeBagAugment = 1,
+			EdgeBagPhilosopher = 2,
+			EdgeBagVoidHole = 3,
+			EdgeBagBorrowersSack = 4,
+			EdgeBagUtilityBelt = 5,
+			EdgeBagKnickknackPack = 6,
+			EdgeBagStickySack = 7,
+			EdgeBagRunePack = 8,
+			EdgeBagAlmostEndlessQuiver = 9,
+			EdgeBagSpellCraftingTome = 10,
+			EdgeBagMAX = 254
+		};
+
+
 		enum ItemEffect {
 			ItemEffectCombatProc = 0,
 			ItemEffectClick,
@@ -525,6 +541,7 @@ namespace EQ
 		uint32 ScriptFileID;
 		uint16 ExpendableArrow;
 		uint32 Clairvoyance;
+		uint32 EdgeBagType;
 		char	ClickName[65];
 		char	ProcName[65];
 		char	WornName[65];

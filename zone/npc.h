@@ -58,7 +58,7 @@ typedef struct {
 
 struct AISpells_Struct {
 	uint32	type;			// 0 = never, must be one (and only one) of the defined values
-	uint16	spellid;		// <= 0 = no spell
+	int32	spellid;		// <= 0 = no spell
 	int16	manacost;		// -1 = use spdat, -2 = no cast time
 	uint32	time_cancast;	// when we can cast this spell next
 	int32	recast_delay;
@@ -189,28 +189,39 @@ public:
 	virtual void SpellProcess();
 	virtual void FillSpawnStruct(NewSpawn_Struct* ns, Mob* ForWho);
 
-	void	AddItem(const EQ::ItemData* item, uint16 charges, bool equipitem = true);
-	void	AddItem(uint32 itemid, uint16 charges, bool equipitem = true, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0);
+	void	AddItem(const EQ::ItemData* item, uint16 charges, bool equipitem = true, bool quest = false);
+	void	AddItem(uint32 itemid, uint16 charges, bool equipitem = true, bool quest = false, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0);
 	void	AddLootTable();
 	void	AddLootTable(uint32 ldid);
 	void	CheckGlobalLootTables();
 	void	DescribeAggro(Client *towho, Mob *mob, bool verbose);
 	void	RemoveItem(uint32 item_id, uint16 quantity = 0, uint16 slot = 0);
-	void	CheckTrivialMinMaxLevelDrop(Mob *killer);
+	bool	MoveItemToGeneralInventory(ServerLootItem_Struct* item);
+	void	CheckMinMaxLevel(Mob *them);
 	void	ClearItemList();
-	inline const ItemList &GetItemList() { return itemlist; }
-	ServerLootItem_Struct*	GetItem(int slot_id);
+	ServerLootItem_Struct*	GetItem(int slot_id, uint32 itemid = 0);
+	ServerLootItem_Struct*	GetItemByID(uint32 itemid);
 	void	AddCash(uint16 in_copper, uint16 in_silver, uint16 in_gold, uint16 in_platinum);
 	void	AddCash();
 	void	RemoveCash();
-	void	QueryLoot(Client* to, bool is_pet_query = false);
-	bool	HasItem(uint32 item_id);
-	uint16	CountItem(uint32 item_id);
-	uint32	GetItemIDBySlot(uint16 loot_slot);
-	uint16	GetFirstSlotByItemID(uint32 item_id);
-	std::vector<int> GetLootList();
+	void	QueryLoot(Client* to);
 	uint32	CountLoot();
-	inline uint32	GetLoottableID()	const { return loottable_id; }
+	inline std::vector<uint32>	GetLoottableID()	const { return loottable_id; }
+	bool	HasQuestLootItem(uint32 itemid);
+	bool	HasPetLootItem(uint32 itemid);
+	bool	HasQuestLoot(); 
+	bool	RemoveQuestLootItems(uint32 itemid);
+	bool	RemovePetLootItems(uint32 itemid);
+	bool	HasRequiredQuestLoot(uint32 itemid1, uint32 itemid2, uint32 itemid3, uint32 itemid4);
+	void	CleanQuestLootItems();
+	uint8	CountQuestItem(uint32 itemid);
+	uint8	CountQuestItems();
+	void	RemoveItem(ServerLootItem_Struct* item_data, uint8 quantity = 0);
+	bool	AddQuestLoot(uint32 itemid, int8 charges = 1);
+	bool	AddPetLoot(uint32 itemid, int8 charges = 1, bool fromquest = false);
+	void	DeleteQuestLoot(uint32 itemid1, uint32 itemid2 = 0, uint32 itemid3 = 0, uint32 itemid4 = 0);
+	void	DeleteInvalidQuestLoot();
+	void	DeleteEquipment(int16 slotid);
 	virtual void UpdateEquipmentLight();
 	inline bool DropsGlobalLoot() const { return !skip_global_loot; }
 
@@ -304,23 +315,8 @@ public:
 	void	Disarm(Client* client, int chance);
 	void	StartSwarmTimer(uint32 duration) { swarm_timer.Start(duration); }
 	void	DisableSwarmTimer() { swarm_timer.Disable(); }
-
-	void AddLootDrop(
-		const EQ::ItemData *item2,
-		ItemList *itemlist,
-		LootDropEntries_Struct loot_drop,
-		bool wear_change = false,
-		uint32 aug1 = 0,
-		uint32 aug2 = 0,
-		uint32 aug3 = 0,
-		uint32 aug4 = 0,
-		uint32 aug5 = 0,
-		uint32 aug6 = 0
-	);
-
-	bool MeetsLootDropLevelRequirements(LootDropEntries_Struct loot_drop, bool verbose=false);
-
-	virtual void DoClassAttacks(Mob *target);
+	void	AddLootDrop(const EQ::ItemData* dbitem, ItemList* itemlistconst, int16 charges, uint8 minlevel, uint8 maxlevel, bool equipit, bool wearchange = false, bool quest = false, bool pet = false, bool force_equip = false, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0);
+	virtual void DoClassAttacks(Mob* target);
 	void	CheckSignal();
 	inline bool IsNotTargetableWithHotkey() const { return no_target_hotkey; }
 	int32 GetNPCHPRegen() const { return hp_regen + itembonuses.HPRegen + spellbonuses.HPRegen; }
@@ -339,14 +335,16 @@ public:
 	// quest wandering commands
 	void				StopWandering();
 	void				ResumeWandering();
+	virtual bool ElixirAIDetermineSpellToCast();
+	virtual bool ElixirAITryCastSpell(uint16 spellID, bool isHeal = false);
+	virtual bool AIElixirDoSpellCast(uint16 spellID, Mob* tar, int32 mana_cost);
 	void				PauseWandering(int pausetime);
 	void				MoveTo(const glm::vec4& position, bool saveguardspot);
 	void				GetClosestWaypoints(std::list<wplist> &wp_list, int count, const glm::vec3& location);
 	int					GetClosestWaypoint(const glm::vec3& location);
-
-	uint32				GetEquippedItemFromTextureSlot(uint8 material_slot) const;	// returns item id
-	int32				GetEquipmentMaterial(uint8 material_slot) const;
-
+	virtual uint32		GetEquippedItemFromTextureSlot(uint8 material_slot);	// returns item id
+	virtual int32		GetEquipmentMaterial(uint8 material_slot);
+	virtual uint32 		GetEquipmentColor(uint8 material_slot) { return Mob::GetEquipmentColor(material_slot); }
 	void				NextGuardPosition();
 	void				SaveGuardSpot(const glm::vec4 &pos);
 	inline bool			IsGuarding() const { return(m_GuardPoint.w != 0); }
@@ -392,7 +390,9 @@ public:
 	float GetProximityMaxZ();
 	bool  IsProximitySet();
 
-	ItemList	itemlist; //kathgar - why is this public? Doing other things or I would check the code
+	ItemList	itemlist;
+
+	std::vector<ServerLootItem_Struct>	quest_itemlist;
 
 	NPCProximity* proximity;
 	Spawn2*	respawn2;
@@ -458,7 +458,7 @@ public:
 	const uint32 GetAltCurrencyType() const { return NPCTypedata->alt_currency_type; }
 
 	NPC_Emote_Struct* GetNPCEmote(uint16 emoteid, uint8 event_);
-	void DoNPCEmote(uint8 event_, uint16 emoteid);
+	void DoNPCEmote(uint8 event_, uint16 emoteid, Mob* target);
 	bool CanTalk();
 	void DoQuestPause(Mob *other);
 
@@ -533,7 +533,6 @@ public:
 
 	void RecalculateSkills();
 
-	static LootDropEntries_Struct NewLootDropEntry();
 protected:
 
 	const NPCType*	NPCTypedata;
@@ -676,7 +675,7 @@ protected:
 
 
 private:
-	uint32 loottable_id;
+	std::vector<uint32>	loottable_id;
 	bool   skip_global_loot;
 	bool   skip_auto_scale;
 	bool   p_depop;

@@ -1349,6 +1349,93 @@ const char* GetPlayerRaceName(uint32 player_race_value)
 	return GetRaceIDName(GetRaceIDFromPlayerRaceValue(player_race_value));
 }
 
+
+const char* GetRaceName(uint16 race)
+{
+	switch (race)
+	{
+	case HUMAN:
+		return "Human";
+	case BARBARIAN:
+		return "Barbarian";
+	case ERUDITE:
+		return "Erudite";
+	case WOOD_ELF:
+		return "Wood Elf";
+	case HIGH_ELF:
+		return "High Elf";
+	case DARK_ELF:
+		return "Dark Elf";
+	case HALF_ELF:
+		return "Half Elf";
+	case DWARF:
+		return "Dwarf";
+	case TROLL:
+		return "Troll";
+	case OGRE:
+		return "Ogre";
+	case HALFLING:
+		return "Halfling";
+	case GNOME:
+		return "Gnome";
+	case IKSAR:
+		return "Iksar";
+	case WEREWOLF:
+		return "Werewolf";
+	case SKELETON:
+		return "Skeleton";
+	case ELEMENTAL:
+		return "Elemental";
+	case EYE_OF_ZOMM:
+		return "Eye of Zomm";
+	case WOLF_ELEMENTAL:
+		return "Wolf Elemental";
+	case IKSAR_SKELETON:
+		return "Iksar Skeleton";
+	case VAHSHIR:
+		return "Vah Shir";
+	default:
+		return "Race";
+	}
+}
+
+const char* GetRaceNamePlural(uint16 race)
+{
+	switch (race)
+	{
+	case HUMAN:
+		return "Humans"; break;
+	case BARBARIAN:
+		return "Barbarians"; break;
+	case ERUDITE:
+		return "Erudites"; break;
+	case WOOD_ELF:
+		return "Wood Elves"; break;
+	case HIGH_ELF:
+		return "High Elves"; break;
+	case DARK_ELF:
+		return "Dark Elves"; break;
+	case HALF_ELF:
+		return "Half Elves"; break;
+	case DWARF:
+		return "Dwarves"; break;
+	case TROLL:
+		return "Trolls"; break;
+	case OGRE:
+		return "Ogres"; break;
+	case HALFLING:
+		return "Halflings"; break;
+	case GNOME:
+		return "Gnomes"; break;
+	case IKSAR:
+		return "Iksar"; break;
+	case VAHSHIR:
+		return "Vah Shir"; break;
+	default:
+		return "Races"; break;
+	}
+}
+
 uint32 GetPlayerRaceValue(uint16 race_id) {
 	switch (race_id) {
 		case HUMAN:

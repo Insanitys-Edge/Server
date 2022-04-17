@@ -175,7 +175,7 @@ XS(XS_Corpse_IsEmpty) {
 		Corpse *THIS;
 		bool RETVAL;
 		VALIDATE_THIS_IS_CORPSE;
-		RETVAL = THIS->IsEmpty();
+		RETVAL = false;
 		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
@@ -215,7 +215,7 @@ XS(XS_Corpse_GetWornItem) {
 		dXSTARG;
 		int16  equipSlot = (int16) SvIV(ST(1));
 		VALIDATE_THIS_IS_CORPSE;
-		RETVAL = THIS->GetWornItem(equipSlot);
+		RETVAL = 0;
 		XSprePUSH;
 		PUSHu((UV) RETVAL);
 	}
@@ -231,7 +231,7 @@ XS(XS_Corpse_RemoveItem) {
 		Corpse *THIS;
 		uint16 lootslot = (uint16) SvUV(ST(1));
 		VALIDATE_THIS_IS_CORPSE;
-		THIS->RemoveItem(lootslot);
+		//THIS->RemoveItem();
 	}
 	XSRETURN_EMPTY;
 }
@@ -248,7 +248,7 @@ XS(XS_Corpse_SetCash) {
 		uint16 in_gold     = (uint16) SvUV(ST(3));
 		uint16 in_platinum = (uint16) SvUV(ST(4));
 		VALIDATE_THIS_IS_CORPSE;
-		THIS->SetCash(in_copper, in_silver, in_gold, in_platinum);
+		//THIS->SetCash(in_copper, in_silver, in_gold, in_platinum);
 	}
 	XSRETURN_EMPTY;
 }
@@ -261,7 +261,7 @@ XS(XS_Corpse_RemoveCash) {
 	{
 		Corpse *THIS;
 		VALIDATE_THIS_IS_CORPSE;
-		THIS->RemoveCash();
+		//THIS->RemoveCash();
 	}
 	XSRETURN_EMPTY;
 }
@@ -511,7 +511,7 @@ XS(XS_Corpse_HasItem) {
 		bool has_item = false;
 		uint32 item_id = (uint32) SvUV(ST(1));
 		VALIDATE_THIS_IS_CORPSE;
-		has_item = THIS->HasItem(item_id);
+		has_item = false;
 		ST(0) = boolSV(has_item);
 		sv_2mortal(ST(0));
 	}
@@ -529,7 +529,7 @@ XS(XS_Corpse_CountItem) {
 		uint32 item_id = (uint32) SvUV(ST(1));
 		dXSTARG;
 		VALIDATE_THIS_IS_CORPSE;
-		item_count = THIS->CountItem(item_id);
+		item_count = 0;
 		XSprePUSH;
 		PUSHu((UV) item_count);
 	}
@@ -547,7 +547,7 @@ XS(XS_Corpse_GetItemIDBySlot) {
 		uint16 loot_slot = (uint16) SvUV(ST(1));
 		dXSTARG;
 		VALIDATE_THIS_IS_CORPSE;
-		item_id = THIS->GetItemIDBySlot(loot_slot);
+		item_id = 0;
 		XSprePUSH;
 		PUSHu((UV) item_id);
 	}
@@ -565,7 +565,7 @@ XS(XS_Corpse_GetFirstSlotByItemID) {
 		uint32 item_id = (uint32) SvUV(ST(1));
 		dXSTARG;
 		VALIDATE_THIS_IS_CORPSE;
-		loot_slot = THIS->GetFirstSlotByItemID(item_id);
+		loot_slot = 0;
 		XSprePUSH;
 		PUSHu((UV) loot_slot);
 	}
@@ -585,33 +585,33 @@ XS(XS_Corpse_RemoveItemByID) {
 		if (items == 3)
 			quantity = (int) SvIV(ST(2));
 
-		THIS->RemoveItemByID(item_id, quantity);
+		//THIS->RemoveItemByID(item_id, quantity);
 	}
 	XSRETURN_EMPTY;
 }
 
-XS(XS_Corpse_GetLootList);
-XS(XS_Corpse_GetLootList) {
-	dXSARGS;
-	if (items != 1)
-		Perl_croak(aTHX_ "Usage: Corpse::GetLootList(THIS)"); // @categories Script Utility
-	{
-		Corpse *THIS;
-		VALIDATE_THIS_IS_CORPSE;
-		auto corpse_items = THIS->GetLootList();
-		auto item_count = corpse_items.size();
-		if (item_count > 0) {
-			EXTEND(sp, item_count);
-			for (int index = 0; index < item_count; ++index) {
-				ST(index) = sv_2mortal(newSVuv(corpse_items[index]));
-			}
-			XSRETURN(item_count);
-		}
-		SV* return_value = &PL_sv_undef;
-		ST(0) = return_value;
-		XSRETURN(1);
-	}
-}
+//XS(XS_Corpse_GetLootList);
+//XS(XS_Corpse_GetLootList) {
+//	dXSARGS;
+//	if (items != 1)
+//		Perl_croak(aTHX_ "Usage: Corpse::GetLootList(THIS)"); // @categories Script Utility
+//	{
+//		Corpse *THIS;
+//		VALIDATE_THIS_IS_CORPSE;
+//		auto corpse_items = THIS->GetLootList();
+//		auto item_count = corpse_items.size();
+//		if (item_count > 0) {
+//			EXTEND(sp, item_count);
+//			for (int index = 0; index < item_count; ++index) {
+//				ST(index) = sv_2mortal(newSVuv(corpse_items[index]));
+//			}
+//			XSRETURN(item_count);
+//		}
+//		SV* return_value = &PL_sv_undef;
+//		ST(0) = return_value;
+//		XSRETURN(1);
+//	}
+//}
 
 #ifdef __cplusplus
 extern "C"
@@ -646,7 +646,6 @@ XS(boot_Corpse) {
 	newXSproto(strcpy(buf, "GetFirstSlotByItemID"), XS_Corpse_GetFirstSlotByItemID, file, "$$");
 	newXSproto(strcpy(buf, "GetGold"), XS_Corpse_GetGold, file, "$");
 	newXSproto(strcpy(buf, "GetItemIDBySlot"), XS_Corpse_GetItemIDBySlot, file, "$$");
-	newXSproto(strcpy(buf, "GetLootList"), XS_Corpse_GetLootList, file, "$");
 	newXSproto(strcpy(buf, "GetOwnerName"), XS_Corpse_GetOwnerName, file, "$");
 	newXSproto(strcpy(buf, "GetPlatinum"), XS_Corpse_GetPlatinum, file, "$");
 	newXSproto(strcpy(buf, "GetSilver"), XS_Corpse_GetSilver, file, "$");

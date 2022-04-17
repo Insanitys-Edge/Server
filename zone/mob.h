@@ -376,6 +376,8 @@ public:
 	int16 GetItemSlotToConsumeCharge(int32 spell_id, uint32 inventory_slot);
 	bool CheckItemRaceClassDietyRestrictionsOnCast(uint32 inventory_slot);
 	bool IsFromTriggeredSpell(EQ::spells::CastingSlot slot, uint32 item_slot = 0xFFFFFFFF);
+	bool IsWithinSpellRange(Mob* target, float spellRange, uint16 spellID);
+
 	
 	//Bard 
 	bool ApplyBardPulse(int32 spell_id, Mob *spell_target, EQ::spells::CastingSlot slot);
@@ -1062,6 +1064,8 @@ public:
 
 	void AI_Event_Engaged(Mob* attacker, bool yell_for_help = true);
 	void AI_Event_NoLongerEngaged();
+
+	int8 ElixirCastSpellCheck(uint16 spellID, Mob** outMob);
 
 	FACTION_VALUE GetSpecialFactionCon(Mob* iOther);
 	inline const bool IsAIControlled() const { return pAIControlled; }

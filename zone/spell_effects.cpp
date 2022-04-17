@@ -58,6 +58,8 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 	if(!IsValidSpell(spell_id))
 		return false;
 
+	bool bSendMovement = false;
+
 	const SPDat_Spell_Struct &spell = spells[spell_id];
 
 	if (spell.disallow_sit && IsBuffSpell(spell_id) && IsClient() && (CastToClient()->IsSitting() || CastToClient()->GetHorseId() != 0))
@@ -1670,7 +1672,19 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 													caster->itembonuses.RootBreakChance +
 													caster->spellbonuses.RootBreakChance;
 				}
+				bSendMovement = true;
+				break;
+			}
 
+			case SE_MovementSpeed:
+			{
+				bSendMovement = true;
+				break;
+			}
+
+			case SE_BaseMovementSpeed:
+			{
+				bSendMovement = true;
 				break;
 			}
 
@@ -3081,7 +3095,7 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 			case SE_DamageShield:
 			case SE_TrueNorth:
 			case SE_WaterBreathing:
-			case SE_MovementSpeed:
+
 			case SE_PercentXPIncrease:
 			case SE_DivineSave:
 			case SE_Accuracy:
@@ -3183,7 +3197,6 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 			case SE_TripleBackstab:
 			case SE_DoubleSpecialAttack:
 			case SE_IncreaseRunSpeedCap:
-			case SE_BaseMovementSpeed:
 			case SE_FrontalStunResist:
 			case SE_ImprovedBindWound:
 			case SE_MaxBindWound:
@@ -3310,6 +3323,11 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 	}
 
 	CalcBonuses();
+
+	if (bSendMovement && IsClient())
+	{
+		CastToClient()->SendEdgeMovementStats();
+	}
 
 	if (SummonedItem) {
 		Client *c=CastToClient();
@@ -3753,6 +3771,13 @@ void Mob::BuffProcess()
 void Mob::DoBuffTic(const Buffs_Struct &buff, int slot, Mob *caster)
 {
 	int effect, effect_value;
+	bool bSendMovement = false;
+
+	if (bSendMovement && IsClient())
+	{
+		CastToClient()->SendEdgeMovementStats();
+	}
+
 
 	if (!IsValidSpell(buff.spellid))
 		return;
@@ -3922,7 +3947,19 @@ void Mob::DoBuffTic(const Buffs_Struct &buff, int slot, Mob *caster)
 				else if (!TryFadeEffect(slot))
 					BuffFadeBySlot(slot);
 			}
+			bSendMovement = true;
 
+			break;
+		}
+
+		case SE_MovementSpeed:
+		{
+			bSendMovement = true;
+			break;
+		}
+		case SE_BaseMovementSpeed:
+		{
+			bSendMovement = true;
 			break;
 		}
 
@@ -4090,6 +4127,11 @@ void Mob::DoBuffTic(const Buffs_Struct &buff, int slot, Mob *caster)
 	 */
 	if (degenerating_effects)
 		CalcBonuses();
+
+	if (bSendMovement && IsClient())
+	{
+		CastToClient()->SendEdgeMovementStats();
+	}
 }
 
 // removes the buff in the buff slot 'slot'
@@ -4105,6 +4147,8 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 		CastToClient()->MakeBuffFadePacket(buffs[slot].spellid, slot);
 
 	LogSpells("Fading buff [{}] from slot [{}]", buffs[slot].spellid, slot);
+
+	bool bSendMovement = false;
 
 	std::string export_string = fmt::format(
 		"{} {} {} {}",
@@ -4370,8 +4414,22 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 			{
 				buffs[slot].RootBreakChance = 0;
 				rooted = false;
+				bSendMovement = true;
 				break;
 			}
+
+			case SE_MovementSpeed:
+			{
+				bSendMovement = true;
+				break;
+			}
+
+			case SE_BaseMovementSpeed:
+			{
+				bSendMovement = true;
+				break;
+			}
+
 
 			case SE_Blind:
 				if (currently_fleeing && !FindType(SE_Fear))
@@ -4529,6 +4587,11 @@ void Mob::BuffFadeBySlot(int slot, bool iRecalcBonuses)
 	degenerating_effects = false;
 	if (iRecalcBonuses)
 		CalcBonuses();
+
+	if (bSendMovement && IsClient())
+	{
+		CastToClient()->SendEdgeMovementStats();
+	}
 }
 
 int32 Client::CalcAAFocus(focusType type, const AA::Rank &rank, uint16 spell_id)

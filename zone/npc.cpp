@@ -31,6 +31,7 @@
 #include "../common/linked_list.h"
 #include "../common/servertalk.h"
 #include "../common/say_link.h"
+#include "../common/races.h"
 
 #include "client.h"
 #include "entity.h"
@@ -250,7 +251,7 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	roambox_min_delay     = 1000;
 	roambox_delay         = 1000;
 	p_depop               = false;
-	loottable_id          = npc_type_data->loottable_id;
+	loottable_id.push_back(npc_type_data->loottable_id);
 	skip_global_loot      = npc_type_data->skip_global_loot;
 	skip_auto_scale       = npc_type_data->skip_auto_scale;
 	rare_spawn            = npc_type_data->rare_spawn;
@@ -543,19 +544,6 @@ void NPC::SetTarget(Mob* mob) {
 	Mob::SetTarget(mob);
 }
 
-ServerLootItem_Struct* NPC::GetItem(int slot_id) {
-	ItemList::iterator cur,end;
-	cur = itemlist.begin();
-	end = itemlist.end();
-	for(; cur != end; ++cur) {
-		ServerLootItem_Struct* item = *cur;
-		if (item->equip_slot == slot_id) {
-			return item;
-		}
-	}
-	return(nullptr);
-}
-
 void NPC::RemoveItem(uint32 item_id, uint16 quantity, uint16 slot) {
 	ItemList::iterator cur,end;
 	cur = itemlist.begin();
@@ -580,245 +568,6 @@ void NPC::RemoveItem(uint32 item_id, uint16 quantity, uint16 slot) {
 			return;
 		}
 	}
-}
-
-void NPC::CheckTrivialMinMaxLevelDrop(Mob *killer)
-{
-	if (killer == nullptr || !killer->IsClient()) {
-		return;
-	}
-
-	uint16 killer_level = killer->GetLevel();
-	uint8  material;
-
-	auto cur = itemlist.begin();
-	while (cur != itemlist.end()) {
-		if (!(*cur)) {
-			return;
-		}
-
-		uint16 trivial_min_level     = (*cur)->trivial_min_level;
-		uint16 trivial_max_level     = (*cur)->trivial_max_level;
-		bool   fits_trivial_criteria = (
-			(trivial_min_level > 0 && killer_level < trivial_min_level) ||
-			(trivial_max_level > 0 && killer_level > trivial_max_level)
-		);
-
-		if (fits_trivial_criteria) {
-			material = EQ::InventoryProfile::CalcMaterialFromSlot((*cur)->equip_slot);
-			if (material != EQ::textures::materialInvalid) {
-				SendWearChange(material);
-			}
-
-			cur = itemlist.erase(cur);
-			continue;
-		}
-		++cur;
-	}
-
-	UpdateEquipmentLight();
-	if (UpdateActiveLight()) {
-		SendAppearancePacket(AT_Light, GetActiveLightType());
-	}
-}
-
-void NPC::ClearItemList() {
-	ItemList::iterator cur,end;
-	cur = itemlist.begin();
-	end = itemlist.end();
-	for(; cur != end; ++cur) {
-		ServerLootItem_Struct* item = *cur;
-		safe_delete(item);
-	}
-	itemlist.clear();
-
-	UpdateEquipmentLight();
-	if (UpdateActiveLight())
-		SendAppearancePacket(AT_Light, GetActiveLightType());
-}
-
-void NPC::QueryLoot(Client* to, bool is_pet_query)
-{
-	if (!itemlist.empty()) {
-		if (!is_pet_query) {
-			to->Message(
-				Chat::White,
-				fmt::format(
-					"Loot | {} ({}) ID: {} Loottable ID: {}",
-					GetName(),
-					GetID(),
-					GetNPCTypeID(),
-					GetLoottableID()
-				).c_str()
-			);
-		}
-
-		int item_count = 0;
-		for (auto current_item : itemlist) {
-			int item_number = (item_count + 1);
-			if (!current_item) {
-				LogError("NPC::QueryLoot() - ItemList error, null item.");
-				continue;
-			}
-
-			if (!current_item->item_id || !database.GetItem(current_item->item_id)) {
-				LogError("NPC::QueryLoot() - Database error, invalid item.");
-				continue;
-			}
-
-			EQ::SayLinkEngine linker;
-			linker.SetLinkType(EQ::saylink::SayLinkLootItem);
-			linker.SetLootData(current_item);
-
-			to->Message(
-				Chat::White,
-				fmt::format(
-					"Item {} | {} ({}){}",
-					item_number,
-					linker.GenerateLink().c_str(),
-					current_item->item_id,
-					(
-						current_item->charges > 1 ?
-						fmt::format(
-							" Amount: {}",
-							current_item->charges
-						) :
-						""
-					)
-				).c_str()
-			);
-			item_count++;
-		}
-	}
-
-	if (!is_pet_query) {
-		bool has_money = (
-			platinum > 0 ||
-			gold > 0 ||
-			silver > 0 ||
-			copper > 0
-		);
-		if (has_money) {
-			to->Message(
-				Chat::White,
-				fmt::format(
-					"Money | {}",
-					ConvertMoneyToString(
-						platinum,
-						gold,
-						silver,
-						copper
-					)
-				).c_str()
-			);
-		}
-	}
-}
-
-bool NPC::HasItem(uint32 item_id) {
-	if (!database.GetItem(item_id)) {
-		return false;
-	}
-
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
-		ServerLootItem_Struct* loot_item = *current_item;
-		if (!loot_item) {
-			LogError("NPC::HasItem() - ItemList error, null item");
-			continue;
-		}
-
-		if (!loot_item->item_id || !database.GetItem(loot_item->item_id)) {
-			LogError("NPC::HasItem() - Database error, invalid item");
-			continue;
-		}
-
-		if (loot_item->item_id == item_id) {
-			return true;
-		}
-	}
-	return false;
-}
-
-uint16 NPC::CountItem(uint32 item_id) {
-	uint16 item_count = 0;
-	if (!database.GetItem(item_id)) {
-		return item_count;
-	}
-
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
-		ServerLootItem_Struct* loot_item = *current_item;
-		if (!loot_item) {
-			LogError("NPC::CountItem() - ItemList error, null item");
-			continue;
-		}
-
-		if (!loot_item->item_id || !database.GetItem(loot_item->item_id)) {
-			LogError("NPC::CountItem() - Database error, invalid item");
-			continue;
-		}
-
-		if (loot_item->item_id == item_id) {
-			item_count += loot_item->charges > 0 ? loot_item->charges : 1;
-		}
-	}
-	return item_count;
-}
-
-uint32 NPC::GetItemIDBySlot(uint16 loot_slot) {
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
-		ServerLootItem_Struct* loot_item = *current_item;
-		if (loot_item->lootslot == loot_slot) {
-			return loot_item->item_id;
-		}
-	}
-	return 0;
-}
-
-uint16 NPC::GetFirstSlotByItemID(uint32 item_id) {
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
-		ServerLootItem_Struct* loot_item = *current_item;
-		if (loot_item->item_id == item_id) {
-			return loot_item->lootslot;
-		}
-	}
-	return 0;
-}
-
-void NPC::AddCash(uint16 in_copper, uint16 in_silver, uint16 in_gold, uint16 in_platinum) {
-	if(in_copper >= 0)
-		copper = in_copper;
-	else
-		copper = 0;
-
-	if(in_silver >= 0)
-		silver = in_silver;
-	else
-		silver = 0;
-
-	if(in_gold >= 0)
-		gold = in_gold;
-	else
-		gold = 0;
-
-	if(in_platinum >= 0)
-		platinum = in_platinum;
-	else
-		platinum = 0;
-}
-
-void NPC::AddCash()
-{
-	copper   = zone->random.Int(1, 100);
-	silver   = zone->random.Int(1, 50);
-	gold     = zone->random.Int(1, 10);
-	platinum = zone->random.Int(1, 5);
-}
-
-void NPC::RemoveCash() {
-	copper = 0;
-	silver = 0;
-	gold = 0;
-	platinum = 0;
 }
 
 bool NPC::Process()
@@ -1083,7 +832,7 @@ void NPC::UpdateEquipmentLight()
 void NPC::Depop(bool StartSpawnTimer) {
 	uint16 emoteid = this->GetEmoteID();
 	if(emoteid != 0)
-		this->DoNPCEmote(ONDESPAWN,emoteid);
+		this->DoNPCEmote(ONDESPAWN,emoteid,this);
 	p_depop = true;
 	if (respawn2)
 	{
@@ -1755,58 +1504,6 @@ uint32 ZoneDatabase::NPCSpawnDB(uint8 command, const char* zone, uint32 zone_ver
 		}
 	}
 	return false;
-}
-
-int32 NPC::GetEquipmentMaterial(uint8 material_slot) const
-{
-	int32 texture_profile_material = GetTextureProfileMaterial(material_slot);
-
-	Log(Logs::Detail, Logs::MobAppearance, "NPC::GetEquipmentMaterial [%s] material_slot: %u",
-		this->clean_name,
-		material_slot
-	);
-
-	if (texture_profile_material > 0) {
-		return texture_profile_material;
-	}
-
-	if (material_slot >= EQ::textures::materialCount) {
-		return 0;
-	}
-
-	int16 invslot = EQ::InventoryProfile::CalcSlotFromMaterial(material_slot);
-	if (invslot == INVALID_INDEX) {
-		return 0;
-	}
-
-	if (equipment[invslot] == 0) {
-		switch (material_slot) {
-			case EQ::textures::armorHead:
-				return helmtexture;
-			case EQ::textures::armorChest:
-				return texture;
-			case EQ::textures::armorArms:
-				return armtexture;
-			case EQ::textures::armorWrist:
-				return bracertexture;
-			case EQ::textures::armorHands:
-				return handtexture;
-			case EQ::textures::armorLegs:
-				return legtexture;
-			case EQ::textures::armorFeet:
-				return feettexture;
-			case EQ::textures::weaponPrimary:
-				return d_melee_texture1;
-			case EQ::textures::weaponSecondary:
-				return d_melee_texture2;
-			default:
-				//they have nothing in the slot, and its not a special slot... they get nothing.
-				return (0);
-		}
-	}
-
-	//they have some loot item in this slot, pass it up to the default handler
-	return (Mob::GetEquipmentMaterial(material_slot));
 }
 
 uint32 NPC::GetMaxDamage(uint8 tlevel)
@@ -2615,7 +2312,7 @@ void NPC::ModifyNPCStat(const char *identifier, const char *new_value)
 		return;
 	}
 	else if (id == "loottable_id") {
-		loottable_id = atof(val.c_str());
+		loottable_id.push_back(atoi(val.c_str()));
 		return;
 	}
 	else if (id == "healscale") {
@@ -2757,7 +2454,7 @@ float NPC::GetNPCStat(const char *identifier)
 		return slow_mitigation;
 	}
 	else if (id == "loottable_id") {
-		return loottable_id;
+		return loottable_id.size() ? loottable_id.at(0) : 0;
 	}
 	else if (id == "healscale") {
 		return healscale;
@@ -3010,7 +2707,7 @@ NPC_Emote_Struct* NPC::GetNPCEmote(uint16 emoteid, uint8 event_) {
 	return (nullptr);
 }
 
-void NPC::DoNPCEmote(uint8 event_, uint16 emoteid)
+void NPC::DoNPCEmote(uint8 event_, uint16 emoteid, Mob* target)
 {
 	if(this == nullptr || emoteid == 0)
 	{
@@ -3023,16 +2720,41 @@ void NPC::DoNPCEmote(uint8 event_, uint16 emoteid)
 		return;
 	}
 
+	std::string processed = nes->text;
+	replace_all(processed, "$mname", GetCleanName());
+	replace_all(processed, "$mracep", GetRaceNamePlural(GetRace()));
+	replace_all(processed, "$mrace", GetRaceName(GetRace()));
+	replace_all(processed, "$mclass", GetEQClassName(GetClass()));
+	if (target)
+	{
+		replace_all(processed, "$name", target->GetCleanName());
+		replace_all(processed, "$racep", GetRaceNamePlural(target->GetRace()));
+		replace_all(processed, "$race", GetRaceName(target->GetRace()));
+		replace_all(processed, "$class", GetEQClassName(target->GetClass()));
+	}
+	else
+	{
+		replace_all(processed, "$name", "foe");
+		replace_all(processed, "$racep", "races");
+		replace_all(processed, "$race", "race");
+		replace_all(processed, "$class", "class");
+	}
+
 	if(emoteid == nes->emoteid)
 	{
+		if (event_ == HAILED && GetTarget())
+		{
+			DoQuestPause(target);
+		}
+
 		if(nes->type == 1)
-			this->Emote("%s",nes->text);
+			this->Emote("%s", processed.c_str());
 		else if(nes->type == 2)
-			this->Shout("%s",nes->text);
+			this->Shout("%s", processed.c_str());
 		else if(nes->type == 3)
 			entity_list.MessageCloseString(this, true, 200, 10, GENERIC_STRING, nes->text);
 		else
-			this->Say("%s",nes->text);
+			this->Say("%s", processed.c_str());
 	}
 }
 
@@ -3653,21 +3375,96 @@ bool NPC::IsGuard()
 	}
 	return false;
 }
+//
+//std::vector<int> NPC::GetLootList() {
+//	std::vector<int> npc_items;
+//	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
+//		ServerLootItem_Struct* loot_item = *current_item;
+//		if (!loot_item) {
+//			LogError("NPC::GetLootList() - ItemList error, null item");
+//			continue;
+//		}
+//
+//		if (std::find(npc_items.begin(), npc_items.end(), loot_item->item_id) != npc_items.end()) {
+//			continue;
+//		}
+//		
+//		npc_items.push_back(loot_item->item_id);
+//	}
+//	return npc_items;
+//}
 
-std::vector<int> NPC::GetLootList() {
-	std::vector<int> npc_items;
-	for (auto current_item  = itemlist.begin(); current_item != itemlist.end(); ++current_item) {
-		ServerLootItem_Struct* loot_item = *current_item;
-		if (!loot_item) {
-			LogError("NPC::GetLootList() - ItemList error, null item");
-			continue;
-		}
+// ElixirAIDetermineSpellToCast is called during AI bot logics
+// It determines by class which spell to cast
+bool NPC::ElixirAIDetermineSpellToCast() {
+	int8 spellAIResult;
+	Group* grp = GetGroup();
 
-		if (std::find(npc_items.begin(), npc_items.end(), loot_item->item_id) != npc_items.end()) {
-			continue;
+	for (const AISpells_Struct& aispell : AIspells) {
+		if (aispell.spellid <= 0) continue;
+
+		if (aispell.time_cancast < Timer::GetCurrentTime())
+		{
+			if (ElixirAITryCastSpell(aispell.spellid, true)) {
+				return true;
+			}
 		}
-		
-		npc_items.push_back(loot_item->item_id);
 	}
-	return npc_items;
+	//failed to cast a spell. that's fine, check 
+	AIautocastspell_timer->Start(2250, false); // avg human response is much less than 5 seconds..even for non-combat situations... let's try and recast in default recovery time.
+	return false;
+}
+
+// ElixirAITryCastSpell takes a provided spell id and does a spell check to determine if the spell is valid
+// Once valid, it will cast on returned mob candidate
+bool NPC::ElixirAITryCastSpell(uint16 spellID, bool isHeal) {
+	if (spellID == 0) return false;
+
+	Mob* outMob = nullptr;
+	auto spellAIResult = ElixirCastSpellCheck(spellID, &outMob);
+
+	if (spellAIResult < 0) return false;
+
+	if (spellAIResult == 0) {
+
+		if (outMob == nullptr && GetTarget() != nullptr) outMob = GetTarget();
+		if (outMob == nullptr) outMob = this;
+		AIElixirDoSpellCast(spellID, outMob, -1);
+		if (GetTarget() == this) return true;
+		return true;
+	}
+
+	if (outMob == nullptr) {
+		return false;
+	}
+
+	AIElixirDoSpellCast(spellID, outMob, -1);
+	if (outMob == this) return true;
+	return true;
+}
+
+bool NPC::AIElixirDoSpellCast(uint16 spellID, Mob* tar, int32 mana_cost) {
+	// manacost has special values, -1 is no mana cost, -2 is instant cast (no mana)
+	int32 manaCost = mana_cost;
+
+	if (manaCost == -1)
+		manaCost = spells[spellID].mana;
+	else if (manaCost == -2)
+		manaCost = 0;
+
+	int32 extraMana = 0;
+	int32 hasMana = GetMana();
+
+	Log(Logs::General, Logs::Mercenaries, "Attempting to cast %s on %s", spells[spellID].name, tar == nullptr ? "no target" : tar->GetCleanName());
+
+	bool result = NPC::CastSpell(spellID, tar->GetID(), EQ::spells::CastingSlot::Gem2, spells[spellID].mana == -2 ? -2 : -1, mana_cost, 0, -1, -1, 0, 0);
+
+	// if the spell wasn't casted, then take back any extra mana that was given to the bot to cast that spell
+	if (!result) {
+		SetMana(hasMana);
+		extraMana = false;
+		return result;
+	}
+
+	return result;
 }

@@ -519,10 +519,14 @@ Mob::~Mob()
 
 	EQApplicationPacket app;
 	CreateDespawnPacket(&app, !IsCorpse());
-	Corpse *corpse = entity_list.GetCorpseByID(GetID());
+	Corpse* corpse = entity_list.GetCorpseByID(GetID());
 	if (!corpse || (corpse && !corpse->IsPlayerCorpse())) {
-		entity_list.QueueClients(this, &app, true);
+		if (IsCorpse())
+			entity_list.QueueCorpseClients(corpse, &app, true);
+		else
+			entity_list.QueueClients(this, &app, true);
 	}
+
 
 	entity_list.RemoveFromTargets(this, true);
 
@@ -1447,6 +1451,7 @@ void Mob::SendHPUpdate(bool force_update_all)
 
 			ResetHPUpdateTimer();
 
+			CastToClient()->SendEdgeHPStats();
 			// Used to check if HP has changed to update self next round
 			last_hp = current_hp;
 		}
@@ -5541,12 +5546,20 @@ void Mob::SetBodyType(bodyType new_body, bool overwrite_orig) {
 	}
 	bodytype = new_body;
 
-	if(needs_spawn_packet) {
+	if (needs_spawn_packet) {
 		auto app = new EQApplicationPacket;
+
 		CreateDespawnPacket(app, true);
-		entity_list.QueueClients(this, app);
+		if (IsCorpse())
+			entity_list.QueueCorpseClients(this->CastToCorpse(), app);
+		else
+			entity_list.QueueClients(this, app);
+
 		CreateSpawnPacket(app, this);
-		entity_list.QueueClients(this, app);
+		if (IsCorpse())
+			entity_list.QueueCorpseClients(this->CastToCorpse(), app);
+		else
+			entity_list.QueueClients(this, app);
 		safe_delete(app);
 	}
 }
