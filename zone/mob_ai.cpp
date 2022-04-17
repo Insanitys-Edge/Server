@@ -1608,25 +1608,25 @@ void NPC::AI_DoMovement() {
 
 		// Set a new destination
 		if (!IsMoving() && time_until_can_move < Timer::GetCurrentTime()) {
-			auto move_x = static_cast<float>(zone->random.Real(-roambox_distance, roambox_distance));
-			auto move_y = static_cast<float>(zone->random.Real(-roambox_distance, roambox_distance));
+			//auto move_x = static_cast<float>(zone->random.Real(-roambox_distance, roambox_distance));
+			//auto move_y = static_cast<float>(zone->random.Real(-roambox_distance, roambox_distance));
 
-			roambox_destination_x = EQ::Clamp((GetX() + move_x), roambox_min_x, roambox_max_x);
-			roambox_destination_y = EQ::Clamp((GetY() + move_y), roambox_min_y, roambox_max_y);
+			//roambox_destination_x = EQ::Clamp((GetX() + move_x), roambox_min_x, roambox_max_x);
+			//roambox_destination_y = EQ::Clamp((GetY() + move_y), roambox_min_y, roambox_max_y);
 
 			/**
 			 * If our roambox was configured with large distances, chances of hitting the min or max end of
 			 * the clamp is high, this causes NPC's to gather on the border of a box, to reduce clustering
 			 * either lower the roambox distance or the code will do a simple random between min - max when it
 			 * hits the min or max of the clamp
-			 */
-			if (roambox_destination_x == roambox_min_x || roambox_destination_x == roambox_max_x) {
+			// */
+			//if (roambox_destination_x == roambox_min_x || roambox_destination_x == roambox_max_x) {
 				roambox_destination_x = static_cast<float>(zone->random.Real(roambox_min_x, roambox_max_x));
-			}
+			//}
 
-			if (roambox_destination_y == roambox_min_y || roambox_destination_y == roambox_max_y) {
+			//if (roambox_destination_y == roambox_min_y || roambox_destination_y == roambox_max_y) {
 				roambox_destination_y = static_cast<float>(zone->random.Real(roambox_min_y, roambox_max_y));
-			}
+			//}
 
 			/**
 			 * If mob was not spawned in water, let's not randomly roam them into water
@@ -1943,8 +1943,9 @@ void Mob::AI_Event_Engaged(Mob *attacker, bool yell_for_help)
 				if (!CastToNPC()->GetCombatEvent() && GetHP() > 0) {
 					parse->EventNPC(EVENT_COMBAT, CastToNPC(), attacker, "1", 0);
 					uint16 emoteid = GetEmoteID();
-					if(emoteid != 0)
-						CastToNPC()->DoNPCEmote(ENTERCOMBAT,emoteid, attacker);
+					if (emoteid != 0) {
+						CastToNPC()->DoNPCEmote(ENTERCOMBAT, emoteid, attacker);
+					}
 					CastToNPC()->SetCombatEvent(true);
 				}
 			}
@@ -1976,8 +1977,10 @@ void Mob::AI_Event_NoLongerEngaged() {
 			{
 			uint16 emoteid = CastToNPC()->GetEmoteID();
 			parse->EventNPC(EVENT_COMBAT, CastToNPC(), nullptr, "0", 0);
-			if(emoteid != 0)
-				CastToNPC()->DoNPCEmote(LEAVECOMBAT,emoteid, this);
+			if (emoteid != 0)
+			{
+				CastToNPC()->DoNPCEmote(LEAVECOMBAT, emoteid, this);
+			}
 			CastToNPC()->SetCombatEvent(false);
 			}
 		}
