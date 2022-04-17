@@ -1665,22 +1665,22 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	/* If server is PVP by default, make all character set to it. */
 	pp.pvp = database.GetServerType() == 1 ? 1 : 0;
 
-	/* If it is an SoF Client and the SoF Start Zone rule is set, send new chars there */
-	if (m_ClientVersionBit & EQ::versions::maskSoFAndLater) {
-		LogInfo("Found 'SoFStartZoneID' rule setting: [{}]", RuleI(World, SoFStartZoneID));
-		if (RuleI(World, SoFStartZoneID) > 0) {
-			pp.zone_id = RuleI(World, SoFStartZoneID);
-			cc->start_zone = pp.zone_id;
-		}
-	}
-	else {
-		LogInfo("Found 'TitaniumStartZoneID' rule setting: [{}]", RuleI(World, TitaniumStartZoneID));
-		if (RuleI(World, TitaniumStartZoneID) > 0) { 	/* if there's a startzone variable put them in there */
+	///* If it is an SoF Client and the SoF Start Zone rule is set, send new chars there */
+	//if (m_ClientVersionBit & EQ::versions::maskSoFAndLater) {
+	//	LogInfo("Found 'SoFStartZoneID' rule setting: [{}]", RuleI(World, SoFStartZoneID));
+	//	if (RuleI(World, SoFStartZoneID) > 0) {
+	//		pp.zone_id = RuleI(World, SoFStartZoneID);
+	//		cc->start_zone = pp.zone_id;
+	//	}
+	//}
+	//else {
+	//	LogInfo("Found 'TitaniumStartZoneID' rule setting: [{}]", RuleI(World, TitaniumStartZoneID));
+	//	if (RuleI(World, TitaniumStartZoneID) > 0) { 	/* if there's a startzone variable put them in there */
 
-			pp.zone_id = RuleI(World, TitaniumStartZoneID);
-			cc->start_zone = pp.zone_id;
-		}
-	}
+	//		pp.zone_id = RuleI(World, TitaniumStartZoneID);
+	//		cc->start_zone = pp.zone_id;
+	//	}
+	//}
 	/* use normal starting zone logic to either get defaults, or if startzone was set, load that from the db table.*/
 	bool ValidStartZone = content_db.GetStartZone(&pp, cc, m_ClientVersionBit & EQ::versions::maskTitaniumAndEarlier);
 
@@ -1720,10 +1720,10 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	pp.binds[4].heading = pp.heading;
 
 	/* Overrides if we have the tutorial flag set! */
-	if (cc->tutorial && RuleB(World, EnableTutorialButton)) {
-		pp.zone_id = RuleI(World, TutorialZoneID);
-		content_db.GetSafePoints(ZoneName(pp.zone_id), 0, &pp.x, &pp.y, &pp.z);
-	}
+	//if (cc->tutorial && RuleB(World, EnableTutorialButton)) {
+	//	pp.zone_id = RuleI(World, TutorialZoneID);
+	//	content_db.GetSafePoints(ZoneName(pp.zone_id), 0, &pp.x, &pp.y, &pp.z);
+	//}
 
 	/*  Will either be the same as home or tutorial if enabled. */
 	if(RuleB(World, StartZoneSameAsBindOnCreation))	{
@@ -1741,12 +1741,10 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	Log(Logs::Detail, Logs::WorldServer, "Home location: %s (%d) %0.2f, %0.2f, %0.2f",
 		ZoneName(pp.binds[4].zone_id), pp.binds[4].zone_id, pp.binds[4].x, pp.binds[4].y, pp.binds[4].z);
 
-	/* Starting Items inventory */
-	content_db.SetStartingItems(&pp, &inv, pp.race, pp.class_, pp.deity, pp.zone_id, pp.name, GetAdmin());
-
+	uint32 num_characters = database.GetNumCharsOnAccount(GetAccountID());
 	// now we give the pp and the inv we made to StoreCharacter
 	// to see if we can store it
-	if (!StoreCharacter(GetAccountID(), &pp, &inv)) {
+	if (!StoreCharacter(GetAccountID(), &pp, &inv, num_characters)) {
 		LogInfo("Character creation failed: [{}]", pp.name);
 		return false;
 	}
@@ -2232,7 +2230,8 @@ void Client::SetClassLanguages(PlayerProfile_Struct *pp)
 bool Client::StoreCharacter(
 	uint32 account_id,
 	PlayerProfile_Struct *p_player_profile_struct,
-	EQ::InventoryProfile *p_inventory_profile
+	EQ::InventoryProfile *p_inventory_profile,
+	uint32 num_characters
 )
 {
 	uint32 character_id = 0;
@@ -2243,6 +2242,8 @@ bool Client::StoreCharacter(
 		LogError("StoreCharacter: no character id");
 		return false;
 	}
+
+	database.GetInventory(character_id, account_id, p_inventory_profile); /* Load Character Inventory */
 
 	const char *zone_name = ZoneName(p_player_profile_struct->zone_id);
 	if (zone_name == nullptr) {
@@ -2256,12 +2257,15 @@ bool Client::StoreCharacter(
 
 	database.SaveCharacterCreate(character_id, account_id, p_player_profile_struct);
 
-	std::string invquery;
+	/* Starting Items inventory */
+	content_db.SetStartingItems(p_player_profile_struct, p_inventory_profile, p_player_profile_struct->race, p_player_profile_struct->class_, p_player_profile_struct->deity, p_player_profile_struct->zone_id, p_player_profile_struct->name, GetAdmin(), account_id,  character_id, num_characters == 0);
+
+	/*std::string invquery;
 	for (int16  i = EQ::invslot::EQUIPMENT_BEGIN; i <= EQ::invbag::BANK_BAGS_END;) {
 		const EQ::ItemInstance *new_inventory_item = p_inventory_profile->GetItem(i);
 		if (new_inventory_item) {
 			invquery = StringFormat(
-				"INSERT INTO `inventory` (charid, slotid, itemid, charges, color) VALUES (%u, %i, %u, %i, %u)",
+				"INSERT INTO `inventory_account` (charid, slotid, itemid, charges, color) VALUES (%u, %i, %u, %i, %u)",
 				character_id,
 				i,
 				new_inventory_item->GetItem()->ID,
@@ -2285,7 +2289,7 @@ bool Client::StoreCharacter(
 			continue;
 		}
 		i++;
-	}
+	}*/
 
 	return true;
 }

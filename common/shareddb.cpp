@@ -47,7 +47,7 @@ namespace ItemField
 #define F(x) x,
 #include "item_fieldlist.h"
 #undef F
-		updated
+		edgebagtype
 	};
 }
 
@@ -408,7 +408,53 @@ bool SharedDatabase::SetSharedPlatinum(uint32 account_id, int32 amount_to_add) {
 	return true;
 }
 
-bool SharedDatabase::SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryProfile* inv, uint32 si_race, uint32 si_class, uint32 si_deity, uint32 si_current_zone, char* si_name, int admin_level) {
+uint32 SharedDatabase::GetNumCharsOnAccount(uint32 account_id)
+{
+	std::string character_list_query = fmt::format(
+		SQL(
+			SELECT
+			`id`,
+			`name`,
+			`gender`,
+			`race`,
+			`class`,
+			`level`,
+			`deity`,
+			`last_login`,
+			`time_played`,
+			`hair_color`,
+			`beard_color`,
+			`eye_color_1`,
+			`eye_color_2`,
+			`hair_style`,
+			`beard`,
+			`face`,
+			`drakkin_heritage`,
+			`drakkin_tattoo`,
+			`drakkin_details`,
+			`zone_id`
+			FROM
+			`character_data`
+			WHERE
+			`account_id` = {}
+			AND
+			`deleted_at` IS NULL
+			AND
+			`level` > 0 
+			ORDER BY `name`
+			LIMIT {}
+		),
+		account_id,
+		EQ::constants::CHARACTER_CREATION_LIMIT
+	);
+
+	auto results = QueryDatabase(character_list_query);
+	size_t character_count = results.RowCount();
+	return character_count;
+}
+
+
+bool SharedDatabase::SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryProfile* inv, uint32 si_race, uint32 si_class, uint32 si_deity, uint32 si_current_zone, char* si_name, int admin_level, uint32 account_id, uint32 character_id, bool bFirstCharacter) {
 
 	const EQ::ItemData* myitem;
 
@@ -421,7 +467,6 @@ bool SharedDatabase::SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryPro
     if (!results.Success())
 		return false;
 
-
 	for (auto row = results.begin(); row != results.end(); ++row) {
 		int32 itemid = atoi(row[0]);
 		int32 charges = atoi(row[1]);
@@ -431,16 +476,22 @@ bool SharedDatabase::SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryPro
 		if(!myitem)
 			continue;
 
-		if (slot >= EQ::invslot::POSSESSIONS_BEGIN && slot <= EQ::invslot::POSSESSIONS_END)
-{
-			EQ::ItemInstance* myinst = CreateBaseItem(myitem, charges);
+		if (inv->HasItem(itemid) != INVALID_INDEX)
+			continue;
 
-		// theoretically inst can be nullptr ... this would be very bad ...
-		// Save ptr to item in inventory
+		if (myitem->ItemType == EQ::item::ItemTypeFood && !bFirstCharacter)
+			continue;
 
-			inv->PutItem(slot, *myinst);
-			safe_delete(myinst);
-		}
+		int16 slotId = inv->FindFreeSlot(myitem->IsClassBag(), false);
+
+		if (slotId == INVALID_INDEX)
+			continue;
+
+		EQ::ItemInstance* myinst = CreateBaseItem(myitem, charges);
+
+		inv->PutItem(slotId, *myinst);
+		SaveInventory(character_id, account_id, myinst, slotId);
+		safe_delete(myinst);
 	}
 
 	return true;
@@ -878,7 +929,7 @@ void SharedDatabase::LoadItems(void *data, uint32 size, int32 items, uint32 max_
 #define F(x) "`"#x"`,"
 #include "item_fieldlist.h"
 #undef F
-		"updated FROM items ORDER BY id";
+		"edgebagtype FROM items ORDER BY id";
 	auto results = QueryDatabase(query);
 	if (!results.Success()) {
 		return;

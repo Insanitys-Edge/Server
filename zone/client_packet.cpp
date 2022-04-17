@@ -1222,7 +1222,7 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	database.LoadCharacterBindPoint(cid, &m_pp); /* Load Character Bind */
 	database.LoadCharacterMaterialColor(cid, &m_pp); /* Load Character Material */
 	database.LoadCharacterPotions(cid, &m_pp); /* Load Character Potion Belt */
-	database.LoadCharacterCurrency(cid, &m_pp); /* Load Character Currency into PP */
+	database.LoadCharacterCurrency(AccountID(), &m_pp); /* Load Character Currency into PP */
 	database.LoadCharacterData(cid, &m_pp, &m_epp); /* Load Character Data from DB into PP as well as E_PP */
 	database.LoadCharacterSkills(cid, &m_pp); /* Load Character Skills */
 	database.LoadCharacterInspectMessage(cid, &m_inspect_message); /* Load Character Inspect Message */

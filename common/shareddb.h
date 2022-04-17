@@ -93,11 +93,12 @@ public:
 	bool VerifyInventory(uint32 account_id, int16 slot_id, const EQ::ItemInstance *inst);
 	int32 GetSharedPlatinum(uint32 account_id);
 	bool SetSharedPlatinum(uint32 account_id, int32 amount_to_add);
+	uint32 GetNumCharsOnAccount(uint32 account_id);
 		bool	GetInventory(uint32 char_id, uint32 account_id, EQ::InventoryProfile* inv);
 	std::map<uint32, uint32> GetItemRecastTimestamps(uint32 char_id);
 	uint32 GetItemRecastTimestamp(uint32 char_id, uint32 recast_type);
 	void ClearOldRecastTimestamps(uint32 char_id);
-		bool	SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryProfile* inv, uint32 si_race, uint32 si_class, uint32 si_deity, uint32 si_current_zone, char* si_name, int admin);
+	bool	SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryProfile* inv, uint32 si_race, uint32 si_class, uint32 si_deity, uint32 si_current_zone, char* si_name, int admin, uint32 account_id, uint32 character_id, bool bFirstCharacter = false);
 
 
 	std::string GetBook(const char *txtfile, int16 *language);

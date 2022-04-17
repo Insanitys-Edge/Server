@@ -668,7 +668,7 @@ void ZoneDatabase::AddLootDropToNPC(NPC* npc,uint32 lootdrop_id, ItemList* iteml
 	bool active_item_list = false;
 	for(uint32 i = 0; i < lds->NumEntries; ++i) {
 		const EQ::ItemData* db_item = GetItem(lds->Entries[i].item_id);
-		if(db_item->ID) {
+		if(db_item) {
 			roll_t += lds->Entries[i].chance;
 			active_item_list = true;
 		}
@@ -925,7 +925,7 @@ void NPC::AddLootDrop(const EQ::ItemData* item2, ItemList* itemlist, int16 charg
 			{
 				if (GetSkill(EQ::skills::SkillDualWield) || (item2->ItemType != EQ::item::ItemType1HSlash && item2->ItemType != EQ::item::ItemType1HBlunt && item2->ItemType != EQ::item::ItemType1HPiercing))
 				{
-					const EQ::ItemData* mainHand;
+					const EQ::ItemData* mainHand = nullptr;
 					if (equipment[EQ::invslot::slotPrimary] > 0)
 						mainHand = database.GetItem(equipment[EQ::invslot::slotPrimary]);
 

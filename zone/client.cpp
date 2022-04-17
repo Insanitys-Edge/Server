@@ -9205,7 +9205,7 @@ void Client::SetPrimaryWeaponOrnamentation(uint32 model_id)
 	if (primary_item) {
 		database.QueryDatabase(
 			StringFormat(
-				"UPDATE `inventory` SET `ornamentidfile` = %i WHERE `charid` = %i AND `slotid` = %i",
+				"UPDATE `inventory_character` SET `ornamentidfile` = %i WHERE `charid` = %i AND `slotid` = %i",
 				model_id,
 				character_id,
 				EQ::invslot::slotPrimary
@@ -9228,7 +9228,7 @@ void Client::SetSecondaryWeaponOrnamentation(uint32 model_id)
 	if (secondary_item) {
 		database.QueryDatabase(
 			StringFormat(
-				"UPDATE `inventory` SET `ornamentidfile` = %i WHERE `charid` = %i AND `slotid` = %i",
+				"UPDATE `inventory_character` SET `ornamentidfile` = %i WHERE `charid` = %i AND `slotid` = %i",
 				model_id,
 				character_id,
 				EQ::invslot::slotSecondary

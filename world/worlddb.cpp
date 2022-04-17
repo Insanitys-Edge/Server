@@ -881,7 +881,7 @@ bool WorldDatabase::GetCharSelInventory(uint32 account_id, char *name, EQ::Inven
 		" ornamentidfile,"
 		" ornament_hero_model "
 		"FROM"
-		" inventory "
+		" inventory_character "
 		"INNER JOIN"
 		" character_data ch "
 		"ON"
