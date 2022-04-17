@@ -56,6 +56,8 @@ struct ExtendedProfile_Struct {
 	int32				mercState; /* Not Used */
 	uint32				last_invsnapshot_time; /* Used */
 	uint32				next_invsnapshot_time; /* Used */
+	uint32				edge_merc_character_id;
+	uint8				edge_is_swapped_with_merc;
 };
 
 #pragma pack()

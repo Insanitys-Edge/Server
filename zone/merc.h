@@ -137,6 +137,9 @@ public:
 	virtual void UpdateEquipmentLight();
 	void AddItem(uint8 slot, uint32 item_id);
 	static const char *GetRandomName();
+	bool LoadPlayerMercSpells();
+	uint32 GetMercIndexByCharacterID(uint32 character_id);
+	bool SpawnPlayerMerc(Client* owner);
 	bool Spawn(Client *owner);
 	bool Suspend();
 	bool Unsuspend(bool setMaxStats);
@@ -168,6 +171,8 @@ public:
 	uint32 GetMercNameType() { return _NameType; }
 	EQ::constants::StanceType GetStance() { return _currentStance; }
 	int GetHatedCount() { return _hatedCount; }
+
+	virtual void SetEndurance(int32 newEnd); //This sets the current endurance to the new value
 
 	inline const uint8 GetClientVersion() const { return _OwnerClientVersion; }
 
@@ -271,6 +276,15 @@ public:
 	virtual void MercMeditate(bool isSitting);
 	bool FindTarget();
 
+
+	PlayerProfile_Struct* GetPP();
+	ExtendedProfile_Struct* GetEPP();
+	EQ::InventoryProfile* GetInv();
+	virtual void SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
+
+	void SwapsBuffsWithOwner();
+	bool LoadMercSpells();
+
 protected:
 	void CalcItemBonuses(StatBonuses* newbon);
 	void AddItemBonuses(const EQ::ItemData *item, StatBonuses* newbon);
@@ -328,7 +342,6 @@ private:
 	int32 GetMaxEndurance() const {return max_end;} //This gets our endurance from the last CalcMaxEndurance() call
 	int32 CalcEnduranceRegen(); //Calculates endurance regen used in DoEnduranceRegen()
 	int32 CalcEnduranceRegenCap();
-	void SetEndurance(int32 newEnd); //This sets the current endurance to the new value
 	void DoEnduranceUpkeep(); //does the endurance upkeep
 	void CalcRestState();
 
@@ -376,9 +389,16 @@ private:
 	uint8 _CostFormula;
 	uint8 _NameType;
 	uint8 _OwnerClientVersion;
-	EQ::constants::StanceType _currentStance;
 
-	EQ::InventoryProfile m_inv;
+	// Private "base stats" Members
+	uint32 _characterID;
+	uint32 _accountID;
+
+	EQ::constants::StanceType _currentStance;
+	MercCharacter_Struct* GetOwnerEntryForThisMerc();
+
+	PTimerList p_timers;
+
 	int32 max_end;
 	int32 cur_end;
 	bool _medding;

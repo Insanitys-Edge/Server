@@ -10836,3 +10836,415 @@ uint16 Client::GetClassTrackingDistanceMultiplier(uint16 class_) {
 bool Client::CanThisClassTrack() {
 	return (GetClassTrackingDistanceMultiplier(GetClass()) > 0) ? true : false;
 }
+
+void Client::LoadCharacterAltMercenaries()
+{
+	validMercCharacterData = database.LoadCharactersOnAccount(AccountID(), CharacterID());
+
+	for (auto mercData : validMercCharacterData)
+	{
+		if (mercData.first == CharacterID())
+		{
+			if (mercData.second)
+			{
+				//SmartScribeOfflineSpells(mercData.first, mercData.second->m_pp);
+			}
+		}
+
+		auto mercCharacterToCheckItr = validMercCharacterData.find(mercData.second->m_epp.edge_merc_character_id);
+		{
+			if (mercCharacterToCheckItr == validMercCharacterData.end())
+			{
+				mercData.second->m_epp.edge_merc_character_id = 0;
+				mercData.second->m_epp.edge_is_swapped_with_merc = 0;
+			}
+		}
+	}
+}
+
+void Client::SetMercCharacterID(int in_character_id)
+{
+	// Handle the dismiss here...
+	if (orig_character_id != CharacterID())
+	{
+		Message(Chat::Red, "You must swap back to the character you logged in as before hiring a new one.");
+		return;
+	}
+
+	auto mercResult = validMercCharacterData.find(in_character_id);
+	if (mercResult != validMercCharacterData.end())
+	{
+		m_epp.edge_merc_character_id = in_character_id;
+		Merc* merc = Merc::LoadMercFromCharacterID(this, in_character_id);
+		if (merc)
+		{
+			SpawnMerc(merc, true);
+			m_epp.edge_is_swapped_with_merc = 0;
+
+			// approved hire request
+			SendMercMerchantResponsePacket(0);
+		}
+		else
+		{
+			m_epp.edge_is_swapped_with_merc = 0;
+			m_epp.edge_merc_character_id = 0;
+		}
+	}
+	else
+	{
+		//prolly deleted, its cleanup time.
+		m_epp.edge_merc_character_id = 0;
+		m_epp.edge_is_swapped_with_merc = 0;
+		Message(Chat::Red, "Previous mercenary was deleted? Question mark??? Try to hire again.");
+
+	}
+}
+
+void Client::OutputAccountCharacters()
+{
+	bool listClear = false;
+
+	if (validMercCharacterData.empty())
+	{
+		Message(Chat::System, "You must create an alternate character to utilize this feature!");
+		return;
+	}
+
+	if (orig_character_id != character_id)
+	{
+		Message(Chat::Red, "You must swap back to the character you logged in as before hiring a new one.");
+		return;
+	}
+
+	auto mercResult = validMercCharacterData.find(GetMercCharacterID());
+
+
+	Message(Chat::Who, "----------------------------------- ");
+	std::string currentlyActiveName = "Currently Active Alternative Character Name: ";
+	currentlyActiveName += mercResult != validMercCharacterData.end() ? mercResult->second->m_pp.name : "None";
+
+	Message(Chat::Who, "----------------------------------- ");
+	Message(Chat::White, currentlyActiveName.c_str());
+	Message(Chat::Who, "----------------------------------- ");
+	Message(Chat::Who, "--Alternate Characters on Account-- ");
+	Message(Chat::Who, "----------------------------------- ");
+
+	for (auto mercChar : validMercCharacterData)
+	{
+		if (mercChar.first == CharacterID())
+			continue;
+
+		std::string charLinkName = mercChar.second->m_pp.name;
+		charLinkName += " [";
+		charLinkName += std::to_string(mercChar.second->m_pp.level);
+		charLinkName += " ";
+		charLinkName += GetClassIDName(mercChar.second->m_pp.class_);
+		charLinkName += "]";
+		Message(Chat::Who, EQ::SayLinkEngine::GenerateQuestSaylink(std::to_string(mercChar.first), true, charLinkName.c_str()).c_str());
+	}
+	Message(Chat::Who, "----------------------------------- ");
+}
+
+void Client::SaveMercData()
+{
+	for (auto mercData : validMercCharacterData)
+	{
+		if (mercData.first == CharacterID())
+		{
+			database.SaveCharacterData(CharacterID(), AccountID(), &m_pp, &m_epp); // currently controlled player
+		}
+		else
+		{
+			database.SaveCharacterData(mercData.first, AccountID(), &mercData.second->m_pp, &mercData.second->m_epp); // merc, offline or not
+		}
+	}
+}
+
+MercCharacter_Struct* Client::GetMercCharacterDataByName(const char* merc_name)
+{
+	for (auto mercData : validMercCharacterData)
+	{
+		if (strcmp(mercData.second->m_pp.name, merc_name) == 0)
+		{
+			return mercData.second;
+		}
+	}
+	return nullptr;
+}
+
+void Client::SwapWithMercenary()
+{
+
+	auto mercResult = validMercCharacterData.find(m_epp.edge_merc_character_id);
+	if (mercResult != validMercCharacterData.end())
+	{
+		auto playerResult = validMercCharacterData.find(this->CharacterID());
+		if (playerResult != validMercCharacterData.end())
+		{
+
+			PlayerProfile_Struct& ppofCurrentMerc = mercResult->second->m_pp;
+			ExtendedProfile_Struct& eppofCurrentMerc = mercResult->second->m_epp;
+			EQ::InventoryProfile& invofCurrentMerc = mercResult->second->m_inv;
+
+			PlayerProfile_Struct& targetppofCurrentCharacter = playerResult->second->m_pp;
+			ExtendedProfile_Struct& targeteppofCurrentCharacter = playerResult->second->m_epp;
+			EQ::InventoryProfile& targetinvofCurrentCharacter = playerResult->second->m_inv;
+
+			auto ourCurrentMerc = GetMerc();
+			if (ourCurrentMerc)
+			{
+				//Declare persistent variables, these may change during the below.
+				auto current_character_id = CharacterID();
+				auto current_merc_character_id = m_epp.edge_merc_character_id;
+
+				char current_character_name[64];
+				char current_merc_name[64];
+
+				int64 current_character_hp = GetHP();
+				int64 current_character_mana = GetMana();
+				int64 current_character_endurance = GetEndurance();
+
+				auto current_target = GetTarget();
+
+				const glm::vec4 current_character_position = GetPosition();
+				const glm::vec4 current_merc_position = GetMerc()->GetPosition();
+
+				int64 current_merc_hp = GetMerc()->GetHP();
+				int64 current_merc_mana = GetMerc()->GetMana();
+				int64 current_merc_endurance = GetMerc()->GetEndurance();
+
+				strn0cpy(current_character_name, GetCleanName(), 64);
+				strn0cpy(current_merc_name, GetMerc()->GetCleanName(), 64);
+
+
+				if (strcmp(orig_name, current_character_name) == 0)
+					m_epp.edge_is_swapped_with_merc = 1;
+				else
+					eppofCurrentMerc.edge_is_swapped_with_merc = 0;
+
+				//send packets to swap items, actually swap items
+				SwapInventoryWithMerc(targetinvofCurrentCharacter, invofCurrentMerc);
+
+				//copy references into objects
+				GetMerc()->SwapReferences(current_character_id, m_pp, m_epp);
+				SwapReferences(current_merc_character_id, mercResult->second->m_pp, mercResult->second->m_epp);
+
+				//perform memcpy of pp, epp to resolve proper variable storage.
+				memcpy(&targetppofCurrentCharacter, &m_pp, sizeof(PlayerProfile_Struct));
+				memcpy(&targeteppofCurrentCharacter, &m_epp, sizeof(ExtendedProfile_Struct));
+				memcpy(&m_pp, &ppofCurrentMerc, sizeof(PlayerProfile_Struct));
+				memcpy(&m_epp, &eppofCurrentMerc, sizeof(ExtendedProfile_Struct));
+
+				//swap m_epp values for current merc to not get weird reference mixups to mercs that we shouldn't touch
+				m_epp.edge_merc_character_id = current_character_id;
+				GetMerc()->GetEPP()->edge_merc_character_id = current_merc_character_id;
+
+				//reparent pets
+
+				std::vector<Mob*> newclientpets;
+
+				for (auto petentity : GetMerc()->petlist)
+				{
+					if (!petentity->IsMerc())
+					{
+						newclientpets.push_back(petentity);
+					}
+				}
+
+				std::vector<Mob*> newmercpets;
+
+				for (auto petentity : petlist)
+				{
+					if (!petentity->IsMerc())
+					{
+						newmercpets.push_back(petentity);
+					}
+				}
+				//send/adjust ownership of all pets
+				for (auto petToAdd : newmercpets)
+				{
+					RemovePetFromList(petToAdd);
+					GetMerc()->AddPet(petToAdd);
+					petToAdd->SetOwner(GetMerc());
+					petToAdd->SetPetOwnerClient(false);
+					petToAdd->SendAppearancePacket(AT_Pet, GetMerc()->GetID(), true, false);
+				}
+
+				//send/adjust ownership of all pets
+				for (auto petToAdd : newclientpets)
+				{
+					GetMerc()->RemovePetFromList(petToAdd);
+					AddPet(petToAdd);
+					petToAdd->SetOwner(this);
+					petToAdd->SetPetOwnerClient(true);
+					petToAdd->SendAppearancePacket(AT_Pet, GetID(), true, false);
+				}
+
+
+				//Reload merc info, it has new spells, needs to know about it for elixir AI purposes
+				GetMerc()->LoadMercSpells();
+
+				//Set new names via new name packet, now that everything else is in place.
+				SetAndSendName(current_character_name, current_merc_name);
+				GetMerc()->SetAndSendName(current_merc_name, current_character_name);
+
+				//Recalc bonuses, we have new data across the board
+				CalcBonuses();
+				GetMerc()->CalcBonuses();
+
+				//Resend current AA data
+				SendClearAA();
+				SendAlternateAdvancementTable();
+				SendAlternateAdvancementPoints();
+				SendAlternateAdvancementStats();
+
+				//swap loaded spells
+				SwapLoadedSpellsWithMerc(m_pp, targetppofCurrentCharacter);
+
+				//Resend Armor/Appearance for both npc and pc, now that we know what we have.
+				SendIllusionPacket(0);
+				GetMerc()->SendIllusionPacket(0);
+
+				//set vitals for client
+				SetHP(current_merc_hp);
+				SetMana(current_merc_mana);
+				SetEndurance(current_merc_endurance);
+
+				SendEdgeStatBulkUpdate();
+				SendHPUpdate();
+				SendManaUpdate();
+				SendEnduranceUpdate();
+
+				//reverse, set vitals for merc
+				GetMerc()->SetHP(current_character_hp);
+				GetMerc()->SetMana(current_character_mana);
+				GetMerc()->SetEndurance(current_character_endurance);
+
+				GMMove(current_merc_position.x, current_merc_position.y, current_merc_position.z, current_merc_position.w, true, false);
+				GetMerc()->GMMove(current_character_position.x, current_character_position.y, current_character_position.z, current_character_position.w, true, false);
+
+				if (IsCasting())
+					InterruptSpell();
+
+				if (GetMerc()->IsCasting())
+					GetMerc()->InterruptSpell();
+
+				SetTarget(current_target);
+
+				//Save, just so we can test saving to DB.
+				Save();
+			}
+		}
+	}
+}
+
+
+// Remove item from inventory
+void Client::FakeDeleteItemInInventory(int16 slot_id) {
+#if (EQDEBUG >= 5)
+	LogDebug("DeleteItemInInventory([{}], [{}], [{}])", slot_id, quantity, (client_update) ? "true" : "false");
+#endif
+
+	if (IsValidSlot(slot_id)) {
+		EQApplicationPacket* outapp = nullptr;
+		outapp = new EQApplicationPacket(OP_MoveItem, sizeof(MoveItem_Struct));
+		MoveItem_Struct* delitem = (MoveItem_Struct*)outapp->pBuffer;
+		delitem->from_slot = slot_id;
+		delitem->to_slot = 0xFFFFFFFF;
+		delitem->number_in_stack = 0xFFFFFFFF;
+
+		QueuePacket(outapp);
+		safe_delete(outapp);
+	}
+}
+
+void Client::SwapInventoryWithMerc(EQ::InventoryProfile& m_TargetPlayerInv, EQ::InventoryProfile& m_MercInv) {
+
+	if (GetMerc())
+	{
+		for (auto instpair : m_inv.m_worn)
+		{
+			FakeDeleteItemInInventory(instpair.first);
+		}
+		m_inv.m_worn.swap(m_TargetPlayerInv.m_worn);
+		m_inv.m_worn.swap(m_MercInv.m_worn);
+
+		for (auto instpair : m_inv.m_worn)
+		{
+			SendItemPacket(instpair.first, instpair.second, ItemPacketTrade);
+		}
+	}
+}
+
+void Client::SendSpellSuppressionPacket(bool shouldSuppress) {
+	EQApplicationPacket* outapp = new EQApplicationPacket(OP_EdgeSuppressSpellMsg, sizeof(EdgeSuppressSpellMsg_Struct));
+	EdgeSuppressSpellMsg_Struct* suppressStruct = (EdgeSuppressSpellMsg_Struct*)outapp->pBuffer;
+
+	if (shouldSuppress)
+		suppressStruct->suppress = 1;
+	else
+		suppressStruct->suppress = 0;
+
+	FastQueuePacket(&outapp);
+}
+
+
+void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProfile_Struct& m_PlayerPP) {
+	if (GetMerc())
+	{
+		SendSpellSuppressionPacket(true);
+		//delete players' current spells
+		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
+		{
+			if (m_PlayerPP.mem_spells[i] != 0xFFFFFFFF)
+				FakeUnmemSpell(m_PlayerPP.mem_spells[i], i);
+		}
+		for (int i = 0; i < EQ::spells::SPELLBOOK_SIZE; i++)
+		{
+			if (m_PlayerPP.spell_book[i] != 0xFFFFFFFF)
+				FakeUnscribeSpell(i);
+		}
+		//copy merc spells to client
+		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
+		{
+			if (m_MercPP.mem_spells[i] != 0xFFFFFFFF)
+				FakeMemSpell(m_MercPP.mem_spells[i], i);
+		}
+		for (int i = 0; i < EQ::spells::SPELLBOOK_SIZE; i++)
+		{
+			if (m_MercPP.spell_book[i] != 0xFFFFFFFF)
+				FakeScribeSpell(m_MercPP.spell_book[i], i);
+		}
+		SendSpellSuppressionPacket(false);
+	}
+}
+
+void Client::FakeMemSpell(uint16 spellid, int slot)
+{
+	MemorizeSpell(slot, spellid, memSpellMemorize);
+}
+void Client::FakeUnmemSpell(uint16 spellid, int slot)
+{
+	MemorizeSpell(slot, spellid, memSpellForget);
+}
+
+void Client::FakeScribeSpell(uint16 spell_id, int slot)
+{
+	MemorizeSpell(slot, spell_id, memSpellScribing);
+}
+
+void Client::FakeUnscribeSpell(int slot)
+{
+	auto outapp = new EQApplicationPacket(OP_DeleteSpell, sizeof(DeleteSpell_Struct));
+	DeleteSpell_Struct* del = (DeleteSpell_Struct*)outapp->pBuffer;
+	del->spell_slot = slot;
+	del->success = 1;
+	QueuePacket(outapp);
+	safe_delete(outapp);
+}
+
+void Client::SwapReferences(uint32 in_character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP)
+{
+	character_id = in_character_id;
+	Mob::SwapReferences(in_character_id, in_MercPP, in_MercEPP);
+}

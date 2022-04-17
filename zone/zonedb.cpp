@@ -5201,3 +5201,59 @@ void ZoneDatabase::UpdateGMStatus(uint32 accID, int newStatus)
 		database.QueryDatabase(query);
 	}
 }
+
+
+std::map<uint32, MercCharacter_Struct*> ZoneDatabase::LoadCharactersOnAccount(
+	uint32 AccID, uint32 InitiatorCharacterID)
+{
+
+	std::map<uint32, MercCharacter_Struct*> retList = std::map<uint32, MercCharacter_Struct*>();
+
+	std::string query = StringFormat(
+		"SELECT `id` FROM `character_data` WHERE `account_id` = '%d' AND `deleted_at` IS NULL LIMIT 3", AccID);
+
+	auto results = QueryDatabase(query);
+
+	if (!results.Success()) {
+		return retList;
+	}
+
+	int i = 0;
+
+	for (auto row = results.begin(); row != results.end(); ++row)
+	{
+		uint32 charid = atoi(row[0]);
+
+		MercCharacter_Struct* charStruct = new MercCharacter_Struct();
+		memset(&charStruct->m_pp, 0, sizeof(PlayerProfile_Struct));
+		memset(&charStruct->m_epp, 0, sizeof(ExtendedProfile_Struct));
+		charStruct->m_pp.SetPlayerProfileVersion(EQ::versions::ClientVersion::RoF2);
+		charStruct->m_inv.SetInventoryVersion(EQ::versions::ClientVersion::RoF2);
+		charStruct->m_inv.SetGMInventory(true);
+
+		bool fail = !database.GetInventory(charid, AccID, &charStruct->m_inv); /* Load Character Inventory */
+		if (fail)
+		{
+			Log(Logs::General, Logs::Mercenaries, "LoadMercChar: Fail! No inventory for char");
+			continue;
+		}
+
+		database.LoadCharacterBandolier(charid, &charStruct->m_pp); /* Load Character Bandolier */
+		database.LoadCharacterBindPoint(charid, &charStruct->m_pp); /* Load Character Bind */
+		database.LoadCharacterMaterialColor(charid, &charStruct->m_pp); /* Load Character Material */
+		database.LoadCharacterPotions(charid, &charStruct->m_pp); /* Load Character Potion Belt */
+		database.LoadCharacterCurrency(AccID, &charStruct->m_pp); /* Load Character Currency into PP */
+		database.LoadCharacterData(charid, &charStruct->m_pp, &charStruct->m_epp); /* Load Character Data from DB into PP as well as E_PP */
+		database.LoadCharacterSkills(AccID, &charStruct->m_pp); /* Load Character Skills */
+		database.LoadCharacterSpellBook(charid, &charStruct->m_pp); /* Load Character Spell Book */
+		database.LoadCharacterMemmedSpells(charid, &charStruct->m_pp);  /* Load Character Memorized Spells */
+		database.LoadCharacterDisciplines(charid, &charStruct->m_pp); /* Load Character Disciplines */
+		database.LoadCharacterLanguages(charid, &charStruct->m_pp); /* Load Character Languages */
+		database.LoadCharacterLeadershipAA(charid, &charStruct->m_pp); /* Load Character Leadership AA's */
+		database.LoadCharacterTribute(charid, &charStruct->m_pp); /* Load CharacterTribute */
+		retList[charid] = charStruct;
+		i++;
+	}
+
+	return retList;
+}

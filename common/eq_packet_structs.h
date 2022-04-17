@@ -1304,6 +1304,16 @@ struct Action_Struct
 // /* 36 */	uint32 item_cast_type;
 };
 
+struct EdgeDamage_Struct
+{
+	/* 00 */	uint16	target;
+	/* 02 */	uint16	source;
+	/* 04 */	uint8	type; //slashing, etc. 231 (0xE7) for spells, skill
+	/* 05 */	uint16	spellid;
+	/* 07 */	int64 damage;
+	/* 08 */	uint8 hitType;
+};
+
 // this is what prints the You have been struck. and the regular
 // melee messages like You try to pierce, etc. It's basically the melee
 // and spell damage message
@@ -1390,7 +1400,6 @@ enum eStatEntry
 	eStatDummyStat,
 	eStatMax
 };
-
 
 struct EdgeStatEntry_Struct {
 	uint32_t statKey;

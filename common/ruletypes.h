@@ -211,6 +211,7 @@ RULE_INT(Mercs, MercsElixirHealPercent, 90, "Heal allies at this percent health"
 RULE_INT(Mercs, MercsElixirAEMinimum, 3, "AE Minimum to trigger AE spells (heals and nukes)")
 RULE_BOOL(Mercs, MercsUsePathing, true, "Mercs will use node pathing when moving")
 RULE_BOOL(Mercs, AllowMercSuspendInCombat, true, "Allow merc suspend in combat")
+RULE_BOOL(Mercs, UseAltAsMercSystem, true, "Enables a custom system where you can use alternate characters on the account as mercenaries.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Guild)
