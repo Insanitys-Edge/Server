@@ -6674,7 +6674,7 @@ void Merc::SwapsBuffsWithOwner()
 		}
 
 		for (buffslot = 0; buffslot < max_slots; buffslot++) {
-			Buffs_Struct& owner_buffs = ownerClient->buffs[buffslot];
+			Buffs_Struct& owner_buffs = ownerClient->GetBuffs()[buffslot];
 			memcpy(&newmercbuffs[buffslot], &owner_buffs, sizeof(Buffs_Struct));
 		}
 
@@ -6704,7 +6704,7 @@ void Merc::SwapsBuffsWithOwner()
 			{
 				owner_buffs.casterid = entityIdOfClient;
 			}
-			memcpy(&ownerClient->buffs[buffslot], &owner_buffs, sizeof(Buffs_Struct));
+			memcpy(&ownerClient->GetBuffs()[buffslot], &owner_buffs, sizeof(Buffs_Struct));
 		}
 
 		if (ownerClient)

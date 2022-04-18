@@ -228,8 +228,6 @@ namespace EQ
 
 
 		// Player inventory
-		std::map<int16, ItemInstance*>	m_worn;		// Items worn by character
-		std::map<int16, ItemInstance*>	m_inv;		// Items in character personal inventory
 		std::map<int16, ItemInstance*>	m_bank;		// Items in character bank
 		std::map<int16, ItemInstance*>	m_shbank;	// Items in character shared bank
 		std::map<int16, ItemInstance*>	m_trade;	// Items in a trade session
@@ -240,6 +238,10 @@ namespace EQ
 		versions::MobVersion m_mob_version;
 		bool m_gm_inventory;
 		const inventory::LookupEntry* m_lookup;
+
+	public:
+		std::map<int16, ItemInstance*>	m_worn;		// Items worn by character
+		std::map<int16, ItemInstance*>	m_inv;		// Items in character personal inventory
 	};
 }
 

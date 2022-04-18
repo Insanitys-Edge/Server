@@ -6686,3 +6686,12 @@ bool Mob::IsWithinSpellRange(Mob* target, float spellRange, uint16 spellID) {
 	}
 	return true;
 }
+
+void Mob::FakeBuffFadeAll()
+{
+	int buff_count = GetMaxTotalSlots();
+	for (int j = 0; j < buff_count; j++) {
+		if (buffs[j].spellid != SPELL_UNKNOWN)
+			BuffFadeBySlot(j, false);
+	}
+}

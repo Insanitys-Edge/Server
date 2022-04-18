@@ -733,6 +733,7 @@ public:
 	MercCharacter_Struct* GetMercCharacterDataByName(const char* merc_name);
 
 	void SwapWithMercenary();
+	void SwapWithClass(uint32 class_id);
 
 	void FakeDeleteItemInInventory(int16 slot_id);
 	void SwapInventoryWithMerc(EQ::InventoryProfile& m_TargetPlayerInv, EQ::InventoryProfile& m_MercInv);
@@ -746,6 +747,8 @@ public:
 	void FakeUnscribeSpell(int slot);
 
 	virtual void SwapReferences(uint32 in_character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
+	void SwapInventoryWithClass(EQ::InventoryProfile& m_TargetPlayerInv, EQ::InventoryProfile& m_MercInv);
+
 
 	void CheckManaEndUpdate();
 	void SendManaUpdate();
@@ -1023,6 +1026,9 @@ public:
 	bool DecreaseByID(uint32 type, int16 quantity);
 	uint8 SlotConvert2(uint8 slot); //Maybe not needed.
 	void Escape(); //keep or quest function
+
+	static bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag);
+	static bool Client::CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag);
 	void DisenchantSummonedBags(bool client_update = true);
 	void RemoveNoRent(bool client_update = true);
 	void RemoveDuplicateLore(bool client_update = true);

@@ -2243,7 +2243,7 @@ bool Client::StoreCharacter(
 		return false;
 	}
 
-	database.GetInventory(character_id, account_id, p_inventory_profile); /* Load Character Inventory */
+	database.GetInventory(character_id, account_id, p_player_profile_struct->class_, p_inventory_profile); /* Load Character Inventory */
 
 	const char *zone_name = ZoneName(p_player_profile_struct->zone_id);
 	if (zone_name == nullptr) {

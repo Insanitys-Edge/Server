@@ -1401,7 +1401,7 @@ bool ZoneDatabase::LoadAlternateAdvancement(Client *c) {
 		"charges "
 		"FROM "
 		"`character_alternate_abilities` "
-		"WHERE `id` = %u", c->CharacterID());
+		"WHERE `id` = %u and class_id = %u", c->CharacterID(), c->GetBaseClass());
 	MySQLRequestResult results = database.QueryDatabase(query);
 
 	int i = 0;

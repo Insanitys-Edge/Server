@@ -2853,7 +2853,7 @@ static uint32 GetDisenchantedBagID(uint8 bag_slots)
 	}
 }
 
-static bool CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag)
+bool Client::CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag)
 {
 	if (!new_bag || !old_bag) { return false; }
 	if (new_bag->GetItem()->BagSlots < old_bag->GetItem()->BagSlots) { return false; }
@@ -2876,6 +2876,33 @@ static bool CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* o
 	return true;
 }
 
+
+bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag)
+{
+	if (!new_bag || !old_bag) { return false; }
+	if (new_bag->GetItem()->BagSlots < old_bag->GetItem()->BagSlots) { return false; }
+
+	// pre-check for size comparisons
+	for (auto bag_slot = 0; bag_slot < old_bag->GetItem()->BagSlots; ++bag_slot) {
+		if (!old_bag->GetItem(bag_slot)) { continue; }
+		if (old_bag->GetItem(bag_slot)->GetItem()->Size > new_bag->GetItem()->BagSize) {
+			LogInventory("Copy Bag Contents: Failure due to [{}] is larger than size capacity of [{}] ([{}] > [{}])",
+				old_bag->GetItem(bag_slot)->GetItem()->Name, new_bag->GetItem()->Name, old_bag->GetItem(bag_slot)->GetItem()->Size, new_bag->GetItem()->BagSize);
+			return false;
+		}
+	}
+
+	new_bag->Clear();
+
+	for (auto bag_slot = 0; bag_slot < old_bag->GetItem()->BagSlots; ++bag_slot) {
+		if (!old_bag->GetItem(bag_slot)) { continue; }
+		new_bag->PutItem(bag_slot, *(old_bag->GetItem(bag_slot)));
+	}
+
+	return true;
+}
+
+
 void Client::DisenchantSummonedBags(bool client_update)
 {
 	for (auto slot_id = EQ::invslot::GENERAL_BEGIN; slot_id <= EQ::invslot::GENERAL_END; ++slot_id) {
@@ -2895,7 +2922,7 @@ void Client::DisenchantSummonedBags(bool client_update)
 		auto new_inst = database.CreateBaseItem(new_item);
 		if (!new_inst) { continue; }
 
-		if (CopyBagContents(new_inst, inst)) {
+		if (Client::CopyBagContents(new_inst, inst)) {
 			LogInventory("Disenchant Summoned Bags: Replacing [{}] with [{}] in slot [{}]", inst->GetItem()->Name, new_inst->GetItem()->Name, slot_id);
 			PutItemInInventory(slot_id, *new_inst, client_update);
 		}

@@ -12,7 +12,7 @@
 #include "event_codes.h"
 #include "zonedump.h"
 #include "../common/repositories/doors_repository.h"
-
+#include "../common/extprofile.h"
 #define WOLF 42
 
 class Client;
@@ -367,13 +367,13 @@ public:
 	bool LoadCharacterLanguages(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterLeadershipAA(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterMaterialColor(uint32 character_id, PlayerProfile_Struct* pp);
-	bool LoadCharacterMemmedSpells(uint32 character_id, PlayerProfile_Struct* pp);
+	bool LoadCharacterMemmedSpells(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterPotions(uint32 character_id, PlayerProfile_Struct* pp);
-	bool LoadCharacterSkills(uint32 character_id, PlayerProfile_Struct* pp);
-	bool LoadCharacterSpellBook(uint32 character_id, PlayerProfile_Struct* pp);
+	bool LoadCharacterSkills(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
+	bool LoadCharacterSpellBook(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterTribute(uint32 character_id, PlayerProfile_Struct* pp);
 
-	std::map<uint32, MercCharacter_Struct*> LoadCharactersOnAccount(uint32 AccID, uint32 InitiatorCharacterID);
+	std::map<uint32, MercCharacter_Struct*> LoadCharactersOnAccount(Client* c, uint32 AccID, uint32 InitiatorCharacterID);
 
 	bool SaveCharacterAA(uint32 character_id, uint32 aa_id, uint32 current_level, uint32 charges);
 	bool SaveCharacterBandolier(uint32 character_id, uint8 bandolier_id, uint8 bandolier_slot, uint32 item_id, uint32 icon, const char* bandolier_name);

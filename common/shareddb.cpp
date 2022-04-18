@@ -223,7 +223,13 @@ bool SharedDatabase::VerifyInventory(uint32 account_id, int16 slot_id, const EQ:
 	return true;
 }
 
-bool SharedDatabase::SaveInventory(uint32 char_id, uint32 account_id, const EQ::ItemInstance* inst, int16 slot_id) {
+bool SharedDatabase::SaveInventory(uint32 char_id, uint32 account_id, EQ::ItemInstance* inst, int16 slot_id) {
+
+	if (slot_id == EQ::invslot::slotGeneral10)
+		return false;
+
+	if (inst && (slot_id >= EQ::invbag::SPECIAL_CLASS_BAG_BEGIN && slot_id <= EQ::invbag::SPECIAL_CLASS_BAG_END))
+		inst->SetAttuned(true);
 
 	//never save tribute slots:
 	if (slot_id >= EQ::invslot::TRIBUTE_BEGIN && slot_id <= EQ::invslot::TRIBUTE_END)
@@ -287,6 +293,9 @@ bool SharedDatabase::UpdateInventorySlot(uint32 char_id, uint32 account_id, cons
 		primary_key_value = char_id;
 	}
 
+	if (slot_id == EQ::invslot::slotGeneral10 && inst->GetItem()->ID != 1)
+		return false;
+
 	// Update/Insert item
     std::string query = StringFormat("REPLACE INTO %s " //` inventory`
                                     "(%s, slotid, itemid, charges, instnodrop, custom_data, color, "
@@ -306,7 +315,7 @@ bool SharedDatabase::UpdateInventorySlot(uint32 char_id, uint32 account_id, cons
 		// Limiting to bag slot count will get rid of 'hidden' duplicated items and 'Invalid Slot ID'
 		// messages through attrition (and the modded code in SaveInventory)
 		for (uint8 idx = EQ::invbag::SLOT_BEGIN; idx < inst->GetItem()->BagSlots && idx <= EQ::invbag::SLOT_END; idx++) {
-			const EQ::ItemInstance* baginst = inst->GetItem(idx);
+			EQ::ItemInstance* baginst = inst->GetItem(idx);
 			SaveInventory(char_id, account_id, baginst, EQ::InventoryProfile::CalcSlotId(slot_id, idx));
 		}
 
@@ -318,7 +327,6 @@ bool SharedDatabase::UpdateInventorySlot(uint32 char_id, uint32 account_id, cons
 }
 
 bool SharedDatabase::DeleteInventorySlot(uint32 char_id, uint32 account_id, int16 slot_id) {
-
 
 	std::string table_name = "inventory_account";
 	std::string primary_key_field_name = "accountid";
@@ -498,7 +506,7 @@ bool SharedDatabase::SetStartingItems(PlayerProfile_Struct* pp, EQ::InventoryPro
 }
 
 // Overloaded: Retrieve character inventory based on character id (zone entry)
-bool SharedDatabase::GetInventory(uint32 char_id, uint32 account_id, EQ::InventoryProfile *inv)
+bool SharedDatabase::GetInventory(uint32 char_id, uint32 account_id, uint32 class_id, EQ::InventoryProfile *inv)
 {
 	if (!char_id || !inv)
 		return false;
@@ -507,7 +515,7 @@ bool SharedDatabase::GetInventory(uint32 char_id, uint32 account_id, EQ::Invento
 	std::string query =
 	    StringFormat("SELECT slotid, itemid, charges, color, augslot1, augslot2, augslot3, augslot4, augslot5, "
 			 "augslot6, instnodrop, custom_data, ornamenticon, ornamentidfile, ornament_hero_model FROM "
-			 "inventory_character WHERE charid = %i ORDER BY slotid",
+			 "inventory_character WHERE charid = %i and class_id = %i ORDER BY slotid",
 			 char_id);
 	auto character_results = QueryDatabase(query);
 	if (!character_results.Success()) {

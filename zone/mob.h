@@ -377,7 +377,7 @@ public:
 	bool CheckItemRaceClassDietyRestrictionsOnCast(uint32 inventory_slot);
 	bool IsFromTriggeredSpell(EQ::spells::CastingSlot slot, uint32 item_slot = 0xFFFFFFFF);
 	bool IsWithinSpellRange(Mob* target, float spellRange, uint16 spellID);
-
+	void FakeBuffFadeAll();
 	
 	//Bard 
 	bool ApplyBardPulse(int32 spell_id, Mob *spell_target, EQ::spells::CastingSlot slot);
@@ -1341,6 +1341,7 @@ public:
 	void SetBucket(std::string bucket_name, std::string bucket_value, std::string expiration = "");
 
 	virtual void SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
+	virtual void SwapClass(uint32 in_class_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
 
 protected:
 	void CommonDamage(Mob* other, int &damage, const uint16 spell_id, const EQ::skills::SkillType attack_skill, bool &avoidable, const int8 buffslot, const bool iBuffTic, eSpecialAttacks specal = eSpecialAttacks::None);

@@ -351,8 +351,6 @@ private:
 	int GroupLeadershipAAOffenseEnhancement();
 
 	float GetDefaultSize();
-
-	bool LoadMercSpells();
 	bool CheckStance(int16 stance);
 	std::vector<MercSpell> GetMercSpells() { return merc_spells; }
 
