@@ -1166,7 +1166,7 @@ void Client::DeleteItemInInventory(int16 slot_id, int16 quantity, bool client_up
 
 	bool isDeleted = m_inv.DeleteItem(slot_id, quantity);
 
-	const EQ::ItemInstance* inst = nullptr;
+	EQ::ItemInstance* inst = nullptr;
 	if (slot_id == EQ::invslot::slotCursor) {
 		auto s = m_inv.cursor_cbegin(), e = m_inv.cursor_cend();
 		if(update_db)
@@ -1213,7 +1213,7 @@ void Client::DeleteItemInInventory(int16 slot_id, int16 quantity, bool client_up
 	}
 }
 
-bool Client::PushItemOnCursor(const EQ::ItemInstance& inst, bool client_update)
+bool Client::PushItemOnCursor(EQ::ItemInstance& inst, bool client_update)
 {
 	LogInventory("Putting item [{}] ([{}]) on the cursor", inst.GetItem()->Name, inst.GetItem()->ID);
 	m_inv.PushCursor(inst);
@@ -1230,7 +1230,7 @@ bool Client::PushItemOnCursor(const EQ::ItemInstance& inst, bool client_update)
 // Any items already there will be removed from user's inventory
 // (Also saves changes back to the database: this may be optimized in the future)
 // client_update: Sends packet to client
-bool Client::PutItemInInventory(int16 slot_id, const EQ::ItemInstance& inst, bool client_update) {
+bool Client::PutItemInInventory(int16 slot_id, EQ::ItemInstance& inst, bool client_update) {
 	LogInventory("Putting item [{}] ([{}]) into slot [{}]", inst.GetItem()->Name, inst.GetItem()->ID, slot_id);
 
 	if (slot_id == EQ::invslot::slotCursor) { // don't trust macros before conditional statements...
@@ -1258,7 +1258,7 @@ bool Client::PutItemInInventory(int16 slot_id, const EQ::ItemInstance& inst, boo
 	// a lot of wasted checks and calls coded above...
 }
 
-void Client::PutLootInInventory(int16 slot_id, const EQ::ItemInstance &inst, ServerLootItem_Struct** bag_item_data)
+void Client::PutLootInInventory(int16 slot_id, EQ::ItemInstance &inst, ServerLootItem_Struct** bag_item_data)
 {
 	LogInventory("Putting loot item [{}] ([{}]) into slot [{}]", inst.GetItem()->Name, inst.GetItem()->ID, slot_id);
 
@@ -2877,7 +2877,7 @@ bool Client::CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* 
 }
 
 
-bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag)
+bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, EQ::ItemInstance* old_bag)
 {
 	if (!new_bag || !old_bag) { return false; }
 	if (new_bag->GetItem()->BagSlots < old_bag->GetItem()->BagSlots) { return false; }
@@ -2892,12 +2892,7 @@ bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemIn
 		}
 	}
 
-	new_bag->Clear();
-
-	for (auto bag_slot = 0; bag_slot < old_bag->GetItem()->BagSlots; ++bag_slot) {
-		if (!old_bag->GetItem(bag_slot)) { continue; }
-		new_bag->PutItem(bag_slot, *(old_bag->GetItem(bag_slot)));
-	}
+	new_bag->m_contents.swap(old_bag->m_contents);
 
 	return true;
 }

@@ -350,13 +350,13 @@ public:
 	void RemoveTempFactions(Client *c);
 	void UpdateItemRecastTimestamps(uint32 char_id, uint32 recast_type, uint32 timestamp);
 
-	bool DeleteCharacterAAs(uint32 character_id);
+	bool DeleteCharacterAAs(uint32 character_id, uint32 class_id);
 	bool DeleteCharacterBandolier(uint32 character_id, uint32 band_id);
 	bool DeleteCharacterDisc(uint32 character_id, uint32 slot_id);
 	bool DeleteCharacterDye(uint32 character_id);
 	bool DeleteCharacterLeadershipAAs(uint32 character_id);
-	bool DeleteCharacterMemorizedSpell(uint32 character_id, uint32 spell_id, uint32 slot_id);
-	bool DeleteCharacterSpell(uint32 character_id, uint32 spell_id, uint32 slot_id);
+	bool DeleteCharacterMemorizedSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id);
+	bool DeleteCharacterSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id);
 
 	bool LoadCharacterBandolier(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterBindPoint(uint32 character_id, PlayerProfile_Struct* pp);
@@ -364,6 +364,7 @@ public:
 	bool LoadCharacterData(uint32 character_id, PlayerProfile_Struct* pp, ExtendedProfile_Struct* m_epp);
 	bool LoadCharacterDisciplines(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterFactionValues(uint32 character_id, faction_map & val_list);
+	bool LoadCharacterExp(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterLanguages(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterLeadershipAA(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterMaterialColor(uint32 character_id, PlayerProfile_Struct* pp);
@@ -375,7 +376,7 @@ public:
 
 	std::map<uint32, MercCharacter_Struct*> LoadCharactersOnAccount(Client* c, uint32 AccID, uint32 InitiatorCharacterID);
 
-	bool SaveCharacterAA(uint32 character_id, uint32 aa_id, uint32 current_level, uint32 charges);
+	bool SaveCharacterAA(uint32 character_id, uint32 class_id, uint32 aa_id, uint32 current_level, uint32 charges);
 	bool SaveCharacterBandolier(uint32 character_id, uint8 bandolier_id, uint8 bandolier_slot, uint32 item_id, uint32 icon, const char* bandolier_name);
 	bool SaveCharacterBindPoint(uint32 character_id, const BindStruct &bind, uint32 bind_number);
 	bool SaveCharacterCurrency(uint32 account_id, PlayerProfile_Struct* pp);
@@ -384,10 +385,11 @@ public:
 	bool SaveCharacterLanguage(uint32 character_id, uint32 lang_id, uint32 value);
 	bool SaveCharacterLeadershipAA(uint32 character_id, PlayerProfile_Struct* pp);
 	bool SaveCharacterMaterialColor(uint32 character_id, uint32 slot_id, uint32 color);
-	bool SaveCharacterMemorizedSpell(uint32 character_id, uint32 spell_id, uint32 slot_id);
+	bool SaveCharacterMemorizedSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id);
 	bool SaveCharacterPotionBelt(uint32 character_id, uint8 potion_id, uint32 item_id, uint32 icon);
-	bool SaveCharacterSkill(uint32 character_id, uint32 skill_id, uint32 value);
-	bool SaveCharacterSpell(uint32 character_id, uint32 spell_id, uint32 slot_id);
+	bool SaveCharacterSkill(uint32 character_id, uint32 class_id, uint32 skill_id, uint32 value);
+	bool SaveCharacterSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id);
+	bool SaveCharacterExp(uint32 character_id, uint32 class_id, uint32 level, uint32 spell_id, uint32 slot_id);
 	bool SaveCharacterTribute(uint32 character_id, PlayerProfile_Struct* pp);
 	
 	double GetAAEXPModifier(uint32 character_id, uint32 zone_id) const;
@@ -456,7 +458,7 @@ public:
 	/* AAs New */
 	bool	LoadAlternateAdvancementAbilities(std::unordered_map<int, std::unique_ptr<AA::Ability>> &abilities,
 											  std::unordered_map<int, std::unique_ptr<AA::Rank>> &ranks);
-	bool	LoadAlternateAdvancement(Client *c);
+	bool	LoadAlternateAdvancement(Client *c, uint32 class_id = 0);
 
 	/* Zone related   */
 	bool		GetZoneCFG(

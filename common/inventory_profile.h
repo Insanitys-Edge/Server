@@ -116,7 +116,7 @@ namespace EQ
 		inline bool CursorEmpty() { return m_cursor.empty(); }
 
 		// Retrieve a read-only item from inventory
-		inline const ItemInstance* operator[](int16 slot_id) const { return GetItem(slot_id); }
+		inline ItemInstance* operator[](int16 slot_id) const { return GetItem(slot_id); }
 
 		// Add item to inventory
 		int16 PutItem(int16 slot_id, const ItemInstance& inst);

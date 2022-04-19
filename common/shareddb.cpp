@@ -228,7 +228,7 @@ bool SharedDatabase::SaveInventory(uint32 char_id, uint32 account_id, EQ::ItemIn
 	if (slot_id == EQ::invslot::slotGeneral10)
 		return false;
 
-	if (inst && (slot_id >= EQ::invbag::SPECIAL_CLASS_BAG_BEGIN && slot_id <= EQ::invbag::SPECIAL_CLASS_BAG_END))
+	if (inst && (slot_id >= EQ::invbag::SPECIAL_CLASS_BAG_BEGIN && slot_id <= EQ::invbag::SPECIAL_CLASS_BAG_END || (slot_id >= EQ::invslot::POSSESSIONS_BEGIN && slot_id <= EQ::invslot::POSSESSIONS_END)))
 		inst->SetAttuned(true);
 
 	//never save tribute slots:

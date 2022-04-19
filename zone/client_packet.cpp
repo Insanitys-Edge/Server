@@ -1217,17 +1217,18 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	// set to full support in case they're a gm with items in disabled expansion slots...but, have their gm flag off...
 	// item loss will occur when they use the 'empty' slots, if this is not done
 	m_inv.SetGMInventory(true);
-	loaditems = database.GetInventory(cid, AccountID(), &m_inv); /* Load Character Inventory */
+	database.LoadCharacterData(cid, &m_pp, &m_epp); /* Load Character Data from DB into PP as well as E_PP */
+	loaditems = database.GetInventory(cid, m_pp.class_, AccountID(), &m_inv); /* Load Character Inventory */
 	database.LoadCharacterBandolier(cid, &m_pp); /* Load Character Bandolier */
 	database.LoadCharacterBindPoint(cid, &m_pp); /* Load Character Bind */
 	database.LoadCharacterMaterialColor(cid, &m_pp); /* Load Character Material */
 	database.LoadCharacterPotions(cid, &m_pp); /* Load Character Potion Belt */
 	database.LoadCharacterCurrency(AccountID(), &m_pp); /* Load Character Currency into PP */
 	database.LoadCharacterData(cid, &m_pp, &m_epp); /* Load Character Data from DB into PP as well as E_PP */
-	database.LoadCharacterSkills(cid, &m_pp); /* Load Character Skills */
+	database.LoadCharacterSkills(cid, m_pp.class_, &m_pp); /* Load Character Skills */
 	database.LoadCharacterInspectMessage(cid, &m_inspect_message); /* Load Character Inspect Message */
-	database.LoadCharacterSpellBook(cid, &m_pp); /* Load Character Spell Book */
-	database.LoadCharacterMemmedSpells(cid, &m_pp);  /* Load Character Memorized Spells */
+	database.LoadCharacterSpellBook(cid, m_pp.class_, &m_pp); /* Load Character Spell Book */
+	database.LoadCharacterMemmedSpells(cid, m_pp.class_, &m_pp);  /* Load Character Memorized Spells */
 	database.LoadCharacterDisciplines(cid, &m_pp); /* Load Character Disciplines */
 	database.LoadCharacterLanguages(cid, &m_pp); /* Load Character Languages */
 	database.LoadCharacterLeadershipAA(cid, &m_pp); /* Load Character Leadership AA's */
@@ -5331,7 +5332,7 @@ void Client::Handle_OP_DeleteSpell(const EQApplicationPacket *app)
 
 	if (m_pp.spell_book[dss->spell_slot] != SPELLBOOK_UNKNOWN) {
 		m_pp.spell_book[dss->spell_slot] = SPELLBOOK_UNKNOWN;
-		database.DeleteCharacterSpell(this->CharacterID(), m_pp.spell_book[dss->spell_slot], dss->spell_slot);
+		database.DeleteCharacterSpell(this->CharacterID(), m_pp.class_, m_pp.spell_book[dss->spell_slot], dss->spell_slot);
 		dss->success = 1;
 	}
 	else
@@ -13764,11 +13765,11 @@ void Client::Handle_OP_SwapSpell(const EQApplicationPacket *app)
 	m_pp.spell_book[swapspell->to_slot] = swapspelltemp;
 
 	/* Save Spell Swaps */
-	if (!database.SaveCharacterSpell(this->CharacterID(), m_pp.spell_book[swapspell->from_slot], swapspell->from_slot)) {
-		database.DeleteCharacterSpell(this->CharacterID(), m_pp.spell_book[swapspell->from_slot], swapspell->from_slot);
+	if (!database.SaveCharacterSpell(this->CharacterID(), m_pp.class_, m_pp.spell_book[swapspell->from_slot], swapspell->from_slot)) {
+		database.DeleteCharacterSpell(this->CharacterID(), m_pp.class_, m_pp.spell_book[swapspell->from_slot], swapspell->from_slot);
 	}
-	if (!database.SaveCharacterSpell(this->CharacterID(), swapspelltemp, swapspell->to_slot)) {
-		database.DeleteCharacterSpell(this->CharacterID(), swapspelltemp, swapspell->to_slot);
+	if (!database.SaveCharacterSpell(this->CharacterID(), m_pp.class_, swapspelltemp, swapspell->to_slot)) {
+		database.DeleteCharacterSpell(this->CharacterID(), m_pp.class_, swapspelltemp, swapspell->to_slot);
 	}
 
 	QueuePacket(app);

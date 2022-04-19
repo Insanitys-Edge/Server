@@ -316,9 +316,10 @@ namespace EQ
 
 		//
 		// Items inside of this item (augs or contents);
-		std::map<uint8, ItemInstance*>		m_contents; // Zero-based index: min=0, max=9
 		std::map<std::string, std::string>	m_custom_data;
 		std::map<std::string, ::Timer>		m_timers;
+	public:		
+		std::map<uint8, ItemInstance*>		m_contents; // Zero-based index: min=0, max=9
 	};
 }
 

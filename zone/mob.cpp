@@ -3153,10 +3153,6 @@ void Mob::SetTargetable(bool on) {
 	}
 }
 
-void Mob::SetEndurance(int32 newEnd)
-{
-	return;
-}
 
 const int32& Mob::SetMana(int32 amount)
 {

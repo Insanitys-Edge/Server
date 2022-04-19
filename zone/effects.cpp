@@ -600,13 +600,13 @@ bool Client::TrainDiscipline(uint32 itemid) {
 			//summon them the item back...
 			SummonItem(itemid);
 			return(false);
-		} else if(m_pp.disciplines.values[r] == 0) {
+		} /*else if(m_pp.disciplines.values[r] == 0) {
 			m_pp.disciplines.values[r] = spell_id;
 			database.SaveCharacterDisc(this->CharacterID(), r, spell_id);
 			SendDisciplineUpdate();
 			Message(0, "You have learned a new discipline!");
 			return(true);
-		}
+		}*/
 	}
 	Message(Chat::Red, "You have learned too many disciplines and can learn no more.");
 	return(false);
@@ -698,16 +698,16 @@ bool Client::MemorizeSpellFromItem(uint32 item_id) {
 
 void Client::TrainDiscBySpellID(int32 spell_id)
 {
-	int i;
-	for(i = 0; i < MAX_PP_DISCIPLINES; i++) {
-		if(m_pp.disciplines.values[i] == 0) {
-			m_pp.disciplines.values[i] = spell_id;
-			database.SaveCharacterDisc(this->CharacterID(), i, spell_id);
-			SendDisciplineUpdate();
-			Message(Chat::Yellow, "You have learned a new combat ability!");
-			return;
-		}
-	}
+	//int i;
+	//for(i = 0; i < MAX_PP_DISCIPLINES; i++) {
+	//	if(m_pp.disciplines.values[i] == 0) {
+	//		m_pp.disciplines.values[i] = spell_id;
+	//		database.SaveCharacterDisc(this->CharacterID(), i, spell_id);
+	//		SendDisciplineUpdate();
+	//		Message(Chat::Yellow, "You have learned a new combat ability!");
+	//		return;
+	//	}
+	//}
 }
 
 int Client::GetDiscSlotBySpellID(int32 spellid)

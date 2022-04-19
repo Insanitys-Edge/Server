@@ -338,7 +338,7 @@ void Client::ResetTrade() {
 
 	// step 1: process bags
 	for (int16 trade_slot = EQ::invslot::TRADE_BEGIN; trade_slot <= EQ::invslot::TRADE_END; ++trade_slot) {
-		const EQ::ItemInstance* inst = m_inv[trade_slot];
+		EQ::ItemInstance* inst = m_inv[trade_slot];
 
 		if (inst && inst->IsClassBag()) {
 			int16 free_slot = m_inv.FindFreeSlotForTradeItem(inst);
@@ -438,7 +438,7 @@ void Client::ResetTrade() {
 
 	// step 3: process everything else
 	for (int16 trade_slot = EQ::invslot::TRADE_BEGIN; trade_slot <= EQ::invslot::TRADE_END; ++trade_slot) {
-		const EQ::ItemInstance* inst = m_inv[trade_slot];
+		EQ::ItemInstance* inst = m_inv[trade_slot];
 
 		if (inst) {
 			int16 free_slot = m_inv.FindFreeSlotForTradeItem(inst);
@@ -493,7 +493,7 @@ void Client::FinishTrade(Mob* tradingWith, bool finalizer, void* event_entry, st
 
 			// step 1: process bags
 			for (int16 trade_slot = EQ::invslot::TRADE_BEGIN; trade_slot <= EQ::invslot::TRADE_END; ++trade_slot) {
-				const EQ::ItemInstance* inst = m_inv[trade_slot];
+				EQ::ItemInstance* inst = m_inv[trade_slot];
 
 				if (inst && inst->IsClassBag()) {
 					LogTrading("Giving container [{}] ([{}]) in slot [{}] to [{}]", inst->GetItem()->Name, inst->GetItem()->ID, trade_slot, other->GetName());
@@ -711,7 +711,7 @@ void Client::FinishTrade(Mob* tradingWith, bool finalizer, void* event_entry, st
 
 			// step 3: process everything else
 			for (int16 trade_slot = EQ::invslot::TRADE_BEGIN; trade_slot <= EQ::invslot::TRADE_END; ++trade_slot) {
-				const EQ::ItemInstance* inst = m_inv[trade_slot];
+				EQ::ItemInstance* inst = m_inv[trade_slot];
 
 				if (inst) {
 					LogTrading("Giving item [{}] ([{}]) in slot [{}] to [{}]", inst->GetItem()->Name, inst->GetItem()->ID, trade_slot, other->GetName());
@@ -899,7 +899,7 @@ void Client::FinishTrade(Mob* tradingWith, bool finalizer, void* event_entry, st
 					// pets need to look inside bags and try to equip items found there
 					if (item->IsClassBag() && item->BagSlots > 0) {
 						for (int16 bslot = EQ::invbag::SLOT_BEGIN; bslot < item->BagSlots; bslot++) {
-							const EQ::ItemInstance* baginst = inst->GetItem(bslot);
+							EQ::ItemInstance* baginst = inst->GetItem(bslot);
 							if (baginst) {
 								const EQ::ItemData* bagitem = database.GetItem(baginst->GetID());
 								if (bagitem->ID && (GetGM() || (bagitem->NoDrop != 0 && baginst->IsAttuned() == false))) {
@@ -1392,7 +1392,7 @@ void Client::NukeTraderItem(uint16 Slot,int16 Charges,uint16 Quantity,Client* Cu
 
 	LogTrading("NukeTraderItem(Slot [{}], Charges [{}], Quantity [{}]", Slot, Charges, Quantity);
 
-	const EQ::ItemInstance* Inst = m_inv[Slot];
+	EQ::ItemInstance* Inst = m_inv[Slot];
 
 	if(Quantity < Charges && Inst->GetCharges() > 0)
 	{

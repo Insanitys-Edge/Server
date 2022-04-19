@@ -5209,7 +5209,7 @@ void Client::MemSpell(uint16 spell_id, int slot, bool update_client)
 	m_pp.mem_spells[slot] = spell_id;
 	LogSpells("Spell [{}] memorized into slot [{}]", spell_id, slot);
 
-	database.SaveCharacterMemorizedSpell(CharacterID(), m_pp.mem_spells[slot], slot);
+	database.SaveCharacterMemorizedSpell(CharacterID(), m_pp.class_, m_pp.mem_spells[slot], slot);
 
 	if(update_client) {
 		MemorizeSpell(slot, spell_id, memSpellMemorize);
@@ -5225,7 +5225,7 @@ void Client::UnmemSpell(int slot, bool update_client)
 	LogSpells("Spell [{}] forgotten from slot [{}]", m_pp.mem_spells[slot], slot);
 	m_pp.mem_spells[slot] = 0xFFFFFFFF;
 
-	database.DeleteCharacterMemorizedSpell(CharacterID(), m_pp.mem_spells[slot], slot);
+	database.DeleteCharacterMemorizedSpell(CharacterID(), m_pp.class_, m_pp.mem_spells[slot], slot);
 
 	if(update_client) {
 		MemorizeSpell(slot, m_pp.mem_spells[slot], memSpellForget);
@@ -5310,7 +5310,7 @@ void Client::ScribeSpell(uint16 spell_id, int slot, bool update_client, bool def
 
 	// defer save if we're bulk saving elsewhere
 	if (!defer_save) {
-		database.SaveCharacterSpell(this->CharacterID(), spell_id, slot);
+		database.SaveCharacterSpell(this->CharacterID(), m_pp.class_, spell_id, slot);
 	}
 	LogSpells("Spell [{}] scribed into spell book slot [{}]", spell_id, slot);
 
@@ -5329,7 +5329,7 @@ void Client::UnscribeSpell(int slot, bool update_client, bool defer_save)
 	m_pp.spell_book[slot] = 0xFFFFFFFF;
 
 	if (!defer_save) {
-		database.DeleteCharacterSpell(CharacterID(), m_pp.spell_book[slot], slot);
+		database.DeleteCharacterSpell(CharacterID(), m_pp.class_, m_pp.spell_book[slot], slot);
 	}
 
 	if (update_client && slot < EQ::spells::DynamicLookup(ClientVersion(), GetGM())->SpellbookSize) {

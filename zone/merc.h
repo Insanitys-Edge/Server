@@ -2,6 +2,7 @@
 #define MERC_H
 
 #include "npc.h"
+#include "../common/ptimer.h"
 
 class Client;
 class Corpse;
@@ -280,7 +281,7 @@ public:
 	PlayerProfile_Struct* GetPP();
 	ExtendedProfile_Struct* GetEPP();
 	EQ::InventoryProfile* GetInv();
-	virtual void SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
+	void SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP);
 
 	void SwapsBuffsWithOwner();
 	bool LoadMercSpells();

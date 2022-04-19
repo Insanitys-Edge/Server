@@ -1210,14 +1210,14 @@ bool ZoneDatabase::LoadCharacterFactionValues(uint32 character_id, faction_map &
 	return true;
 }
 
-bool ZoneDatabase::LoadCharacterMemmedSpells(uint32 character_id, PlayerProfile_Struct* pp){
+bool ZoneDatabase::LoadCharacterMemmedSpells(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp){
 	std::string query = StringFormat(
 		"SELECT							"
 		"slot_id,						"
 		"`spell_id`						"
 		"FROM							"
 		"`character_memmed_spells`		"
-		"WHERE `id` = %u ORDER BY `slot_id`", character_id);
+		"WHERE `id` = %u AND `class_id` = %u ORDER BY `slot_id`", character_id, class_id);
 	auto results = database.QueryDatabase(query);
 	int i = 0;
 	/* Initialize Spells */
@@ -1300,34 +1300,54 @@ bool ZoneDatabase::LoadCharacterLeadershipAA(uint32 character_id, PlayerProfile_
 	return true;
 }
 
-bool ZoneDatabase::LoadCharacterDisciplines(uint32 character_id, PlayerProfile_Struct* pp){
+bool ZoneDatabase::LoadCharacterExp(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp) {
 	std::string query = StringFormat(
-		"SELECT				  "
-		"disc_id			  "
-		"FROM				  "
-		"`character_disciplines`"
-		"WHERE `id` = %u ORDER BY `slot_id`", character_id);
-	auto results = database.QueryDatabase(query);
-	int i = 0;
-
-	/* Initialize Disciplines */
-	memset(pp->disciplines.values, 0, (sizeof(pp->disciplines.values[0]) * MAX_PP_DISCIPLINES));
+		"SELECT					"
+		"`level`,					"
+		"`exp`,					"
+		"`expaa``  				"
+		"FROM					"
+		"`character_exp`	"
+		"WHERE `id` = %u and `class_id` = %u", character_id, class_id);
+	auto results = database.QueryDatabase(query); int i = 0;
 	for (auto row = results.begin(); row != results.end(); ++row) {
-		if (i < MAX_PP_DISCIPLINES)
-			pp->disciplines.values[i] = atoi(row[0]);
-        ++i;
-    }
+			pp->level = atoi(row[0]);
+			pp->level2 = atoi(row[0]);
+			pp->exp = atoul(row[1]);
+			pp->expAA = atoul(row[2]);
+	}
+
 	return true;
 }
 
-bool ZoneDatabase::LoadCharacterSkills(uint32 character_id, PlayerProfile_Struct* pp){
+bool ZoneDatabase::LoadCharacterDisciplines(uint32 character_id, PlayerProfile_Struct* pp){
+	//std::string query = StringFormat(
+	//	"SELECT				  "
+	//	"disc_id			  "
+	//	"FROM				  "
+	//	"`character_disciplines`"
+	//	"WHERE `id` = %u ORDER BY `slot_id`", character_id);
+	//auto results = database.QueryDatabase(query);
+	//int i = 0;
+
+	///* Initialize Disciplines */
+	//memset(pp->disciplines.values, 0, (sizeof(pp->disciplines.values[0]) * MAX_PP_DISCIPLINES));
+	//for (auto row = results.begin(); row != results.end(); ++row) {
+	//	if (i < MAX_PP_DISCIPLINES)
+	//		pp->disciplines.values[i] = atoi(row[0]);
+ //       ++i;
+ //   }
+	return true;
+}
+
+bool ZoneDatabase::LoadCharacterSkills(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp){
 	std::string query = StringFormat(
 		"SELECT				"
 		"skill_id,			"
 		"`value`			"
 		"FROM				"
 		"`character_skills` "
-		"WHERE `id` = %u ORDER BY `skill_id`", character_id);
+		"WHERE `id` = %u AND `class_id` = %u ORDER BY `skill_id`", character_id, class_id);
 	auto results = database.QueryDatabase(query);
 	int i = 0;
 	/* Initialize Skill */
@@ -1544,8 +1564,8 @@ bool ZoneDatabase::SaveCharacterMaterialColor(uint32 character_id, uint32 slot_i
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterSkill(uint32 character_id, uint32 skill_id, uint32 value){
-	std::string query = StringFormat("REPLACE INTO `character_skills` (id, skill_id, value) VALUES (%u, %u, %u)", character_id, skill_id, value); auto results = QueryDatabase(query);
+bool ZoneDatabase::SaveCharacterSkill(uint32 character_id, uint32 class_id, uint32 skill_id, uint32 value){
+	std::string query = StringFormat("REPLACE INTO `character_skills` (id, class_id, skill_id, value) VALUES (%u, %u, %u, %u)", character_id, class_id, skill_id, value); auto results = QueryDatabase(query);
 	LogDebug("ZoneDatabase::SaveCharacterSkill for character ID: [{}], skill_id:[{}] value:[{}] done", character_id, skill_id, value);
 	return true;
 }
@@ -1949,25 +1969,31 @@ bool ZoneDatabase::SaveCharacterCurrency(uint32 account_id, PlayerProfile_Struct
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterAA(uint32 character_id, uint32 aa_id, uint32 current_level, uint32 charges){
-	std::string rquery = StringFormat("REPLACE INTO `character_alternate_abilities` (id, aa_id, aa_value, charges)"
-		" VALUES (%u, %u, %u, %u)",
-		character_id, aa_id, current_level, charges);
+bool ZoneDatabase::SaveCharacterAA(uint32 character_id, uint32 class_id, uint32 aa_id, uint32 current_level, uint32 charges){
+	std::string rquery = StringFormat("REPLACE INTO `character_alternate_abilities` (id, class_id, aa_id, aa_value, charges)"
+		" VALUES (%u, %u, %u, %u, %u)",
+		character_id, class_id, aa_id, current_level, charges);
 	auto results = QueryDatabase(rquery);
 	LogDebug("Saving AA for character ID: [{}], aa_id: [{}] current_level: [{}]", character_id, aa_id, current_level);
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterMemorizedSpell(uint32 character_id, uint32 spell_id, uint32 slot_id){
+bool ZoneDatabase::SaveCharacterMemorizedSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id){
 	if (spell_id > SPDAT_RECORDS){ return false; }
-	std::string query = StringFormat("REPLACE INTO `character_memmed_spells` (id, slot_id, spell_id) VALUES (%u, %u, %u)", character_id, slot_id, spell_id);
+	std::string query = StringFormat("REPLACE INTO `character_memmed_spells` (id, class_id, slot_id, spell_id) VALUES (%u, %u, %u, %u)", character_id, class_id, slot_id, spell_id);
 	QueryDatabase(query);
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterSpell(uint32 character_id, uint32 spell_id, uint32 slot_id){
+bool ZoneDatabase::SaveCharacterSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id){
 	if (spell_id > SPDAT_RECORDS){ return false; }
-	std::string query = StringFormat("REPLACE INTO `character_spells` (id, slot_id, spell_id) VALUES (%u, %u, %u)", character_id, slot_id, spell_id);
+	std::string query = StringFormat("REPLACE INTO `character_spells` (id, slot_id, spell_id) VALUES (%u, %u, %u)", character_id, class_id, slot_id, spell_id);
+	QueryDatabase(query);
+	return true;
+}
+
+bool ZoneDatabase::SaveCharacterExp(uint32 character_id, uint32 class_id, uint32 level, uint32 exp, uint32 expaa) {
+	std::string query = StringFormat("REPLACE INTO `character_exp` (id, class_id, level, exp, expaa) VALUES (%u, %u, %u, %u, %u)", character_id, class_id, level, exp, expaa);
 	QueryDatabase(query);
 	return true;
 }
@@ -2020,8 +2046,8 @@ bool ZoneDatabase::SaveCharacterLootLockout(std::map<uint32, LootLockout>& loot_
 //	return true;
 //}
 
-bool ZoneDatabase::DeleteCharacterSpell(uint32 character_id, uint32 spell_id, uint32 slot_id){
-	std::string query = StringFormat("DELETE FROM `character_spells` WHERE `slot_id` = %u AND `id` = %u", slot_id, character_id);
+bool ZoneDatabase::DeleteCharacterSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id){
+	std::string query = StringFormat("DELETE FROM `character_spells` WHERE `slot_id` = %u AND `id` = %u AND `class_id` = %u", slot_id, character_id, class_id);
 	QueryDatabase(query);
 	return true;
 }
@@ -2044,8 +2070,8 @@ bool ZoneDatabase::DeleteCharacterLeadershipAAs(uint32 character_id){
 	return true;
 }
 
-bool ZoneDatabase::DeleteCharacterAAs(uint32 character_id){
-	std::string query = StringFormat("DELETE FROM `character_alternate_abilities` WHERE `id` = %u AND `aa_id` NOT IN(SELECT a.first_rank_id FROM aa_ability a WHERE a.grant_only != 0)", character_id);
+bool ZoneDatabase::DeleteCharacterAAs(uint32 character_id, uint32 class_id){
+	std::string query = StringFormat("DELETE FROM `character_alternate_abilities` WHERE `id` = %u AND `class_id` = %u AND `aa_id` NOT IN(SELECT a.first_rank_id FROM aa_ability a WHERE a.grant_only != 0)", character_id, class_id);
 	QueryDatabase(query);
 	return true;
 }
@@ -2056,8 +2082,8 @@ bool ZoneDatabase::DeleteCharacterDye(uint32 character_id){
 	return true;
 }
 
-bool ZoneDatabase::DeleteCharacterMemorizedSpell(uint32 character_id, uint32 spell_id, uint32 slot_id){
-	std::string query = StringFormat("DELETE FROM `character_memmed_spells` WHERE `slot_id` = %u AND `id` = %u", slot_id, character_id);
+bool ZoneDatabase::DeleteCharacterMemorizedSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id){
+	std::string query = StringFormat("DELETE FROM `character_memmed_spells` WHERE `slot_id` = %u AND `id` = %u AND `class_id` = %u", slot_id, character_id, class_id);
 	QueryDatabase(query);
 	return true;
 }
@@ -5220,7 +5246,7 @@ std::map<uint32, MercCharacter_Struct*> ZoneDatabase::LoadCharactersOnAccount(Cl
 
 	int i = 0;
 	//get all 15 classes
-	for (i = 1; i < 16; i++)
+	for (i = 1; i <= 15; i++)
 	{
 		auto row = results.begin();
 		uint32 charid = atoi(row[0]);
@@ -5239,11 +5265,10 @@ std::map<uint32, MercCharacter_Struct*> ZoneDatabase::LoadCharactersOnAccount(Cl
 			continue;
 		}
 
-		database.LoadCharacterSkills(AccID, &charStruct->m_pp); /* Load Character Skills */
-		database.LoadCharacterSpellBook(charid, &charStruct->m_pp); /* Load Character Spell Book */
-		database.LoadCharacterMemmedSpells(charid, &charStruct->m_pp);  /* Load Character Memorized Spells */
-		database.LoadCharacterDisciplines(charid, &charStruct->m_pp); /* Load Character Disciplines */
-		database.LoadAlternateAdvancement(c);
+		database.LoadCharacterSkills(charid, i, &charStruct->m_pp); /* Load Character Skills */
+		database.LoadCharacterSpellBook(charid, i, &charStruct->m_pp); /* Load Character Spell Book */
+		database.LoadCharacterMemmedSpells(charid, i, &charStruct->m_pp);  /* Load Character Memorized Spells */
+		database.LoadAlternateAdvancement(c, i);
 		retList[charid] = charStruct;
 		i++;
 	}

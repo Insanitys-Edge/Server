@@ -5289,11 +5289,11 @@ bool Merc::SpawnPlayerMerc(Client* owner) {
 			GetPP()->abilitySlotRefresh = 0;
 	}
 	entity_list.AddMerc(this, true, true);
-	strn0cpy(owner_swap_name, owner->GetName(), 64);
-	// Remove Numbers before making name unique
-	EntityList::RemoveNumbers(owner_swap_name);
-	// Make the new name unique and set it
-	entity_list.MakeNameUnique(owner_swap_name);
+	//strn0cpy(owner_swap_name, owner->GetName(), 64);
+	//// Remove Numbers before making name unique
+	//EntityList::RemoveNumbers(owner_swap_name);
+	//// Make the new name unique and set it
+	//entity_list.MakeNameUnique(owner_swap_name);
 
 	CalcBonuses();
 	AI_Start();
@@ -6628,16 +6628,6 @@ EQ::InventoryProfile* Merc::GetInv()
 
 void Merc::SwapReferences(uint32 character_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP)
 {
-	if (GetMercOwner())
-	{
-		SwapsBuffsWithOwner();
-		auto current_owner_char_id = owner_char_id;
-		auto current_self_char_id = _characterID;
-		owner_char_id = current_self_char_id;
-		_characterID = current_owner_char_id;
-		Mob::SwapReferences(character_id, in_MercPP, in_MercEPP);
-		SendArmorAppearance();
-	};
 }
 
 void Merc::SwapsBuffsWithOwner()

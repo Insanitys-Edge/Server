@@ -546,7 +546,7 @@ void Client::ResetAA() {
 	m_pp.group_leadership_exp = 0;
 	m_pp.raid_leadership_exp = 0;
 	
-	database.DeleteCharacterAAs(CharacterID());
+	database.DeleteCharacterAAs(CharacterID(), m_pp.class_);
 	database.DeleteCharacterLeadershipAAs(CharacterID());
 }
 
@@ -1392,7 +1392,7 @@ void Mob::ExpendAlternateAdvancementCharge(uint32 aa_id) {
 	}
 }
 
-bool ZoneDatabase::LoadAlternateAdvancement(Client *c) {
+bool ZoneDatabase::LoadAlternateAdvancement(Client *c, uint32 class_id) {
 	c->ClearAAs();
 	std::string query = StringFormat(
 		"SELECT "
@@ -1401,7 +1401,7 @@ bool ZoneDatabase::LoadAlternateAdvancement(Client *c) {
 		"charges "
 		"FROM "
 		"`character_alternate_abilities` "
-		"WHERE `id` = %u and class_id = %u", c->CharacterID(), c->GetBaseClass());
+		"WHERE `id` = %u and class_id = %u", c->CharacterID(), class_id != 0 ? class_id : c->GetBaseClass());
 	MySQLRequestResult results = database.QueryDatabase(query);
 
 	int i = 0;

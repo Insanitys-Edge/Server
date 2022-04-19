@@ -731,8 +731,8 @@ public:
 	void SaveMercData();
 
 	MercCharacter_Struct* GetMercCharacterDataByName(const char* merc_name);
+	MercCharacter_Struct* GetMercCharacterDataByClassID(uint32 class_id);
 
-	void SwapWithMercenary();
 	void SwapWithClass(uint32 class_id);
 
 	void FakeDeleteItemInInventory(int16 slot_id);
@@ -954,8 +954,8 @@ public:
 	int32 GetItemIDAt(int16 slot_id);
 	int32 GetAugmentIDAt(int16 slot_id, uint8 augslot);
 	std::list<BazaarSearchResultsNew_Struct> QueryBazaar(uint32 TraderID, uint32 Class_, uint32 Race, uint32 ItemStat, uint32 Slot, uint32 Type, char Name[64], uint32 MinPrice, uint32 MaxPrice);
-	bool PutItemInInventory(int16 slot_id, const EQ::ItemInstance& inst, bool client_update = false);
-	bool PushItemOnCursor(const EQ::ItemInstance& inst, bool client_update = false);
+	bool PutItemInInventory(int16 slot_id, EQ::ItemInstance& inst, bool client_update = false);
+	bool PushItemOnCursor(EQ::ItemInstance& inst, bool client_update = false);
 	void SendCursorBuffer();
 	void DeleteItemInInventory(int16 slot_id, int16 quantity = 0, bool client_update = false, bool update_db = true);
 	int CountItem(uint32 item_id);
@@ -963,7 +963,7 @@ public:
 	bool SwapItem(MoveItem_Struct* move_in);
 	void SwapItemResync(MoveItem_Struct* move_slots);
 	void QSSwapItemAuditor(MoveItem_Struct* move_in, bool postaction_call = false);
-	void PutLootInInventory(int16 slot_id, const EQ::ItemInstance &inst, ServerLootItem_Struct** bag_item_data = 0);
+	void PutLootInInventory(int16 slot_id, EQ::ItemInstance &inst, ServerLootItem_Struct** bag_item_data = 0);
 	bool TryForceStack(uint32 new_item_id, int32 count, uint8 type = ItemPacketTrade);
 	bool TryAutoVendor(uint32 new_item_id, int32 count, uint8 type = ItemPacketTrade);
 	bool AutoPutLootInInventory(EQ::ItemInstance& inst, bool try_worn = false, bool try_cursor = true, ServerLootItem_Struct** bag_item_data = 0);
@@ -1027,7 +1027,7 @@ public:
 	uint8 SlotConvert2(uint8 slot); //Maybe not needed.
 	void Escape(); //keep or quest function
 
-	static bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag);
+	static bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, EQ::ItemInstance* old_bag);
 	static bool Client::CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag);
 	void DisenchantSummonedBags(bool client_update = true);
 	void RemoveNoRent(bool client_update = true);
