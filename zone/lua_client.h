@@ -380,6 +380,9 @@ public:
 	void DisableAreaEndRegen();
 	void EnableAreaRegens(int value);
 	void DisableAreaRegens();
+	void ForceMerchantWindow(int entityId, int type);
+	void ForceMerchantWindow(int entityId, int type, int merchant_id);
+
 	void SetHideMe(bool hide_me_state);
 	void Popup(const char* title, const char* text);
 	void Popup(const char* title, const char* text, uint32 popup_id);
@@ -404,6 +407,12 @@ public:
 
 	void SetClientMaxLevel(int value);
 	int GetClientMaxLevel();
+	
+	void SetMercCharacterID(int value);
+	int GetMercCharacterID();
+
+
+	void OutputAccountCharacters();
 
 	void DialogueWindow(std::string markdown);
 

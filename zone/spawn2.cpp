@@ -272,7 +272,7 @@ bool Spawn2::Process() {
 		/**
 		 * Roambox init
 		 */
-		if (spawn_group->roamdist > 0) {
+		if (spawn_group->delay > 0) {
 			npc->AI_SetRoambox(
 				spawn_group->roamdist,
 				spawn_group->roambox[0],

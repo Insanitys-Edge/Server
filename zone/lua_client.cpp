@@ -1835,6 +1835,31 @@ int Lua_Client::GetClientMaxLevel() {
 	return self->GetClientMaxLevel();
 }
 
+void Lua_Client::SetMercCharacterID(int value) {
+	Lua_Safe_Call_Void();
+	self->SetMercCharacterID(value);
+}
+
+int Lua_Client::GetMercCharacterID() {
+	Lua_Safe_Call_Int();
+	return self->GetMercCharacterID();
+}
+
+void Lua_Client::ForceMerchantWindow(int entityId, int type) {
+	Lua_Safe_Call_Void();
+	self->ForceMerchantWindow(entityId, type);
+}
+
+void Lua_Client::ForceMerchantWindow(int entityId, int type, int merchant_id) {
+	Lua_Safe_Call_Void();
+	self->ForceMerchantWindow(entityId, type, merchant_id);
+}
+
+void Lua_Client::OutputAccountCharacters() {
+	Lua_Safe_Call_Void();
+	self->OutputAccountCharacters();
+}
+
 void Lua_Client::DialogueWindow(std::string markdown) {
 	Lua_Safe_Call_Void();
 	DialogueWindow::Render(self, std::move(markdown));
@@ -2795,7 +2820,12 @@ luabind::scope lua_register_client() {
 	.def("UpdateLDoNPoints", (void(Lua_Client::*)(uint32,int))&Lua_Client::UpdateLDoNPoints)
 	.def("UpdateTaskActivity", (void(Lua_Client::*)(int,int,int))&Lua_Client::UpdateTaskActivity)
 	.def("UseDiscipline", (bool(Lua_Client::*)(int,int))&Lua_Client::UseDiscipline)
-	.def("WorldKick", (void(Lua_Client::*)(void))&Lua_Client::WorldKick);
+	.def("WorldKick", (void(Lua_Client::*)(void))&Lua_Client::WorldKick)
+	.def("SetMercCharacterID", &Lua_Client::SetMercCharacterID)
+	.def("GetMercCharacterID", &Lua_Client::GetMercCharacterID)
+	.def("OutputAccountCharacters", (void(Lua_Client::*)())& Lua_Client::OutputAccountCharacters)
+	.def("ForceMerchantWindow", (void(Lua_Client::*)(int, int))& Lua_Client::ForceMerchantWindow)
+	.def("ForceMerchantWindow", (void(Lua_Client::*)(int, int, int))& Lua_Client::ForceMerchantWindow);
 }
 
 luabind::scope lua_register_inventory_where() {

@@ -298,6 +298,9 @@ public:
     void SendMail(const char *to, const char *from, const char *subject, const char *message);
 	uint16 CreateDoor( const char* model, float x, float y, float z, float heading, uint8 opentype, uint16 size);
     int32 GetZoneID(const char *zone);
+    	bool checksum(uint32 account_id);
+	bool spellchecksum(uint32 account_id);
+	bool hasmac(uint32 account_id);
     static std::string GetZoneLongName(std::string zone_short_name);
     static std::string GetZoneLongNameByID(uint32 zone_id);
 	static std::string GetZoneShortName(uint32 zone_id);

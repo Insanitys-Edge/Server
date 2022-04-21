@@ -1527,6 +1527,19 @@ void lua_log_combat(std::string message) {
 	Log(Logs::General, Logs::Combat, message.c_str());
 }
 
+bool lua_checksum(uint32 account_id) {
+	return quest_manager.checksum(account_id);
+}
+
+bool lua_spellchecksum(uint32 account_id) {
+	return quest_manager.spellchecksum(account_id);
+}
+
+bool lua_hasmac(uint32 account_id) {
+	return quest_manager.hasmac(account_id);
+}
+
+
 void lua_update_zone_header(std::string type, std::string value) {
 	quest_manager.UpdateZoneHeader(type, value);
 }
@@ -3569,6 +3582,9 @@ bool get_ruleb(int rule) {
 luabind::scope lua_register_general() {
 	return luabind::namespace_("eq")
 	[
+		luabind::def("checksum", (bool(*)(uint32))&lua_checksum),
+		luabind::def("spellchecksum", (bool(*)(uint32))& lua_spellchecksum),
+		luabind::def("hasmac", (bool(*)(uint32))& lua_hasmac),
 		luabind::def("load_encounter", &load_encounter),
 		luabind::def("unload_encounter", &unload_encounter),
 		luabind::def("load_encounter_with_data", &load_encounter_with_data),
@@ -3590,9 +3606,12 @@ luabind::scope lua_register_general() {
 		luabind::def("unregister_spell_event", (void(*)(std::string, int, int))&unregister_spell_event),
 		luabind::def("unregister_spell_event", (void(*)(int, int))&unregister_spell_event),
 		luabind::def("spawn2", (Lua_Mob(*)(int,int,int,double,double,double,double))&lua_spawn2),
+		luabind::def("spawn2", (Lua_Mob(*)(int, int, int, double, double, double, double, int)) & lua_spawn2),
 		luabind::def("unique_spawn", (Lua_Mob(*)(int,int,int,double,double,double))&lua_unique_spawn),
 		luabind::def("unique_spawn", (Lua_Mob(*)(int,int,int,double,double,double,double))&lua_unique_spawn),
 		luabind::def("spawn_from_spawn2", (Lua_Mob(*)(uint32))&lua_spawn_from_spawn2),
+
+		luabind::def("spawn_from_spawn2", (Lua_Mob(*)(uint32, int)) & lua_spawn_from_spawn2),
 		luabind::def("enable_spawn2", &lua_enable_spawn2),
 		luabind::def("disable_spawn2", &lua_disable_spawn2),
 		luabind::def("has_timer", (bool(*)(const char*))&lua_has_timer),

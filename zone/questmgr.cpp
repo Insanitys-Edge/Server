@@ -3159,6 +3159,45 @@ uint16 QuestManager::CreateDoor(const char* model, float x, float y, float z, fl
 	return entid;
 }
 
+bool QuestManager::checksum(uint32 account_id) {
+
+	std::string exechecksum;
+	uint64 execheckint;
+	execheckint = -1;
+
+	if (database.GetVariable("exechecksum", exechecksum))
+	{
+		execheckint = atoll(exechecksum.c_str());
+	}
+
+	uint64 player_checksum = database.GetExeCrcForAccount(account_id);
+
+	return player_checksum == execheckint;
+}
+
+bool QuestManager::spellchecksum(uint32 account_id) {
+
+	std::string spellfilechecksum;
+	uint64 spellcheckint;
+	spellcheckint = -1;
+
+	if (database.GetVariable("spellfilechecksum", spellfilechecksum))
+	{
+		spellcheckint = atoll(spellfilechecksum.c_str());
+	}
+
+	uint64 player_checksum = database.GetSpellCrcForAccount(account_id);
+
+	return player_checksum == spellcheckint;
+}
+
+bool QuestManager::hasmac(uint32 account_id) {
+
+	uint64 player_checksum = database.GetMACAddressForAccount(account_id);
+
+	return player_checksum != 0;
+}
+
 int32 QuestManager::GetZoneID(const char *zone) {
 	return static_cast<int32>(ZoneID(zone));
 }

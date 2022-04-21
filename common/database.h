@@ -191,7 +191,12 @@ public:
 	int16	CheckStatus(uint32 account_id);
 
 	void	SetAccountCRCField(uint32 account_id, std::string field_name, uint64 checksum);
-
+	uint64  GetExeCrcForAccount(uint32 accid);
+	void	SetExeCrcForAccount(uint32 accid, uint64 checksum);
+	uint64  GetSpellCrcForAccount(uint32 accid);
+	void	SetSpellCrcForAccount(uint32 accid, uint64 checksum);
+	uint64  GetMACAddressForAccount(uint32 accid);
+	void	SetMACAddressForAccount(uint32 accid, uint64 mac);
 	uint32	CheckLogin(const char* name, const char* password, const char *loginserver, int16* oStatus = 0);
 	uint32	CreateAccount(const char* name, const char* password, int16 status, const char* loginserver, uint32 lsaccount_id);
 	uint32	GetAccountIDFromLSID(const std::string& in_loginserver_id, uint32 in_loginserver_account_id, char* in_account_name = 0, int16* in_status = 0);

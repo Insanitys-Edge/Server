@@ -10844,6 +10844,10 @@ void Client::LoadCharacterAltMercenaries()
 
 void Client::SetMercCharacterID(int in_character_id)
 {
+	if (m_pp.class_ != in_character_id)
+	{
+		SwapWithClass(in_character_id);
+	}
 	//// Handle the dismiss here...
 	//if (orig_character_id != CharacterID())
 	//{
@@ -11186,5 +11190,32 @@ void Client::SwapInventoryWithMerc(EQ::InventoryProfile& m_TargetPlayerInv, EQ::
 			SendItemPacket(instpair.second->GetCurrentSlot(), instpair.second, ItemPacketTrade);
 		}
 	}
+}
 
+
+void Client::ForceMerchantWindow(uint32 entityId, uint8 type, uint32 merchant_id)
+{
+
+	auto merchantNpc = entity_list.GetNPCByID(entityId);
+	if (merchantNpc)
+	{
+		if (type == 0 && merchantNpc->MerchantType == 0 && merchant_id == 0)
+		{
+			return;
+		}
+
+		auto outapp = new EQApplicationPacket(OP_EdgeBankRequest, sizeof(BankRequest_Struct));
+		BankRequest_Struct* brs = (BankRequest_Struct*)outapp->pBuffer;
+
+		brs->entityid = entityId;
+		brs->requestType = type;
+		brs->rate = 1.0f / (RuleR(Merchant, BuyCostMod));
+		QueuePacket(outapp);
+		safe_delete(outapp);
+
+		if (type == 0 && (merchant_id > 0 || merchantNpc->MerchantType > 0))
+		{
+			BulkSendMerchantInventory(merchant_id > 0 ? merchant_id : merchantNpc->MerchantType, merchantNpc->GetNPCTypeID(), merchant_id == 0 ? 0 : 1);
+		}
+	}
 }

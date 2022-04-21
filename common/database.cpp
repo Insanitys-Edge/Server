@@ -1003,6 +1003,60 @@ void Database::SetAccountCRCField(uint32 account_id, std::string field_name, uin
 	);
 }
 
+uint64 Database::GetExeCrcForAccount(uint32 accountid)
+{
+	std::string query = StringFormat("SELECT `checksum` FROM `account` WHERE `id` = '%i'", accountid);
+	auto results = QueryDatabase(query);
+
+	if (!results.Success())
+		return 0;
+
+	auto row = results.begin();
+	return atoll(row[0]);
+}
+
+uint64 Database::GetSpellCrcForAccount(uint32 accountid)
+{
+	std::string query = StringFormat("SELECT `spellchecksum` FROM `account` WHERE `id` = '%i'", accountid);
+	auto results = QueryDatabase(query);
+
+	if (!results.Success())
+		return 0;
+
+	auto row = results.begin();
+	return atoll(row[0]);
+}
+
+void Database::SetExeCrcForAccount(uint32 accountid, uint64 checksum)
+{
+	std::string query = StringFormat("UPDATE `account` SET `checksum` = '%lld' WHERE `id` = '%i'", checksum, accountid);
+	auto results = QueryDatabase(query);
+}
+
+void Database::SetSpellCrcForAccount(uint32 accountid, uint64 checksum)
+{
+	std::string query = StringFormat("UPDATE `account` SET `spellchecksum` = '%lld' WHERE `id` = '%i'", checksum, accountid);
+	auto results = QueryDatabase(query);
+}
+
+uint64 Database::GetMACAddressForAccount(uint32 accountid)
+{
+	std::string query = StringFormat("SELECT `macaddress` FROM `account` WHERE `id` = '%i'", accountid);
+	auto results = QueryDatabase(query);
+
+	if (!results.Success())
+		return 0;
+
+	auto row = results.begin();
+	return atoll(row[0]);
+}
+
+void Database::SetMACAddressForAccount(uint32 accountid, uint64 mac)
+{
+	std::string query = StringFormat("UPDATE `account` SET `macaddress` = '%lld' WHERE `id` = '%i'", mac, accountid);
+	auto results = QueryDatabase(query);
+}
+
 // Get zone starting points from DB
 bool Database::GetSafePoints(const char* zone_short_name, uint32 instance_version, float* safe_x, float* safe_y, float* safe_z, float* safe_heading, int16* min_status, uint8* min_level, char *flag_needed) {
 

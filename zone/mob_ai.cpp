@@ -1576,7 +1576,8 @@ void NPC::AI_DoMovement() {
 	/**
 	 * Roambox logic sets precedence
 	 */
-	if (roambox_distance > 0) {
+	if (roambox_min_x != 0 || roambox_max_x != 0 ||
+		roambox_min_y != 0 || roambox_max_y != 0) {
 
 		// Check if we're already moving to a WP
 		// If so, if we're not moving we have arrived and need to set delay

@@ -1330,6 +1330,13 @@ struct EdgeDamage_Struct
 	/* 08 */	uint8 hitType;
 };
 
+struct BankRequest_Struct
+{
+	uint8 requestType;
+	uint32 entityid;
+	float rate;
+};
+
 struct EdgeSuppressSpellMsg_Struct
 {
 	/* 00 */	uint8	suppress;
