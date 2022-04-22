@@ -4089,7 +4089,7 @@ XS(XS_Client_SetCustomItemData) {
 		Const_char *identifier = SvPV_nolen(ST(2));
 		Const_char *value      = SvPV_nolen(ST(3));
 		VALIDATE_THIS_IS_CLIENT;
-		THIS->GetInv().SetCustomItemData(THIS->CharacterID(), THIS->AccountID(), slot_id, std::string(identifier), std::string(value));
+		THIS->GetInv().SetCustomItemData(THIS->CharacterID(), THIS->AccountID(), THIS->GetClass(), slot_id, std::string(identifier), std::string(value));
 	}
 	XSRETURN_EMPTY;
 }
