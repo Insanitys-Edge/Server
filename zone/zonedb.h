@@ -389,7 +389,7 @@ public:
 	bool SaveCharacterPotionBelt(uint32 character_id, uint8 potion_id, uint32 item_id, uint32 icon);
 	bool SaveCharacterSkill(uint32 character_id, uint32 class_id, uint32 skill_id, uint32 value);
 	bool SaveCharacterSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id);
-	bool SaveCharacterExp(uint32 character_id, uint32 class_id, uint32 level, uint32 spell_id, uint32 slot_id);
+	bool SaveCharacterExp(uint32 character_id, uint32 class_id, uint32 level, uint32 exp, uint32 expaa);
 	bool SaveCharacterTribute(uint32 character_id, PlayerProfile_Struct* pp);
 	
 	double GetAAEXPModifier(uint32 character_id, uint32 zone_id) const;

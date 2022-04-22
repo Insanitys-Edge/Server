@@ -428,6 +428,16 @@ Client::~Client() {
 	// will need this data right away
 	Save(2); // This fails when database destructor is called first on shutdown
 
+	//After we save, iterate through valid Merc Character Data and free merc data struct
+	for (auto merc : validMercCharacterData)
+	{
+		safe_delete(merc.second);
+	}
+
+	//yeet it out for good measure lmao
+	validMercCharacterData.clear();
+
+
 	safe_delete(task_state);
 	safe_delete(KarmaUpdateTimer);
 	safe_delete(GlobalChatLimiterTimer);
@@ -705,6 +715,8 @@ bool Client::Save(uint8 iCommitNow) {
 	}
 
 	database.SaveCharacterData(this->CharacterID(), this->AccountID(), &m_pp, &m_epp); /* Save Character Data */
+	SaveMercData();
+
 
 	return true;
 }
@@ -10927,13 +10939,14 @@ void Client::SaveMercData()
 {
 	for (auto mercData : validMercCharacterData)
 	{
-		if (mercData.first == GetBaseClass())
+		if (mercData.first == GetClass())
 		{
 			database.SaveCharacterData(CharacterID(), AccountID(), &m_pp, &m_epp); // currently controlled player
+			database.SaveCharacterExp(CharacterID(), AccountID(), m_pp.level, m_pp.exp, m_pp.expAA); // currently controlled player
 		}
 		else
 		{
-			database.SaveCharacterData(mercData.first, AccountID(), &mercData.second->m_pp, &mercData.second->m_epp); // merc, offline or not
+			database.SaveCharacterExp(CharacterID(), mercData.first, mercData.second->m_pp.level, mercData.second->m_pp.exp, mercData.second->m_pp.expAA);
 		}
 	}
 }
@@ -10983,7 +10996,7 @@ void Client::SwapWithClass(uint32 class_id)
 
 			//Declare persistent variables, these may change during the below.
 			auto current_character_class_id = GetClass();
-			auto current_merc_class_id = m_epp.edge_merc_character_id;
+			auto current_merc_class_id = class_id;
 
 			char current_character_name[64];
 			char current_merc_name[64];
@@ -10993,7 +11006,7 @@ void Client::SwapWithClass(uint32 class_id)
 			int64 current_character_endurance = GetEndurance();
 
 			//copy references into objects
-			SwapReferences(current_merc_class_id, mercResult->second->m_pp, mercResult->second->m_epp);
+			SwapReferences(class_id, mercResult->second->m_pp, mercResult->second->m_epp);
 			//swap loaded spells
 			SwapLoadedSpellsWithMerc(ppofCurrentMerc, targetppofCurrentCharacter);
 			SwapInventoryWithMerc(invofCurrentMerc, targetinvofCurrentCharacter);
@@ -11065,6 +11078,14 @@ void Client::SendSpellSuppressionPacket(bool shouldSuppress) {
 
 
 void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProfile_Struct& m_PlayerPP) {
+
+
+		m_PlayerPP.exp = m_pp.exp;
+		m_PlayerPP.expAA = m_pp.expAA;
+		m_PlayerPP.level = m_pp.level;
+		m_pp.exp = m_MercPP.exp;
+		m_pp.expAA = m_MercPP.expAA;
+		m_pp.level = m_MercPP.level;
 		SendSpellSuppressionPacket(true);
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)
@@ -11093,6 +11114,18 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 			if (m_PlayerPP.spell_book[i] != 0xFFFFFFFF)
 				FakeUnscribeSpell(i);
 		}
+
+
+		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
+		{
+			m_pp.mem_spells[i] = m_MercPP.mem_spells[i];
+		}
+
+		for (int i = 0; i < EQ::spells::SPELLBOOK_SIZE; i++)
+		{
+			m_pp.spell_book[i] = m_MercPP.spell_book[i];
+		}
+
 		//copy merc spells to client
 		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
 		{
@@ -11112,16 +11145,6 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 				SetSkill((EQ::skills::SkillType)i, m_MercPP.skills[i]);
 				m_pp.skills[i] = m_MercPP.skills[i];
 			}
-		}
-
-		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
-		{
-			m_pp.mem_spells[i] = m_MercPP.mem_spells[i];
-		}
-
-		for (int i = 0; i < EQ::spells::SPELLBOOK_SIZE; i++)
-		{
-			m_pp.spell_book[i] = m_pp.spell_book[i];
 		}
 
 		database.LoadAlternateAdvancement(this, m_MercPP.class_);
