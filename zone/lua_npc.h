@@ -150,6 +150,7 @@ public:
 	bool HasRequiredQuestLoot(int itemid1, int itemid2, int itemid3, int itemid4);
 	int QuestLootCount(int itemid);
 	bool CanTalk();
+	void SetNoQuestPause(bool state);
 
 	void SetSimpleRoamBox(float box_size);
 	void SetSimpleRoamBox(float box_size, float move_distance);

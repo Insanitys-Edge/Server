@@ -730,6 +730,11 @@ bool Lua_NPC::CanTalk()
 	return self->CanTalk();
 }
 
+void Lua_NPC::SetNoQuestPause(bool state) {
+	Lua_Safe_Call_Void();
+	//stubbed takp function
+}
+
 luabind::scope lua_register_npc() {
 	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")	
 	.def(luabind::constructor<>())
@@ -875,7 +880,8 @@ luabind::scope lua_register_npc() {
 	.def("DeleteQuestLoot", (void(Lua_NPC::*)(int, int, int))& Lua_NPC::DeleteQuestLoot)
 	.def("DeleteQuestLoot", (void(Lua_NPC::*)(int, int, int, int))& Lua_NPC::DeleteQuestLoot)
 	.def("HasRequiredQuestLoot", (bool(Lua_NPC::*)(int, int, int, int))& Lua_NPC::HasRequiredQuestLoot)
-	.def("QuestLootCount", (int(Lua_NPC::*)(int))& Lua_NPC::QuestLootCount);
+	.def("QuestLootCount", (int(Lua_NPC::*)(int))& Lua_NPC::QuestLootCount)
+	.def("SetNoQuestPause", (void(Lua_NPC::*)(bool))&Lua_NPC::SetNoQuestPause);
 }
 
 luabind::scope lua_register_npc_loot_list() {
