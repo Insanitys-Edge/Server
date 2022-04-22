@@ -3997,10 +3997,9 @@ bool Client::MoveItemToInventory(EQ::ItemInstance *ItemToReturn, bool UpdateClie
 
 						InvItem->SetCharges(InvItem->GetCharges() + ChargesToMove);
 
-						if(UpdateClient)
-							SendItemPacket(BaseSlotID + BagSlot, m_inv.GetItem(BaseSlotID + BagSlot), ItemPacketTrade);
-
 						database.SaveInventory(character_id, account_id, m_inv.GetItem(BaseSlotID + BagSlot), BaseSlotID + BagSlot);
+						if (UpdateClient)
+							SendItemPacket(BaseSlotID + BagSlot, m_inv.GetItem(BaseSlotID + BagSlot), ItemPacketTrade);
 
 						ItemToReturn->SetCharges(ItemToReturn->GetCharges() - ChargesToMove);
 
@@ -4024,10 +4023,10 @@ bool Client::MoveItemToInventory(EQ::ItemInstance *ItemToReturn, bool UpdateClie
 			// Found available slot in personal inventory
 			m_inv.PutItem(i, *ItemToReturn);
 
-			if(UpdateClient)
-				SendItemPacket(i, ItemToReturn, ItemPacketTrade);
-
 			database.SaveInventory(character_id, account_id, m_inv.GetItem(i), i);
+
+			if (UpdateClient)
+				SendItemPacket(i, ItemToReturn, ItemPacketTrade);
 
 			LogInventory("Char: [{}] Storing in main inventory slot [{}]", GetName(), i);
 
@@ -4047,10 +4046,10 @@ bool Client::MoveItemToInventory(EQ::ItemInstance *ItemToReturn, bool UpdateClie
 					// Found available slot within bag
 					m_inv.PutItem(BaseSlotID + BagSlot, *ItemToReturn);
 
-					if(UpdateClient)
-						SendItemPacket(BaseSlotID + BagSlot, ItemToReturn, ItemPacketTrade);
-
 					database.SaveInventory(character_id, account_id, m_inv.GetItem(BaseSlotID + BagSlot), BaseSlotID + BagSlot);
+
+					if (UpdateClient)
+						SendItemPacket(BaseSlotID + BagSlot, ItemToReturn, ItemPacketTrade);
 
 					LogInventory("Char: [{}] Storing in bag slot [{}]", GetName(), BaseSlotID + BagSlot);
 

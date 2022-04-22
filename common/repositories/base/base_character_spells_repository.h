@@ -20,6 +20,7 @@ class BaseCharacterSpellsRepository {
 public:
 	struct CharacterSpells {
 		int id;
+		int class_id;
 		int slot_id;
 		int spell_id;
 	};
@@ -33,6 +34,7 @@ public:
 	{
 		return {
 			"id",
+			"class_id",
 			"slot_id",
 			"spell_id",
 		};
@@ -42,6 +44,7 @@ public:
 	{
 		return {
 			"id",
+			"class_id",
 			"slot_id",
 			"spell_id",
 		};
@@ -87,6 +90,7 @@ public:
 		entry.id       = 0;
 		entry.slot_id  = 0;
 		entry.spell_id = 0;
+		entry.class_id = 1;
 
 		return entry;
 	}
@@ -123,8 +127,9 @@ public:
 			CharacterSpells entry{};
 
 			entry.id       = atoi(row[0]);
-			entry.slot_id  = atoi(row[1]);
-			entry.spell_id = atoi(row[2]);
+			entry.class_id = atoi(row[1]);
+			entry.slot_id  = atoi(row[2]);
+			entry.spell_id = atoi(row[3]);
 
 			return entry;
 		}
@@ -134,15 +139,17 @@ public:
 
 	static int DeleteOne(
 		Database& db,
-		int character_spells_id
+		int character_spells_id,
+		int character_class_id
 	)
 	{
 		auto results = db.QueryDatabase(
 			fmt::format(
-				"DELETE FROM {} WHERE {} = {}",
+				"DELETE FROM {} WHERE {} = {} AND class_id = {}",
 				TableName(),
 				PrimaryKey(),
-				character_spells_id
+				character_spells_id,
+				character_class_id
 			)
 		);
 
@@ -163,11 +170,12 @@ public:
 
 		auto results = db.QueryDatabase(
 			fmt::format(
-				"UPDATE {} SET {} WHERE {} = {}",
+				"UPDATE {} SET {} WHERE {} = {} AND class_id = {}",
 				TableName(),
 				implode(", ", update_values),
 				PrimaryKey(),
-				character_spells_entry.id
+				character_spells_entry.id,
+				character_spells_entry.class_id
 			)
 		);
 
@@ -182,6 +190,7 @@ public:
 		std::vector<std::string> insert_values;
 
 		insert_values.push_back(std::to_string(character_spells_entry.id));
+		insert_values.push_back(std::to_string(character_spells_entry.class_id));
 		insert_values.push_back(std::to_string(character_spells_entry.slot_id));
 		insert_values.push_back(std::to_string(character_spells_entry.spell_id));
 
@@ -214,6 +223,7 @@ public:
 			std::vector<std::string> insert_values;
 
 			insert_values.push_back(std::to_string(character_spells_entry.id));
+			insert_values.push_back(std::to_string(character_spells_entry.class_id));
 			insert_values.push_back(std::to_string(character_spells_entry.slot_id));
 			insert_values.push_back(std::to_string(character_spells_entry.spell_id));
 
@@ -250,8 +260,9 @@ public:
 			CharacterSpells entry{};
 
 			entry.id       = atoi(row[0]);
-			entry.slot_id  = atoi(row[1]);
-			entry.spell_id = atoi(row[2]);
+			entry.class_id = atoi(row[1]);
+			entry.slot_id  = atoi(row[2]);
+			entry.spell_id = atoi(row[23]);
 
 			all_entries.push_back(entry);
 		}
@@ -277,8 +288,9 @@ public:
 			CharacterSpells entry{};
 
 			entry.id       = atoi(row[0]);
-			entry.slot_id  = atoi(row[1]);
-			entry.spell_id = atoi(row[2]);
+			entry.class_id = atoi(row[1]);
+			entry.slot_id  = atoi(row[2]);
+			entry.spell_id = atoi(row[3]);
 
 			all_entries.push_back(entry);
 		}

@@ -10682,6 +10682,7 @@ void Client::SaveSpells()
 		if (IsValidSpell(m_pp.spell_book[index])) {
 			auto spell = CharacterSpellsRepository::NewEntity();
 			spell.id       = CharacterID();
+			spell.class_id = GetClass();
 			spell.slot_id  = index;
 			spell.spell_id = m_pp.spell_book[index];
 			character_spells.emplace_back(spell);
@@ -11009,7 +11010,7 @@ void Client::SwapWithClass(uint32 class_id)
 			SwapReferences(class_id, mercResult->second->m_pp, mercResult->second->m_epp);
 			//swap loaded spells
 			SwapLoadedSpellsWithMerc(ppofCurrentMerc, targetppofCurrentCharacter);
-			SwapInventoryWithMerc(invofCurrentMerc, targetinvofCurrentCharacter);
+			SwapInventoryWithMerc(m_inv, targetinvofCurrentCharacter);
 			BuffFadeBeneficial();
 
 			if (GetMerc())
@@ -11086,6 +11087,8 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 		m_pp.exp = m_MercPP.exp;
 		m_pp.expAA = m_MercPP.expAA;
 		m_pp.level = m_MercPP.level;
+
+		SetLevel(m_pp.level, false);
 		SendSpellSuppressionPacket(true);
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)
@@ -11098,9 +11101,9 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 			m_PlayerPP.mem_spells[i] = m_pp.mem_spells[i];
 		}
 
-		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
+		for (int i = 0; i < EQ::spells::SPELLBOOK_SIZE; i++)
 		{
-			m_PlayerPP.spell_book[i] = m_pp.mem_spells[i];
+			m_PlayerPP.spell_book[i] = m_pp.spell_book[i];
 		}
 
 		//delete players' current spells
@@ -11150,6 +11153,7 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 		database.LoadAlternateAdvancement(this, m_MercPP.class_);
 
 		SendSpellSuppressionPacket(false);
+		Message(Chat::System, "You have successfully swapped to %s.", GetClassIDName(m_MercPP.class_));
 }
 
 void Client::FakeMemSpell(uint16 spellid, int slot)
