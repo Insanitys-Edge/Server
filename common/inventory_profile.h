@@ -197,10 +197,10 @@ namespace EQ
 		void dumpBankItems();
 		void dumpSharedBankItems();
 
-		void SetCustomItemData(uint32 character_id, uint32 account_id, uint32 class_id, int16 slot_id, std::string identifier, std::string value);
-		void SetCustomItemData(uint32 character_id, uint32 account_id, uint32 class_id, int16 slot_id, std::string identifier, int value);
-		void SetCustomItemData(uint32 character_id, uint32 account_id, uint32 class_id, int16 slot_id, std::string identifier, float value);
-		void SetCustomItemData(uint32 character_id, uint32 account_id, uint32 class_id, int16 slot_id, std::string identifier, bool value);
+		void SetCustomItemData(uint32 character_id, uint32 account_id, int16 slot_id, std::string identifier, std::string value);
+		void SetCustomItemData(uint32 character_id, uint32 account_id, int16 slot_id, std::string identifier, int value);
+		void SetCustomItemData(uint32 character_id, uint32 account_id, int16 slot_id, std::string identifier, float value);
+		void SetCustomItemData(uint32 character_id, uint32 account_id, int16 slot_id, std::string identifier, bool value);
 		std::string GetCustomItemData(int16 slot_id, std::string identifier);
 		static int GetItemStatValue(uint32 item_id, const char* identifier);
 	protected:

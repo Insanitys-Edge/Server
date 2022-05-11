@@ -358,7 +358,7 @@ void WorldDatabase::GetCharSelectInfo(uint32 account_id, EQApplicationPacket **o
 			player_profile_struct.item_tint.Slot[slot].UseTint = atoi(row_b[4]);
 		}
 
-		if (GetCharSelInventory(account_id, p_character_select_entry_struct->Class, p_character_select_entry_struct->Name, &inventory_profile)) {
+		if (GetCharSelInventory(account_id, p_character_select_entry_struct->Name, &inventory_profile)) {
 			const EQ::ItemData *item = nullptr;
 			const EQ::ItemInstance *inst = nullptr;
 			int16 inventory_slot = 0;
@@ -858,7 +858,7 @@ bool WorldDatabase::LoadCharacterCreateCombos()
 }
 
 // this is a slightly modified version of SharedDatabase::GetInventory(...) for character select use-only
-bool WorldDatabase::GetCharSelInventory(uint32 account_id, uint32 class_id, char *name, EQ::InventoryProfile *inv)
+bool WorldDatabase::GetCharSelInventory(uint32 account_id, char *name, EQ::InventoryProfile *inv)
 {
 	if (!account_id || !name || !inv)
 		return false;
@@ -893,14 +893,11 @@ bool WorldDatabase::GetCharSelInventory(uint32 account_id, uint32 class_id, char
 		"AND"
 		" slotid >= %i "
 		"AND"
-		" slotid <= %i "
-		"AND"
-		" (class_id = %i OR class_id = 0) ",
+		" slotid <= %i",
 		name,
 		account_id,
 		EQ::invslot::slotHead,
-		EQ::invslot::slotFeet,
-		class_id
+		EQ::invslot::slotFeet
 	);
 	auto results = QueryDatabase(query);
 	if (!results.Success())

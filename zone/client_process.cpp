@@ -753,7 +753,7 @@ void Client::BulkSendInventoryItems()
 			int16 free_slot_id = m_inv.FindFreeSlot(inst->IsClassBag(), true, inst->GetItem()->Size, is_arrow);
 			LogInventory("Incomplete Trade Transaction: Moving [{}] from slot [{}] to [{}]", inst->GetItem()->Name, slot_id, free_slot_id);
 			PutItemInInventory(free_slot_id, *inst, false);
-			database.SaveInventory(character_id, account_id, GetClass(), nullptr, slot_id);
+			database.SaveInventory(character_id, account_id, nullptr, slot_id);
 			safe_delete(inst);
 		}
 	}

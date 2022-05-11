@@ -85,16 +85,16 @@ public:
 		/*
 		    Character InventoryProfile
 		*/
-		bool	SaveCursor(uint32 char_id, uint32 account_id, uint32 class_id, std::list<EQ::ItemInstance*>::const_iterator &start, std::list<EQ::ItemInstance*>::const_iterator &end);
-		bool	SaveInventory(uint32 char_id, uint32 account_id, uint32 class_id, EQ::ItemInstance* inst, int16 slot_id);
+		bool	SaveCursor(uint32 char_id, uint32 account_id, std::list<EQ::ItemInstance*>::const_iterator &start, std::list<EQ::ItemInstance*>::const_iterator &end);
+		bool	SaveInventory(uint32 char_id, uint32 account_id, EQ::ItemInstance* inst, int16 slot_id);
 	bool DeleteSharedBankSlot(uint32 char_id, int16 slot_id);
-		bool    DeleteInventorySlot(uint32 char_id, uint32 account_id, uint32 class_id, int16 slot_id);
-		bool    UpdateInventorySlot(uint32 char_id, uint32 account_id, uint32 class_id, const EQ::ItemInstance* inst, int16 slot_id);
+		bool    DeleteInventorySlot(uint32 char_id, uint32 account_id, int16 slot_id);
+		bool    UpdateInventorySlot(uint32 char_id, uint32 account_id, const EQ::ItemInstance* inst, int16 slot_id);
 	bool VerifyInventory(uint32 account_id, int16 slot_id, const EQ::ItemInstance *inst);
 	int32 GetSharedPlatinum(uint32 account_id);
 	bool SetSharedPlatinum(uint32 account_id, int32 amount_to_add);
 	uint32 GetNumCharsOnAccount(uint32 account_id);
-		bool	GetInventory(uint32 char_id, uint32 account_id, uint32 class_id, EQ::InventoryProfile* inv);
+		bool	GetInventory(uint32 char_id, uint32 class_id, uint32 account_id, EQ::InventoryProfile* inv);
 	std::map<uint32, uint32> GetItemRecastTimestamps(uint32 char_id);
 	uint32 GetItemRecastTimestamp(uint32 char_id, uint32 recast_type);
 	void ClearOldRecastTimestamps(uint32 char_id);
