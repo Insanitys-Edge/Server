@@ -2306,7 +2306,8 @@ struct ZonePoints {
 struct SkillUpdate_Struct {
 /*00*/	uint32 skillId;
 /*04*/	uint32 value;
-/*08*/
+/*08*/  uint8 show_msg;
+/*09*/
 };
 
 struct ZoneUnavail_Struct {

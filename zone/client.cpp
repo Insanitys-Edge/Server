@@ -1462,7 +1462,7 @@ bool Client::UpdateLDoNPoints(uint32 theme_id, int points) {
 	return true;
 }
 
-void Client::SetSkill(EQ::skills::SkillType skillid, uint16 value) {
+void Client::SetSkill(EQ::skills::SkillType skillid, uint16 value, bool show_msg) {
 	if (skillid > EQ::skills::HIGHEST_SKILL)
 		return;
 	m_pp.skills[skillid] = value; // We need to be able to #setskill 254 and 255 to reset skills
@@ -1473,6 +1473,7 @@ void Client::SetSkill(EQ::skills::SkillType skillid, uint16 value) {
 	SkillUpdate_Struct* skill = (SkillUpdate_Struct*)outapp->pBuffer;
 	skill->skillId=skillid;
 	skill->value=value;
+	skill->show_msg = (uint8)show_msg;
 	QueuePacket(outapp);
 	safe_delete(outapp);
 }
@@ -11088,7 +11089,7 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 		m_pp.expAA = m_MercPP.expAA;
 		m_pp.level = m_MercPP.level;
 
-		SetLevel(m_pp.level, false);
+		SetLevel(m_pp.level, true);
 		SendSpellSuppressionPacket(true);
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)
@@ -11145,7 +11146,7 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 		{
 			if (m_pp.skills[i] != m_MercPP.skills[i])
 			{
-				SetSkill((EQ::skills::SkillType)i, m_MercPP.skills[i]);
+				SetSkill((EQ::skills::SkillType)i, m_MercPP.skills[i], false);
 				m_pp.skills[i] = m_MercPP.skills[i];
 			}
 		}
@@ -11201,8 +11202,8 @@ void Client::SwapInventoryWithMerc(EQ::InventoryProfile& m_TargetPlayerInv, EQ::
 		SendItemPacket(instpair.first, instpair.second, ItemPacketTrade);
 	}
 
-	EQ::ItemInstance* bagInst = m_inv.GetItem(1);
-	EQ::ItemInstance* newInst = m_MercInv.GetItem(1);
+	EQ::ItemInstance* bagInst = m_inv[EQ::invslot::slotGeneral10);
+	EQ::ItemInstance* newInst = m_MercInv[EQ::invslot::slotGeneral10)];
 	if (bagInst && newInst)
 	{
 		for (auto instpair : bagInst->m_contents)

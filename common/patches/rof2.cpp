@@ -3167,7 +3167,7 @@ namespace RoF2
 
 		OUT(skillId);
 		OUT(value);
-		eq->unknown08 = 1;		// Observed
+		eq->unknown08 = emu->show_msg;		// Observed
 		eq->unknown09 = 80;		// Observed
 		eq->unknown10 = 136;	// Observed
 		eq->unknown11 = 54;		// Observed
