@@ -11201,23 +11201,6 @@ void Client::SwapInventoryWithMerc(EQ::InventoryProfile& m_TargetPlayerInv, EQ::
 	{
 		SendItemPacket(instpair.first, instpair.second, ItemPacketTrade);
 	}
-
-	EQ::ItemInstance* bagInst = m_inv[EQ::invslot::slotGeneral10);
-	EQ::ItemInstance* newInst = m_MercInv[EQ::invslot::slotGeneral10)];
-	if (bagInst && newInst)
-	{
-		for (auto instpair : bagInst->m_contents)
-		{
-			FakeDeleteItemInInventory(instpair.first);
-		}
-
-		Client::ClearAndCopyBagContents(bagInst, newInst);
-
-		for (auto instpair : bagInst->m_contents)
-		{
-			SendItemPacket(instpair.second->GetCurrentSlot(), instpair.second, ItemPacketTrade);
-		}
-	}
 }
 
 
