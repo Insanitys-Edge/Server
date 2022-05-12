@@ -2714,7 +2714,7 @@ void Client::Disarm(Client* disarmer, int chance) {
 						mi->number_in_stack = 0;
 					FastQueuePacket(&outapp); // this deletes item from the weapon slot on the client
 					if (PutItemInInventory(slot_id, *InvItem, true))
-						database.SaveInventory(this->CharacterID(), AccountID(), NULL, slot);
+						database.SaveInventory(this->CharacterID(), AccountID(), GetClass(), NULL, slot);
 					auto matslot = (slot == EQ::invslot::slotPrimary ? EQ::textures::weaponPrimary : EQ::textures::weaponSecondary);
 					if (matslot != EQ::textures::materialInvalid)
 						SendWearChange(matslot);

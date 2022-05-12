@@ -958,7 +958,7 @@ void Client::FinishTrade(Mob* tradingWith, bool finalizer, void* event_entry, st
 		EQ::ItemInstance *insts[4] = { 0 };
 		for (int i = EQ::invslot::TRADE_BEGIN; i <= EQ::invslot::TRADE_NPC_END; ++i) {
 			insts[i - EQ::invslot::TRADE_BEGIN] = m_inv.PopItem(i);
-			database.SaveInventory(CharacterID(), AccountID(), nullptr, i);
+			database.SaveInventory(CharacterID(), AccountID(), GetClass(), nullptr, i);
 		}
 
 		parse->EventNPC(EVENT_TRADE, tradingWith->CastToNPC(), this, "", 0, &item_list);
@@ -1428,7 +1428,7 @@ void Client::NukeTraderItem(uint16 Slot,int16 Charges,uint16 Quantity,Client* Cu
 	}
 	// This updates the trader. Removes it from his trading bags.
 	//
-	database.SaveInventory(CharacterID(), AccountID(), Inst, Slot);
+	database.SaveInventory(CharacterID(), AccountID(), GetClass(), Inst, Slot);
 
 	EQApplicationPacket* outapp2;
 
@@ -2776,7 +2776,7 @@ void Client::SellToBuyer(const EQApplicationPacket *app) {
 				return;
 			}
 
-			database.SaveInventory(CharacterID(), AccountID(), 0, SellerSlot);
+			database.SaveInventory(CharacterID(), AccountID(), GetClass(), 0, SellerSlot);
 
 			safe_delete(ItemToTransfer);
 
@@ -2831,7 +2831,7 @@ void Client::SellToBuyer(const EQApplicationPacket *app) {
 					return;
 				}
 				// Delete the entire stack from the seller's inventory
-				database.SaveInventory(CharacterID(), AccountID(), 0, SellerSlot);
+				database.SaveInventory(CharacterID(), AccountID(), GetClass(), 0, SellerSlot);
 
 				safe_delete(ItemToTransfer);
 
@@ -2855,7 +2855,7 @@ void Client::SellToBuyer(const EQApplicationPacket *app) {
 
 				m_inv.PutItem(SellerSlot, *ItemToTransfer);
 
-				database.SaveInventory(CharacterID(), AccountID(), ItemToTransfer, SellerSlot);
+				database.SaveInventory(CharacterID(), AccountID(), GetClass(), ItemToTransfer, SellerSlot);
 
 				ItemToTransfer->SetCharges(QuantityToRemoveFromStack);
 

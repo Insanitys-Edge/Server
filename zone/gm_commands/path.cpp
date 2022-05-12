@@ -15,7 +15,7 @@ void Client::Undye()
 
 		if (inst != nullptr) {
 			inst->SetColor(inst->GetItem()->Color);
-			database.SaveInventory(CharacterID(), AccountID(), inst, slot2);
+			database.SaveInventory(CharacterID(), AccountID(), GetClass(), inst, slot2);
 		}
 
 		m_pp.item_tint.Slot[cur_slot].Color = 0;
