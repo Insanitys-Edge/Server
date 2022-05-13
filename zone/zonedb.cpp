@@ -179,7 +179,8 @@ bool ZoneDatabase::GetZoneCFG(
 		"max_movement_update_range, "	// 61
 		"underworld_teleport_index, "	// 62
 		"lava_damage, "					// 63
-		"min_lava_damage "				// 64
+		"min_lava_damage, "				// 64
+		"expansion "					// 65
 		"FROM zone WHERE zoneidnumber = {} AND version = {} {}",
 		zoneid,
 		instance_version,
@@ -234,6 +235,7 @@ bool ZoneDatabase::GetZoneCFG(
 	zone_data->underworld_teleport_index = atoi(row[62]);
 	zone_data->LavaDamage = atoi(row[63]);
 	zone_data->MinLavaDamage = atoi(row[64]);
+	zone_data->expansion = atoi(row[65]);
 
 	int bindable = 0;
 	bindable = atoi(row[31]);
@@ -1036,6 +1038,7 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		"ability_time_hours,        "
 		"title,                     "
 		"suffix,                    "
+		"exp,                       "
 		"points,                    "
 		"mana,                      "
 		"cur_hp,                    "
@@ -1090,6 +1093,7 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		"pvp_worst_death_streak,    "
 		"pvp_current_kill_streak,   "
 		"aa_points_spent,           "
+		"aa_exp,                    "
 		"aa_points,                 "
 		"group_auto_consent,        "
 		"raid_auto_consent,         "
@@ -1131,6 +1135,7 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		pp->ability_time_hours = atoi(row[r]); r++;								 // "ability_time_hours,        "
 		strcpy(pp->title, row[r]); r++;											 // "title,                     "
 		strcpy(pp->suffix, row[r]); r++;										 // "suffix,                    "
+		pp->exp = atoi(row[r]); r++;											 // "exp
 		pp->points = atoi(row[r]); r++;											 // "points,                    "
 		pp->mana = atoi(row[r]); r++;											 // "mana,                      "
 		pp->cur_hp = atoi(row[r]); r++;											 // "cur_hp,                    "
@@ -1185,6 +1190,7 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		pp->PVPWorstDeathStreak = atoi(row[r]); r++;							 // "pvp_worst_death_streak,    "
 		pp->PVPCurrentKillStreak = atoi(row[r]); r++;							 // "pvp_current_kill_streak,   "
 		pp->aapoints_spent = atoi(row[r]); r++;									 // "aa_points_spent,           "
+		pp->expAA = atoi(row[r]); r++;											 // "aa_exp,  
 		pp->aapoints = atoi(row[r]); r++;										 // "aa_points,                 "
 		pp->groupAutoconsent = atoi(row[r]); r++;								 // "group_auto_consent,        "
 		pp->raidAutoconsent = atoi(row[r]); r++;								 // "raid_auto_consent,         "
@@ -1297,31 +1303,6 @@ bool ZoneDatabase::LoadCharacterLeadershipAA(uint32 character_id, PlayerProfile_
 }
 
 bool ZoneDatabase::LoadCharacterExp(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp) {
-	std::string query = StringFormat(
-		"SELECT					"
-		"`level`,					"
-		"`exp`,					"
-		"`expaa`  				"
-		"FROM					"
-		"`character_exp`	"
-		"WHERE `id` = %u and `class_id` = %u", character_id, class_id);
-	auto results = database.QueryDatabase(query); int i = 0;
-	for (auto row = results.begin(); row != results.end(); ++row) {
-			pp->level = atoi(row[0]);
-			pp->exp = atoul(row[1]);
-			pp->expAA = atoul(row[2]);
-			i++;
-	}
-
-	if (i == 0)
-	{
-		pp->level = 1;
-		pp->exp = 0;
-		pp->expAA = 0;
-		SaveCharacterExp(character_id, class_id, 1, 0, 0);
-
-	}
-
 	return true;
 }
 
@@ -1668,6 +1649,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		" ability_time_hours,        "
 		" title,                     "
 		" suffix,                    "
+		" exp,                       "
 		" points,                    "
 		" mana,                      "
 		" cur_hp,                    "
@@ -1722,6 +1704,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		" pvp_worst_death_streak,    "
 		" pvp_current_kill_streak,   "
 		" aa_points_spent,           "
+		" aa_exp,                    "
 		" aa_points,                 "
 		" group_auto_consent,        "
 		" raid_auto_consent,         "
@@ -1763,6 +1746,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		"%u,"  // ability_time_hours		  pp->ability_time_hours,				" ability_time_hours,        "
 		"'%s',"  // title						  pp->title,						" title,                     "   "
 		"'%s',"  // suffix					  pp->suffix,							" suffix,                    "
+		"%u,"  // exp						  pp->exp,								" exp,
 		"%u,"  // points					  pp->points,							" points,                    "
 		"%u,"  // mana						  pp->mana,								" mana,                      "
 		"%u,"  // cur_hp					  pp->cur_hp,							" cur_hp,                    "
@@ -1817,6 +1801,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		"%u,"  // pvp_worst_death_streak	  pp->PVPWorstDeathStreak,				" pvp_worst_death_streak,    "
 		"%u,"  // pvp_current_kill_streak	  pp->PVPCurrentKillStreak,				" pvp_current_kill_streak,   "
 		"%u,"  // aa_points_spent			  pp->aapoints_spent,					" aa_points_spent,           "
+		"%u,"  // aa_exp					  pp->expAA,							" aa_exp,    
 		"%u,"  // aa_points					  pp->aapoints,							" aa_points,                 "
 		"%u,"  // group_auto_consent		  pp->groupAutoconsent,					" group_auto_consent,        "
 		"%u,"  // raid_auto_consent			  pp->raidAutoconsent,					" raid_auto_consent,         "
@@ -1857,6 +1842,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		pp->ability_time_hours,			  // " ability_time_hours,        "
 		EscapeString(pp->title).c_str(),						  // " title,                     "
 		EscapeString(pp->suffix).c_str(),						  // " suffix,                    "
+		pp->exp,						  // " exp,                       "
 		pp->points,						  // " points,                    "
 		pp->mana,						  // " mana,                      "
 		pp->cur_hp,						  // " cur_hp,                    "
@@ -1911,6 +1897,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		pp->PVPWorstDeathStreak,		  // " pvp_worst_death_streak,    "
 		pp->PVPCurrentKillStreak,		  // " pvp_current_kill_streak,   "
 		pp->aapoints_spent,				  // " aa_points_spent,           "
+		pp->expAA,						  // " aa_exp,                    "
 		pp->aapoints,					  // " aa_points,                 "
 		pp->groupAutoconsent,			  // " group_auto_consent,        "
 		pp->raidAutoconsent,			  // " raid_auto_consent,         "
@@ -1987,12 +1974,6 @@ bool ZoneDatabase::SaveCharacterMemorizedSpell(uint32 character_id, uint32 class
 bool ZoneDatabase::SaveCharacterSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id){
 	if (spell_id > SPDAT_RECORDS){ return false; }
 	std::string query = StringFormat("REPLACE INTO `character_spells` (id, class_id, slot_id, spell_id) VALUES (%u, %u, %u, %u)", character_id, class_id, slot_id, spell_id);
-	QueryDatabase(query);
-	return true;
-}
-
-bool ZoneDatabase::SaveCharacterExp(uint32 character_id, uint32 class_id, uint32 level, uint32 exp, uint32 expaa) {
-	std::string query = StringFormat("REPLACE INTO `character_exp` (id, class_id, level, exp, expaa) VALUES (%u, %u, %u, %u, %u)", character_id, class_id, level, exp, expaa);
 	QueryDatabase(query);
 	return true;
 }
@@ -5235,7 +5216,7 @@ std::map<uint32, MercCharacter_Struct*> ZoneDatabase::LoadCharactersOnAccount(Cl
 	std::map<uint32, MercCharacter_Struct*> retList = std::map<uint32, MercCharacter_Struct*>();
 
 	std::string query = StringFormat(
-		"SELECT `id` FROM `character_data` WHERE `id` = '%d' AND `deleted_at` IS NULL LIMIT 3", InitiatorCharacterID);
+		"SELECT `id` FROM `character_data` WHERE `id` = '%d' AND `deleted_at` IS NULL LIMIT 1", InitiatorCharacterID);
 
 	auto results = QueryDatabase(query);
 
@@ -5265,7 +5246,6 @@ std::map<uint32, MercCharacter_Struct*> ZoneDatabase::LoadCharactersOnAccount(Cl
 		}
 
 		charStruct->m_pp.class_ = i;
-		database.LoadCharacterExp(charid, i, &charStruct->m_pp);
 		database.LoadCharacterSkills(charid, i, &charStruct->m_pp); /* Load Character Skills */
 		database.LoadCharacterSpellBook(charid, i, &charStruct->m_pp); /* Load Character Spell Book */
 		database.LoadCharacterMemmedSpells(charid, i, &charStruct->m_pp);  /* Load Character Memorized Spells */

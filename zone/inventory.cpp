@@ -2374,30 +2374,6 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 		bool is_dst_special_bag = dst_slot_id >= EQ::invbag::SPECIAL_CLASS_BAG_BEGIN && dst_slot_id <= EQ::invbag::SPECIAL_CLASS_BAG_END;
 		bool is_dst_deletion = dst_slot_id == INVALID_INDEX;
 
-		if (class_id != 0 && src_slot_id == EQ::invslot::slotCursor && !is_dst_equipment && !is_dst_special_bag && !is_dst_deletion)
-		{
-			Message(Chat::Red, "You can only move a class-bound item to an equipment or class bag inventory slot.");
-			return false;
-		}
-
-		if (is_dst_special_bag && src_inst && (class_id == 0 || class_id != class_))
-		{
-			Message(Chat::Red, "You cannot move an item to the class bag without equipping it as your current class first.");
-			return false;
-		}
-
-		if (src_slot_id == EQ::invslot::slotGeneral10 && (!src_inst || src_inst->GetID() == 1))
-		{
-			Message(Chat::Red, "You cannot move the class inventory bag from its slot once it is emplaced.");
-			return false;
-		}
-
-		if (dst_slot_id == EQ::invslot::slotGeneral10 && (!src_inst || src_inst->GetID() != 1))
-		{
-			Message(Chat::Red, "You cannot place any item into this slot except for a class bag.");
-			return false;
-		}
-
 		EQ::InventoryProfile::SwapItemFailState fail_state = EQ::InventoryProfile::swapInvalid;
 		if (!m_inv.SwapItem(src_slot_id, dst_slot_id, fail_state, GetBaseRace(), GetBaseClass(), GetDeity(), GetLevel())) {
 			const char* fail_message = "The selected slot was invalid.";

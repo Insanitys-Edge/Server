@@ -5242,11 +5242,6 @@ struct SayLinkBodyFrame_Struct {
 /*056*/
 };
 
-struct Checksum_Struct {
-    uint64_t checksum;
-    uint8_t  data[2048];
-};
-
 	}; /*structs*/
 
 }; /*RoF2*/

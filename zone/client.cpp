@@ -714,10 +714,7 @@ bool Client::Save(uint8 iCommitNow) {
 		}
 	}
 
-	database.SaveCharacterData(this->CharacterID(), this->AccountID(), &m_pp, &m_epp); /* Save Character Data */
 	SaveMercData();
-
-
 	return true;
 }
 
@@ -10928,8 +10925,6 @@ void Client::OutputAccountCharacters()
 
 		std::string charLinkName = mercChar.second->m_pp.name;
 		charLinkName += " [";
-		charLinkName += std::to_string(mercChar.second->m_pp.level);
-		charLinkName += " ";
 		charLinkName += GetClassIDName(mercChar.second->m_pp.class_);
 		charLinkName += "]";
 		Message(Chat::Who, EQ::SayLinkEngine::GenerateQuestSaylink(std::to_string(mercChar.first), true, charLinkName.c_str()).c_str());
@@ -10944,11 +10939,10 @@ void Client::SaveMercData()
 		if (mercData.first == GetClass())
 		{
 			database.SaveCharacterData(CharacterID(), AccountID(), &m_pp, &m_epp); // currently controlled player
-			database.SaveCharacterExp(CharacterID(), AccountID(), m_pp.level, m_pp.exp, m_pp.expAA); // currently controlled player
 		}
 		else
 		{
-			database.SaveCharacterExp(CharacterID(), mercData.first, mercData.second->m_pp.level, mercData.second->m_pp.exp, mercData.second->m_pp.expAA);
+			database.SaveCharacterData(CharacterID(), mercData.first, &mercData.second->m_pp, &mercData.second->m_epp); // currently controlled player
 		}
 	}
 }
@@ -11082,14 +11076,14 @@ void Client::SendSpellSuppressionPacket(bool shouldSuppress) {
 void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProfile_Struct& m_PlayerPP) {
 
 
-		m_PlayerPP.exp = m_pp.exp;
-		m_PlayerPP.expAA = m_pp.expAA;
-		m_PlayerPP.level = m_pp.level;
-		m_pp.exp = m_MercPP.exp;
-		m_pp.expAA = m_MercPP.expAA;
-		m_pp.level = m_MercPP.level;
+		//m_PlayerPP.exp = m_pp.exp;
+		//m_PlayerPP.expAA = m_pp.expAA;
+		//m_PlayerPP.level = m_pp.level;
+		//m_pp.exp = m_MercPP.exp;
+		//m_pp.expAA = m_MercPP.expAA;
+		//m_pp.level = m_MercPP.level;
 
-		SetLevel(m_pp.level, true);
+		//SetLevel(m_pp.level, true);
 		SendSpellSuppressionPacket(true);
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)

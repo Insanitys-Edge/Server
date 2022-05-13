@@ -54,6 +54,7 @@ public:
 	ClientListEntry* CheckAuth(uint32 iLSID, const char* iKey);
 	ClientListEntry* FindCharacter(const char* name);
 	ClientListEntry* FindCLEByAccountID(uint32 iAccID);
+	ClientListEntry* FindCharacterByDatabase(const char* name);
 	ClientListEntry* FindCLEByCharacterID(uint32 iCharID);
 	ClientListEntry* FindCLEByLSID(uint32 iLSID);
 	ClientListEntry* GetCLE(uint32 iID);

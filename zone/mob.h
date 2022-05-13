@@ -199,6 +199,7 @@ public:
 	int compute_tohit(EQ::skills::SkillType skillinuse);
 	int GetTotalToHit(EQ::skills::SkillType skill, int chance_mod); // compute_tohit + spell bonuses
 	int compute_defense();
+	int GetNPCAvoidance();
 	int GetTotalDefense(); // compute_defense + spell bonuses
 	bool CheckHitChance(Mob* attacker, DamageHitInfo &hit);
 	void TryCriticalHit(Mob *defender, DamageHitInfo &hit, ExtraAttackOptions *opts = nullptr);
@@ -208,12 +209,14 @@ public:
 	int TryAssassinate(Mob* defender, EQ::skills::SkillType skillInUse);
 	virtual void DoRiposte(Mob* defender);
 	void ApplyMeleeDamageMods(uint16 skill, int &damage, Mob * defender = nullptr, ExtraAttackOptions *opts = nullptr);
+	int GetMitigation();
 	int ACSum(bool skip_caps = false);
 	inline int GetDisplayAC() { return 1000 * (ACSum(true) + compute_defense()) / 847; }
 	int offense(EQ::skills::SkillType skill);
 	EQ::ItemInstance* GetInvItem(uint16 slot);
 	int GetInvItemID(uint16 slot);
 	int GetBestMeleeSkill();
+	virtual int GetOffense(EQ::skills::SkillType skill);
 	void CalcAC() { mitigation_ac = ACSum(); }
 	int GetACSoftcap();
 	double GetSoftcapReturns();
@@ -975,6 +978,7 @@ public:
 	inline uint16 GetOwnerID() const { return ownerid; }
 	inline virtual bool HasOwner() { if(GetOwnerID()==0){return false;} return( entity_list.GetMob(GetOwnerID()) != 0); }
 	inline virtual bool IsPet() { return(HasOwner() && !IsMerc()); }
+	bool IsSummonedClientPet() const { return(typeofpet != petCharmed && typeofpet != petNPCFollow && typeofpet != petNone); }
 	inline bool HasPet() const { if(GetPetID()==0){return false;} return (entity_list.GetMob(GetPetID()) != 0);}
 	inline bool HasTempPetsActive() const { return(hasTempPet); }
 	inline void SetTempPetsActive(bool i) { hasTempPet = i; }

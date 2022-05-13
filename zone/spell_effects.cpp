@@ -2999,6 +2999,18 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				}
 			}
 
+			case SE_ChangeClass:
+			{
+				if (IsClient())
+				{
+					if (EQ::ValueWithin(static_cast<int>(spells[spell_id].base_value[0]), 1, 16))
+					{
+						CastToClient()->SwapWithClass(spells[spell_id].base_value[0]);
+					}
+				}
+				break;
+			}
+
 			case SE_Weapon_Stance: {
 				if (IsClient()) {
 					CastToClient()->ApplyWeaponsStance();

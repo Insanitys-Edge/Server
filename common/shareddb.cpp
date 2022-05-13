@@ -228,7 +228,6 @@ bool SharedDatabase::SaveInventory(uint32 char_id, uint32 account_id, uint32 cla
 	if (inst && (slot_id >= EQ::invslot::POSSESSIONS_BEGIN && slot_id <= EQ::invslot::slotAmmo))
 	{
 		inst->SetAttuned(true);
-		inst->SetCustomData(std::string("class_id"), std::to_string(class_id));
 	}
 	//never save tribute slots:
 	if (slot_id >= EQ::invslot::TRIBUTE_BEGIN && slot_id <= EQ::invslot::TRIBUTE_END)
@@ -291,9 +290,6 @@ bool SharedDatabase::UpdateInventorySlot(uint32 char_id, uint32 account_id, uint
 		primary_key_field_name = "charid";
 		primary_key_value = char_id;
 	}
-
-	if (slot_id == EQ::invslot::slotGeneral10 && inst->GetItem()->ID != 1)
-		return false;
 
 	// Update/Insert item
     std::string query = StringFormat("REPLACE INTO %s " //` inventory`

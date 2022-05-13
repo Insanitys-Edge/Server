@@ -820,6 +820,66 @@ struct ServerSyncWorldList_Struct {
 	bool	placeholder;
 };
 
+struct Checksum_Struct {
+	uint64_t checksum;
+	uint8_t  data[2048];
+};
+
+struct NewChecksum_Struct {
+	uint64_t checksum;
+	char HDDSerial[512];
+	char GPUString[256];
+	char CPUBrandString[256];
+	char CRC1[4];
+	char CRC2[4];
+	char CRC3[4];
+	char CRC4[4];
+	char CRC5[4];
+	char DisplayW[4];
+	char DisplayH[4];
+};
+
+struct SimpleChecksum_Struct {
+	uint64_t checksum;
+	uint8_t  data[3];
+};
+
+struct FileListEntry_Struct {
+	char zoneName[256];
+	uint64_t Size;
+};
+
+struct ProcessListEntry_Struct {
+	char zoneName[260];
+};
+
+struct ServerProcessList_Struct {
+	uint8_t count;
+	uint32 accountid;
+	char accountName[260];
+	char ipAddr[260];
+	ProcessListEntry_Struct process[200];
+};
+
+struct OldProcessListEntry_Struct {
+	char zoneName[256];
+};
+
+struct ProcessList_Struct {
+	uint8_t count;
+	ProcessListEntry_Struct process[200];
+};
+
+struct FileList_Struct {
+	int NumEntries;
+	ProcessListEntry_Struct Keys[200];
+	uint64_t Values[200];
+};
+
+struct MacEntry_Struct {
+	uint64_t mac;
+};
+
 struct UsertoWorldRequestLegacy_Struct {
 	uint32	lsaccountid;
 	uint32	worldid;

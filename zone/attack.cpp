@@ -163,84 +163,71 @@ EQ::skills::SkillType Mob::AttackAnimation(int Hand, const EQ::ItemInstance* wea
 //SYNC WITH: tune.cpp, mob.h Tunecompute_tohit
 int Mob::compute_tohit(EQ::skills::SkillType skillinuse)
 {
-	int tohit = GetSkill(EQ::skills::SkillOffense) + 7;
-	tohit += GetSkill(skillinuse);
-	if (IsNPC())
-		tohit += CastToNPC()->GetAccuracyRating();
-	if (IsClient()) {
-		double reduction = CastToClient()->m_pp.intoxication / 2.0;
-		if (reduction > 20.0) {
-			reduction = std::min((110 - reduction) / 100.0, 1.0);
-			tohit = reduction * static_cast<double>(tohit);
-		}
-		else if (IsBerserk()) {
-			tohit += (GetLevel() * 2) / 5;
-		}
-	}
-	return std::max(tohit, 1);
+	return GetTotalToHit(skillinuse, 100);
 }
 
 // return -1 in cases that always hit
 //SYNC WITH: tune.cpp, mob.h TuneGetTotalToHit
 int Mob::GetTotalToHit(EQ::skills::SkillType skill, int chance_mod)
 {
-	if (chance_mod >= 10000) // override for stuff like SE_SkillAttack
-		return -1;
+	int accuracy = 0;
+	int toHit = 7 + GetSkill(EQ::skills::SkillOffense) + GetSkill(skill);
 
-	// calculate attacker's accuracy
-	auto accuracy = compute_tohit(skill) + 10; // add 10 in case the NPC's stats are fucked
-	if (chance_mod > 0) // multiplier
-		accuracy *= chance_mod;
+	if (IsClient())
+	{
+		// 184 Accuracy % aka SE_HitChance -- percentage increase
+		auto hit_bonus = itembonuses.HitChanceEffect[EQ::skills::HIGHEST_SKILL + 1] +
+			aabonuses.HitChanceEffect[EQ::skills::HIGHEST_SKILL + 1] +
+			spellbonuses.HitChanceEffect[EQ::skills::HIGHEST_SKILL + 1] +
+			itembonuses.HitChanceEffect[skill] +
+			aabonuses.HitChanceEffect[skill] +
+			spellbonuses.HitChanceEffect[skill];
 
-	// Torven parsed an apparent constant of 1.2 somewhere in here * 6 / 5 looks eqmathy to me!
-	// new test clients have 121 / 100
-	accuracy = (accuracy * 121) / 100;
+		// taken from a client decompile (credit: demonstar)
+		int drunkValue = CastToClient()->m_pp.intoxication / 2;
+		if (drunkValue > 20)
+		{
+			int drunkReduction = 110 - drunkValue;
+			if (drunkReduction > 100)
+				drunkReduction = 100;
+			toHit = toHit * drunkReduction / 100;
+		}
+		else if (GetClass() == WARRIOR && CastToClient()->IsBerserk())
+		{
+			toHit += 2 * GetLevel() / 5;
+		}
 
-	// unsure on the stacking order of these effects, rather hard to parse
-	// item mod2 accuracy isn't applied to range? Theory crafting and parses back it up I guess
-	// mod2 accuracy -- flat bonus
-	if (skill != EQ::skills::SkillArchery && skill != EQ::skills::SkillThrowing)
-		accuracy += itembonuses.HitChance;
+	}
+	else
+	{
+		accuracy = CastToNPC()->GetAccuracyRating();	// database value
+		if (GetLevel() < 3)
+			accuracy += 2;		// level 1 and 2 NPCs parsed a few points higher than expected
+	}
 
-	//518 Increase ATK accuracy by percentage, stackable
-	auto atkhit_bonus = itembonuses.Attack_Accuracy_Max_Percent + aabonuses.Attack_Accuracy_Max_Percent + spellbonuses.Attack_Accuracy_Max_Percent;
-	if (atkhit_bonus)
-		accuracy += round(static_cast<double>(accuracy) * static_cast<double>(atkhit_bonus) * 0.0001);
+	toHit += accuracy;
+	return toHit;
+}
 
-	// 216 Melee Accuracy Amt aka SE_Accuracy -- flat bonus
-	accuracy += itembonuses.Accuracy[EQ::skills::HIGHEST_SKILL + 1] +
-		aabonuses.Accuracy[EQ::skills::HIGHEST_SKILL + 1] +
-		spellbonuses.Accuracy[EQ::skills::HIGHEST_SKILL + 1] +
-		itembonuses.Accuracy[skill] +
-		aabonuses.Accuracy[skill] +
-		spellbonuses.Accuracy[skill];
+int Mob::GetNPCAvoidance()
+{
+	int level = GetLevel();
+	int avoidance = level * 9 + 5;
 
-	// auto hit discs (and looks like there are some autohit AAs)
-	if (spellbonuses.HitChanceEffect[skill] >= 10000 || aabonuses.HitChanceEffect[skill] >= 10000)
-		return -1;
+	if (level <= 50 && avoidance > 400)
+		avoidance = 400;
+	else if (avoidance > 460)
+		avoidance = 460;
 
-	if (spellbonuses.HitChanceEffect[EQ::skills::HIGHEST_SKILL + 1] >= 10000)
-		return -1;
+	// this is how Live does it for PCs and NPCs.  AK might have (likely) been different.  Can't know how AK did it.
+	// but the difference is so small nobody would notice
+	avoidance += (spellbonuses.AGI + itembonuses.AGI) * 22 / 100;
+	if(IsNPC())
+	avoidance += CastToNPC()->GetAvoidanceRating();
+	if (avoidance < 1)
+		avoidance = 1;
 
-	// 184 Accuracy % aka SE_HitChance -- percentage increase
-	auto hit_bonus = itembonuses.HitChanceEffect[EQ::skills::HIGHEST_SKILL + 1] +
-		aabonuses.HitChanceEffect[EQ::skills::HIGHEST_SKILL + 1] +
-		spellbonuses.HitChanceEffect[EQ::skills::HIGHEST_SKILL + 1] +
-		itembonuses.HitChanceEffect[skill] +
-		aabonuses.HitChanceEffect[skill] +
-		spellbonuses.HitChanceEffect[skill];
-
-	accuracy = (accuracy * (100 + hit_bonus)) / 100;
-
-	// TODO: April 2003 added an archery/throwing PVP accuracy penalty while moving, should be in here some where,
-	// but PVP is less important so I haven't tried parsing it at all
-
-	// There is also 110 Ranger Archery Accuracy % which should probably be in here some where, but it's not in any spells/aas
-	// Name implies it's a percentage increase, if one wishes to implement, do it like the hit_bonus above but limited to ranger archery
-
-	// There is also 183 UNUSED - Skill Increase Chance which devs say isn't used at all in code, but some spells reference it
-	// I do not recommend implementing this once since there are spells that use it which would make this not live-like with default spell files
-	return accuracy;
+	return avoidance;
 }
 
 // based on dev quotes
@@ -248,29 +235,87 @@ int Mob::GetTotalToHit(EQ::skills::SkillType skill, int chance_mod)
 //SYNC WITH: tune.cpp, mob.h Tunecompute_defense
 int Mob::compute_defense()
 {
-	int defense = GetSkill(EQ::skills::SkillDefense) * 400 / 225;
-	defense += (8000 * (GetAGI() - 40)) / 36000;
-	if (IsClient())
-		defense += CastToClient()->GetHeroicAGI() / 10;
-
-	//516 SE_AC_Mitigation_Max_Percent
-	auto ac_bonus = itembonuses.AC_Mitigation_Max_Percent + aabonuses.AC_Mitigation_Max_Percent + spellbonuses.AC_Mitigation_Max_Percent;
-	if (ac_bonus)
-		defense += round(static_cast<double>(defense) * static_cast<double>(ac_bonus) * 0.0001);
-
-	defense += itembonuses.AvoidMeleeChance; // item mod2
 	if (IsNPC())
-		defense += CastToNPC()->GetAvoidanceRating();
+		return GetNPCAvoidance();
 
-	if (IsClient()) {
-		double reduction = CastToClient()->m_pp.intoxication / 2.0;
-		if (reduction > 20.0) {
-			reduction = std::min((110 - reduction) / 100.0, 1.0);
-			defense = reduction * static_cast<double>(defense);
+	int computedDefense = 1;
+	int defenseAvoidance = 0;
+
+	if (GetSkill(EQ::skills::SkillDefense) > 0)
+	{
+		defenseAvoidance = GetSkill(EQ::skills::SkillDefense) * 400 / 225;
+	}
+
+	// max agility bonus (called agiAvoidance here) is 53 with level > 40 and AGI 200
+	// defense 252 (WAR PAL SHD MNK BRD ROG ) = 448 + 53 = 501
+	// defense 240 (RNG BST) = 426 + 53 = 479
+	// defense 200 (CLR DRU SHM) = 355 + 53 = 408
+	// defense 145 (NEC WIZ MAG ENC) = 257 + 53 = 310
+
+	// note: modern EQ does this here: GetAGI() > 40 ? (GetAGI() - 40) * 8000 / 36000 : 0;
+	// old clients had a different calculation.  This is the precise output, based on a decompile done by Secrets
+	int agiAvoidance = 0;
+	if (GetAGI() < 40)
+	{
+		// 0-39 AGI = -25 to 0
+		agiAvoidance = (25 * (GetAGI() - 40)) / 40;
+	}
+	else if (GetAGI() >= 60 && GetAGI() <= 74)
+	{
+		// 40-60 AGI = 0
+		agiAvoidance = (2 * (28 - ((200 - GetAGI()) / 5))) / 3;
+	}
+	else if (GetAGI() >= 75)
+	{
+		// 75-200 AGI = 6 to 53
+		// AGI over 200 provides no further benefit for this bonus
+
+		// 36 to 53
+		int bonusAdj = 80;
+
+		if (level < 7)
+		{
+			// 6 to 23
+			bonusAdj = 35;
+		}
+		else if (level < 20)
+		{
+			// 20 to 36
+			bonusAdj = 55;
+		}
+		else if (level < 40)
+		{
+			// 30 to 46
+			bonusAdj = 70;
+		}
+
+		if (GetAGI() < 200)
+		{
+			agiAvoidance = (2 * (bonusAdj - ((200 - GetAGI()) / 5))) / 3;
+		}
+		else
+		{
+			agiAvoidance = 2 * bonusAdj / 3;
 		}
 	}
 
-	return std::max(1, defense);
+	computedDefense = defenseAvoidance + agiAvoidance;
+
+	int drunk_factor = CastToClient()->m_pp.intoxication / 2;
+	if (drunk_factor > 20)
+	{
+		int drunk_multiplier = 110 - drunk_factor;
+		if (drunk_multiplier > 100)
+		{
+			drunk_multiplier = 100;
+		}
+		computedDefense = computedDefense * drunk_multiplier / 100;
+	}
+
+	if (computedDefense < 1)
+		computedDefense = 1;
+
+	return computedDefense;
 }
 
 // return -1 in cases that always miss
@@ -845,14 +890,73 @@ int Mob::GetClassRaceACBonus()
 			ac_bonus = 16;
 	}
 
-	if (GetRace() == IKSAR)
-		ac_bonus += EQ::Clamp(static_cast<int>(level), 10, 35);
+	//EDGE TODO: Racial AC from Iksar but on a charm.
+	//if (GetRace() == IKSAR)
+	//	ac_bonus += EQ::Clamp(static_cast<int>(level), 10, 35);
 
 	return ac_bonus;
 }
+
+/*	This will ignore the database AC value for NPCs under level 52 or so and calculate a value instead.
+	Low level NPC mitigation estimates parsed to highly predictable and uniform values, and the AC value
+	is very sensitive to erroneous entries, which means entering the wrong value in the database will
+	result in super strong or weak NPCs, so it seems wiser to hardcode it.
+
+	Most NPCs level 50+ have ~200 mit AC.  Raid bosses have more. (anywhere from 200-1200)  This uses the
+	database AC value if it's higher than 200 and the default calcs to 200.
+
+	Note that the database AC values are the computed estimates from parsed logs, so it factors in AC from
+	the defense skill+agility.  If NPC data is ever leaked in the future then Sony's AC values will likely
+	be lower than what the AC values in our database are because of this, and this algorithm will need to
+	be altered to add in AC from defense skill and agility.
+*/
+int Mob::GetMitigation()
+{
+	int mit;
+
+	if (IsPet())
+	{
+		mit = GetAC();
+	}
+	else
+	{
+		if (GetLevel() < 15)
+		{
+			mit = GetLevel() * 3;
+
+			if (GetLevel() < 3)
+				mit += 2;
+		}
+		else
+		{
+			if (content_service.GetCurrentExpansion() >= 5)
+				mit = 200;
+			else
+				mit = GetLevel() * 41 / 10 - 15;
+		}
+
+		if (mit > 200)
+			mit = 200;
+
+		if (mit == 200 && GetAC() > 200)
+			mit = GetAC();
+
+		mit += itembonuses.AC + spellbonuses.AC / 4;
+		if (mit < 1)
+			mit = 1;
+	}
+
+	return mit;
+}
+
 //SYNC WITH: tune.cpp, mob.h TuneACSum
 int Mob::ACSum(bool skip_caps)
 {
+	if (IsNPC())
+	{
+		return GetMitigation();
+	}
+
 	int ac = 0; // this should be base AC whenever shrouds come around
 	ac += itembonuses.AC; // items + food + tribute
 	int shield_ac = 0;
@@ -867,8 +971,11 @@ int Mob::ACSum(bool skip_caps)
 		}
 		shield_ac += client->GetHeroicSTR() / 10;
 	}
-	// EQ math
-	ac = (ac * 4) / 3;
+	// EQ math - add 33% to all item AC, but exclude NEC WIZ MAG ENC
+	if(!EQ::ValueWithin(static_cast<int>(GetClass()), NECROMANCER, ENCHANTER))
+	{
+		ac = (ac * 4) / 3;
+	}
 	// anti-twink
 	if (!skip_caps && IsClient() && GetLevel() < RuleI(Combat, LevelToStopACTwinkControl))
 		ac = std::min(ac, 25 + 6 * GetLevel());
@@ -945,34 +1052,86 @@ int Mob::GetBestMeleeSkill()
 
 	return bestSkill;
 }
+
+int Mob::GetOffense(EQ::skills::SkillType skill)
+{
+	int offense = 0;
+	int baseOffense = level * 55 / 10 - 4;
+	if (baseOffense > 320)
+		baseOffense = 320;
+
+	int baseStrOffense = 0;
+
+	if (GetLevel() > 29)
+	{
+		baseStrOffense = GetLevel() * 2 - 40;
+
+		if (!IsSummonedClientPet() && zone->newzone_data.expansion >= 5) // planes
+		{
+			baseStrOffense += 20;
+		}
+	}
+	else if (GetLevel() > 5)
+	{
+		baseStrOffense = GetLevel() / 2 + 1;
+	}
+	else
+	{
+		baseStrOffense = (GetLevel() * 5) - baseOffense;
+	}
+
+	offense = baseOffense + baseStrOffense;
+
+	if (IsSummonedClientPet() && GetOwner())
+	{
+		offense = GetSkill(skill);
+
+		if (GetOwner()->GetClass() == MAGICIAN)
+			offense = offense * 125 / 100;
+		else if (GetOwner()->GetClass() == NECROMANCER)
+			offense = offense * 115 / 100;
+		else if (GetOwner()->GetClass() == BEASTLORD)
+			offense = offense * 110 / 100;
+	}
+
+	offense += (itembonuses.STR + spellbonuses.STR) * 2 / 3;
+	if (!IsSummonedClientPet() && offense < baseOffense)
+		offense = baseOffense;
+
+	offense += ATK + spellbonuses.ATK;
+	if (offense < 1)
+		offense = 1;
+
+	return offense;
+}
+
 //SYNC WITH: tune.cpp, mob.h Tuneoffense
 int Mob::offense(EQ::skills::SkillType skill)
 {
-	int offense = GetSkill(skill);
-	int stat_bonus = GetSTR();
 
-	switch (skill) {
-		case EQ::skills::SkillArchery:
-		case EQ::skills::SkillThrowing:
-			stat_bonus = GetDEX();
-			break;
+	if (IsNPC())
+		return GetOffense(skill);
 
-		// Mobs with no weapons default to H2H.
-		// Since H2H is capped at 100 for many many classes,
-		// lets not handicap mobs based on not spawning with a
-		// weapon.
-		//
-		// Maybe we tweak this if Disarm is actually implemented.
+	int statBonus;
 
-		case EQ::skills::SkillHandtoHand:
-			offense = GetBestMeleeSkill();
-			break;
+	if (skill == EQ::skills::SkillArchery || skill == EQ::skills::SkillThrowing)
+	{
+		statBonus = GetDEX();
+	}
+	else
+	{
+		statBonus = GetSTR();
 	}
 
-	if (stat_bonus >= 75)
-		offense += (2 * stat_bonus - 150) / 3;
+	int offense = GetSkill(skill) + spellbonuses.ATK + itembonuses.ATK + (statBonus >= 75 ? ((2 * statBonus - 150) / 3) : 0);
+	if (offense < 1)
+		offense = 1;
 
-	offense += GetATK() + GetPetATKBonusFromOwner();
+	if (GetClass() == RANGER && GetLevel() > 54)
+	{
+		offense = offense + GetLevel() * 4 - 216;
+	}
+
 	return offense;
 }
 

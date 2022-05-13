@@ -163,7 +163,7 @@ int32 Client::LevelRegen()
 	int32 hp = 0;
 	//these calculations should match up with the info from Monkly Business, which was last updated ~05/2008: http://www.monkly-business.net/index.php?pageid=abilities
 	if (level < 51) {
-		if (sitting) {
+		//if (sitting) {
 			if (level < 20) {
 				hp += 2 * multiplier1;
 			}
@@ -173,10 +173,10 @@ int32 Client::LevelRegen()
 			else {	//level == 50
 				hp += 4 * multiplier1;
 			}
-		}
-		else {	//feigned or standing
-			hp += 1 * multiplier1;
-		}
+		//}
+		//else {	//feigned or standing
+		//	hp += 1 * multiplier1;
+		//}
 	}
 	//there may be an easier way to calculate this next part, but I don't know what it is
 	else {	//level >= 51
@@ -244,7 +244,7 @@ int32 Client::CalcHPRegen(bool bCombat)
 	auto level = GetLevel();
 	bool skip_innate = false;
 
-	if (IsSitting()) {
+	//if (IsSitting()) {
 		if (level >= 50) {
 			base++;
 			if (level >= 65)
@@ -266,7 +266,7 @@ int32 Client::CalcHPRegen(bool bCombat)
 				}
 			}
 		}
-	}
+	//}
 
 	if (!skip_innate && m_pp.InnateSkills[InnateRegen] != InnateDisabled) {
 		if (level >= 50) {
@@ -688,17 +688,17 @@ int32 Client::CalcBaseManaRegen()
 {
 	uint8 clevel = GetLevel();
 	int32 regen = 0;
-	if (IsSitting() || (GetHorseId() != 0)) {
+	/*if (IsSitting() || (GetHorseId() != 0)) {*/
 		if (HasSkill(EQ::skills::SkillMeditate)) {
 			regen = (((GetSkill(EQ::skills::SkillMeditate) / 10) + (clevel - (clevel / 4))) / 4) + 4;
 		}
 		else {
 			regen = 2;
 		}
-	}
-	else {
-		regen = 2;
-	}
+	//}
+	//else {
+	//	regen = 2;
+	//}
 	return regen;
 }
 
@@ -712,7 +712,7 @@ int32 Client::CalcManaRegen(bool bCombat)
 	bool old = RuleB(Character, OldMinMana);
 	if (!IsStarved()) {
 		// client does some base regen for shrouds here
-		if (IsSitting() || CanMedOnHorse()) {
+		//if (IsSitting() || CanMedOnHorse()) {
 			// kind of weird to do it here w/e
 			// client does some base medding regen for shrouds here
 			if (GetClass() != BARD) {
@@ -725,11 +725,11 @@ int32 Client::CalcManaRegen(bool bCombat)
 						regen += skill / 15;
 				}
 			}
-			if (old)
-				regen = std::max(regen, 2);
-		} else if (old) {
-			regen = std::max(regen, 1);
-		}
+		//	if (old)
+		//		regen = std::max(regen, 2);
+		///*}*/ else if (old) {
+		//	regen = std::max(regen, 1);
+		/*}*/
 	}
 
 	if (level > 61) {

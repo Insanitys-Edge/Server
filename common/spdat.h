@@ -1260,6 +1260,9 @@ typedef enum {
 #define SE_Duration_Mana_Pct			525 // implemented - Decrease Current Mana by % of Total Mana per Tick, up to a MAX per tick
 #define SE_Duration_Endurance_Pct		526 // implemented - Decrease Current Endurance by % of Total Hit Points per Tick, up to a MAX per tick
 
+//Begin custom
+#define SE_ChangeClass		600 // implemented - change class to base_value
+#define SE_SummonAllies		601 // implemented - serverwide TL to your location for party members
 
 // LAST
 

@@ -228,6 +228,13 @@ ClientListEntry* ClientList::FindCharacter(const char* name) {
 	return nullptr;
 }
 
+ClientListEntry* ClientList::FindCharacterByDatabase(const char* name) {
+	uint32 id = database.GetAccountIDByChar(name);
+	if(id > 0)
+		return FindCLEByAccountID(id);
+	return nullptr;
+}
+
 ClientListEntry* ClientList::FindCLEByAccountID(uint32 iAccID) {
 	LinkedListIterator<ClientListEntry*> iterator(clientlist);
 

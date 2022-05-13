@@ -35,6 +35,7 @@
 #include "../common/emu_versions.h"
 #include "../common/random.h"
 #include "../common/shareddb.h"
+#include "../common/servertalk.h"
 
 #include "client.h"
 #include "worlddb.h"
@@ -1014,9 +1015,8 @@ bool Client::HandlePacket(const EQApplicationPacket *app) {
 
 	switch(opcode)
 	{
-		case OP_World_Client_CRC1: // eqgame.exe
-		case OP_World_Client_CRC2: // SkillCaps.txt
-		case OP_World_Client_CRC3: // BaseData.txt
+	case OP_World_Client_CRC1:
+	case OP_World_Client_CRC2:
 		{
 			// There is no obvious entry in the CC struct to indicate that the 'Start Tutorial button
 			// is selected when a character is created. I have observed that in this case, OP_EnterWorld is sent
@@ -1146,12 +1146,63 @@ bool Client::Process() {
 	return ret;
 }
 
-bool Client::HandleChecksumPacket(const EQApplicationPacket *app)
+enum Options {
+	NothingFound = 0,
+	MQ2MainDetected = 1 << 0,
+	ShowEQServerDetected = 1 << 1,
+	ShowEQClientDetected = 1 << 2,
+	MQ2ProcessDetected = 1 << 3,
+	KenetixDetected = 1 << 4,
+	EQTrainerDetected = 1 << 5,
+	MMOLoader = 1 << 6,
+	ShowEQTitleBar = 1 << 7
+};
+
+bool Client::HandleAnticheatStorePacket(const EQApplicationPacket* app)
 {
-	// Is checksum verification turned on
-	if (!RuleB(World, EnableChecksumVerification)) {
+	/*else if (app->size == sizeof(FileListEntry_Struct))
+	{
+		FileListEntry_Struct *cs = (FileListEntry_Struct *)app->pBuffer;
+		std::map<std::string, ZoneSize_Struct>	zonename_size_array;
+
+		bool match = false;
+
+		std::list<uint64> zoneSize = database.GetZoneSize(cs->zoneName);
+
+		if (zoneSize.empty())
+		{
+			return true;
+		}
+		for (uint64 size : zoneSize)
+		{
+			if (size != cs->Size)
+			{
+				database.SaveHackerProcesses("Z:" + std::string(cs->zoneName) + "-" + std::string(std::to_string(cs->Size)), GetAccountID(), GetAccountName(), long2ip(GetIP()).c_str());
+				return false;
+			}
+		}
 		return true;
-	}
+	}*/
+	/*else if (app->size == 11)
+	{
+		SimpleChecksum_Struct *cs = (SimpleChecksum_Struct *)app->pBuffer;
+		uint64 checksum = cs->checksum;
+
+		if (GetAdmin() >= 80)
+		{
+			Log( "Admin Checksum is GOOD! %lld", checksum);
+			cle->SetCanLeaveLoad(true);
+			return true;
+		}
+
+		std::string spellfilechecksum;
+		uint64 spellfilecheckint;
+		spellfilecheckint = -1;
+
+		std::string exechecksum;
+		uint64 execheckint;
+		execheckint = -1;
+
 
 	// Get packet structure
 	auto *cs = (Checksum_Struct *)app->pBuffer;
@@ -1172,118 +1223,86 @@ bool Client::HandleChecksumPacket(const EQApplicationPacket *app)
 				GetAccountID(),
 				cs->checksum,
 				GetAdmin()
-			);
+	}*/
+	LogDebug("Bad packet in anti-cheat checksum, but ignoring.");
+	return true;
+}
 
-			return passes_checksum_validation;
-		}
-		case OP_World_Client_CRC2: // SkillCaps.txt
+bool Client::HandleChecksumPacket(const EQApplicationPacket* app)
+{
+	if (app->size == sizeof(MacEntry_Struct))
+	{
+		MacEntry_Struct* cs = (MacEntry_Struct*)app->pBuffer;
+		database.SetMACAddressForAccount(GetAccountID(), cs->mac);
+		return true;
+	}
+
+	if (app->size != sizeof(Checksum_Struct) && app->size != sizeof(NewChecksum_Struct))
+	{
+		return HandleAnticheatStorePacket(app);
+	}
+
+	if (app->size == sizeof(Checksum_Struct) && GetAdmin() < 80)
+	{
+		database.SetMACAddressForAccount(GetAccountID(), 0);
+		return true;
+	}
+
+	std::string exechecksum;
+	uint64 execheckint;
+	execheckint = -1;
+
+	if (database.GetVariable("exechecksum", exechecksum))
+	{
+		execheckint = atoll(exechecksum.c_str());
+	}
+
+	SimpleChecksum_Struct* cs = (SimpleChecksum_Struct*)app->pBuffer;
+	uint64 checksum = cs->checksum;
+	std::string spellfilechecksum;
+	uint64 spellfilecheckint;
+	spellfilecheckint = -1;
+
+	LogDebug("Checksum! [{}]", checksum);
+	if (database.GetVariable("spellfilechecksum", spellfilechecksum))
+	{
+		spellfilecheckint = atoll(spellfilechecksum.c_str());
+	}
+
+	if (checksum == spellfilecheckint || checksum == execheckint)
+	{
+		LogDebug("Custom Spell Checksum is GOOD! [{}]", checksum);
+		if (app->GetOpcode() == OP_World_Client_CRC2)
 		{
-			bool passes_checksum_validation = (
-				ChecksumVerificationCRCSkillCaps(cs->checksum) ||
-				(GetAdmin() >= RuleI(GM, MinStatusToBypassCheckSumVerification))
-			);
-
-			LogChecksumVerification(
-				"SkillCaps.txt validation [{}] client [{}] ({}) has [{}] status [{}]",
-				passes_checksum_validation ? "Passed" : "Failed",
-				GetAccountName(),
-				GetAccountID(),
-				cs->checksum,
-				GetAdmin()
-			);
-
-			return passes_checksum_validation;
+			database.SetExeCrcForAccount(GetAccountID(), checksum);
 		}
-		case OP_World_Client_CRC3: // BaseData.txt
+
+		if (app->GetOpcode() == OP_World_Client_CRC1)
 		{
-			bool passes_checksum_validation = (
-				ChecksumVerificationCRCBaseData(cs->checksum) ||
-				(GetAdmin() >= RuleI(GM, MinStatusToBypassCheckSumVerification))
-			);
-
-			LogChecksumVerification(
-				"BaseData.txt validation [{}] client [{}] ({}) has [{}] status [{}]",
-				passes_checksum_validation ? "Passed" : "Failed",
-				GetAccountName(),
-				GetAccountID(),
-				cs->checksum,
-				GetAdmin()
-			);
-
-			return passes_checksum_validation;
+			database.SetSpellCrcForAccount(GetAccountID(), checksum);
 		}
-	}
 
-	return false;
-}
-
-bool Client::ChecksumVerificationCRCEQGame(uint64 checksum)
-{
-	database.SetAccountCRCField(GetAccountID(), "crc_eqgame", checksum);
-
-	// Get checksum variable for eqgame.exe
-	std::string checksumvar;
-	uint64_t    checksumint;
-	if (database.GetVariable("crc_eqgame", checksumvar)) {
-		checksumint = atoll(checksumvar.c_str());
-	}
-	else {
-		LogChecksumVerification("[checksum_crc1_eqgame] variable not set in variables table.");
 		return true;
 	}
 
+	if (GetAdmin() >= 80)
+	{
+		LogInfo("Admin Checksum is GOOD! [{}]", checksum);
+		if (app->GetOpcode() == OP_World_Client_CRC2)
+		{
+			database.SetExeCrcForAccount(GetAccountID(), checksum);
+		}
+
+		if (app->GetOpcode() == OP_World_Client_CRC1)
+		{
+			database.SetSpellCrcForAccount(GetAccountID(), checksum);
+		}
+		return true;
+	}
+
+	LogDebug("Player did not log in using the right checksum and was too low of level to matter. Checksum submitted: [{}]", checksum);
 	// Verify checksums match
-	if (checksumint == checksum) {
-		return true;
-	}
-
-	return false;
-}
-
-bool Client::ChecksumVerificationCRCSkillCaps(uint64 checksum)
-{
-	database.SetAccountCRCField(GetAccountID(), "crc_skillcaps", checksum);
-
-	// Get checksum variable for eqgame.exe
-	std::string checksumvar;
-	uint64_t    checksumint;
-	if (database.GetVariable("crc_skillcaps", checksumvar)) {
-		checksumint = atoll(checksumvar.c_str());
-	}
-	else {
-		LogChecksumVerification("[checksum_crc2_skillcaps] variable not set in variables table.");
-		return true;
-	}
-
-	// Verify checksums match
-	if (checksumint == checksum) {
-		return true;
-	}
-
-	return false;
-}
-
-bool Client::ChecksumVerificationCRCBaseData(uint64 checksum)
-{
-	database.SetAccountCRCField(GetAccountID(), "crc_basedata", checksum);
-
-	// Get checksum variable for skill_caps.txt
-	std::string checksumvar;
-	uint64_t    checksumint;
-	if (database.GetVariable("crc_basedata", checksumvar)) {
-		checksumint = atoll(checksumvar.c_str());
-	}
-	else {
-		LogChecksumVerification("[checksum_crc3_basedata] variable not set in variables table.");
-		return true;
-	}
-
-	// Verify checksums match
-	if (checksumint == checksum) {
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 void Client::EnterWorld(bool TryBootup) {
@@ -1742,6 +1761,13 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 		ZoneName(pp.binds[4].zone_id), pp.binds[4].zone_id, pp.binds[4].x, pp.binds[4].y, pp.binds[4].z);
 
 	uint32 num_characters = database.GetNumCharsOnAccount(GetAccountID());
+
+	if (num_characters >= EQ::constants::CHARACTER_CREATION_LIMIT)
+	{
+		LogInfo("Character creation limit reached: [{}]", pp.name);
+		return false;
+	}
+
 	// now we give the pp and the inv we made to StoreCharacter
 	// to see if we can store it
 	if (!StoreCharacter(GetAccountID(), &pp, &inv, num_characters)) {

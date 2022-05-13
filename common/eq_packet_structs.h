@@ -386,6 +386,7 @@ struct NewZone_Struct {
 /*0724*/	uint32	underworld_teleport_index; // > 0 teleports w/ zone point index, invalid succors, if this value is 0, it prevents you from running off edges that would end up underworld
 /*0728*/	uint32	LavaDamage; // Seen 50
 /*0732*/	uint32	MinLavaDamage; // Seen 10
+/*0732*/	uint32	expansion; // Seen 10
 /*0736*/
 };
 
@@ -5735,11 +5736,6 @@ struct SayLinkBodyFrame_Struct {
 /*043*/	char OrnamentIcon[5];
 /*048*/	char Hash[8];
 /*056*/
-};
-
-struct Checksum_Struct {
-    uint64 checksum;
-    uint8  data[2048];
 };
 
 struct UpdateMovementEntry {
