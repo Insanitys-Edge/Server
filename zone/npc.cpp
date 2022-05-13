@@ -115,7 +115,8 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	npc_type_data->legtexture,
 	npc_type_data->feettexture,
 	npc_type_data->use_model,
-	npc_type_data->always_aggro
+	npc_type_data->always_aggro,
+	npc_type_data->hp_regen_per_second
 ),
 	  attacked_timer(CombatEventTimer_expire),
 	  swarm_timer(100),
@@ -574,20 +575,20 @@ bool NPC::Process()
 {
 	if (p_depop)
 	{
-		Mob* owner = entity_list.GetMob(this->ownerid);
+		Mob* owner = entity_list.GetMob(ownerid);
 		if (owner != 0)
 		{
 			//if(GetBodyType() != BT_SwarmPet)
 			// owner->SetPetID(0);
-			this->ownerid = 0;
-			this->petid = 0;
+			ownerid = 0;
+			petid = 0;
 		}
 		return false;
 	}
 
 	if (IsStunned() && stunned_timer.Check()) {
 		Mob::UnStun();
-		this->spun_timer.Disable();
+		spun_timer.Disable();
 	}
 
 	SpellProcess();
@@ -619,6 +620,12 @@ bool NPC::Process()
 		}
 	}
 
+	if (hp_regen_per_second > 0 && hp_regen_per_second_timer.Check()) {
+		if (GetHP() < GetMaxHP()) {
+			SetHP(GetHP() + hp_regen_per_second);
+		}
+	}
+
 	if (tic_timer.Check()) {
 		parse->EventNPC(EVENT_TICK, this, nullptr, "", 0);
 		BuffProcess();
@@ -629,14 +636,14 @@ bool NPC::Process()
 
 		uint32 npc_sitting_regen_bonus = 0;
 		uint32 pet_regen_bonus         = 0;
-		uint32 npc_regen               = 0;
-		int32  npc_hp_regen            = GetNPCHPRegen();
+		uint64 npc_regen               = 0;
+		int64  npc_hp_regen            = GetNPCHPRegen();
 
 		if (GetAppearance() == eaSitting) {
 			npc_sitting_regen_bonus += 3;
 		}
 
-		int32 ooc_regen_calc = 0;
+		int64 ooc_regen_calc = 0;
 		if (ooc_regen > 0) { //should pull from Mob class
 			ooc_regen_calc += GetMaxHP() * ooc_regen / 100;
 		}
@@ -676,7 +683,7 @@ bool NPC::Process()
 
 		if (GetMana() < GetMaxMana()) {
 			if (RuleB(NPC, UseMeditateBasedManaRegen)) {
-				int32 npc_idle_mana_regen_bonus = 2;
+				int64 npc_idle_mana_regen_bonus = 2;
 				uint16 meditate_skill = GetSkill(EQ::skills::SkillMeditate);
 				if (!IsEngaged() && meditate_skill > 0) {
 					uint8 clevel = GetLevel();
@@ -718,7 +725,7 @@ bool NPC::Process()
 	/**
 	 * Send HP updates when engaged
 	 */
-	if (send_hp_update_timer.Check(false) && this->IsEngaged()) {
+	if (send_hp_update_timer.Check(false) && IsEngaged()) {
 		SendHPUpdate();
 	}
 
@@ -830,9 +837,9 @@ void NPC::UpdateEquipmentLight()
 }
 
 void NPC::Depop(bool StartSpawnTimer) {
-	uint16 emoteid = this->GetEmoteID();
+	uint16 emoteid = GetEmoteID();
 	if(emoteid != 0)
-		this->DoNPCEmote(ONDESPAWN,emoteid,this);
+		DoNPCEmote(ONDESPAWN,emoteid,this);
 	p_depop = true;
 	if (respawn2)
 	{
@@ -856,7 +863,7 @@ bool NPC::DatabaseCastAccepted(int spell_id) {
 		}
 		case SE_CurrentHPOnce:
 		case SE_CurrentHP: {
-			if(this->GetHPRatio() < 100 && spells[spell_id].buff_duration == 0)
+			if(GetHPRatio() < 100 && spells[spell_id].buff_duration == 0)
 				return true;
 			else
 				return false;
@@ -864,7 +871,7 @@ bool NPC::DatabaseCastAccepted(int spell_id) {
 		}
 
 		case SE_HealOverTime: {
-			if(this->GetHPRatio() < 100)
+			if(GetHPRatio() < 100)
 				return true;
 			else
 				return false;
@@ -889,7 +896,7 @@ bool NPC::DatabaseCastAccepted(int spell_id) {
 			break;
 		}
 		default:
-			if(spells[spell_id].good_effect == 1 && !(spells[spell_id].buff_duration == 0 && this->GetHPRatio() == 100) && !IsEngaged())
+			if(spells[spell_id].good_effect == 1 && !(spells[spell_id].buff_duration == 0 && GetHPRatio() == 100) && !IsEngaged())
 				return true;
 			return false;
 		}
@@ -1508,7 +1515,7 @@ uint32 ZoneDatabase::NPCSpawnDB(uint8 command, const char* zone, uint32 zone_ver
 
 uint32 NPC::GetMaxDamage(uint8 tlevel)
 {
-	uint32 dmg = 0;
+	uint64 dmg = 0;
 	if (tlevel < 40)
 		dmg = tlevel*2+2;
 	else if (tlevel < 50)
@@ -1680,7 +1687,7 @@ void NPC::Disarm(Client* client, int chance) {
 					CalcBonuses();
 					if (inst) {
 						// create a ground item
-						Object* object = new Object(inst, this->GetX(), this->GetY(), this->GetZ(), 0.0f, 300000);
+						Object* object = new Object(inst, GetX(), GetY(), GetZ(), 0.0f, 300000);
 						entity_list.AddObject(object, true);
 						object->StartDecay();
 						safe_delete(inst);
@@ -1694,7 +1701,7 @@ void NPC::Disarm(Client* client, int chance) {
 				SendWearChange(matslot);
 			if ((CastToMob()->GetBodyType() == BT_Humanoid || CastToMob()->GetBodyType() == BT_Summoned) && eslot == EQ::invslot::slotPrimary)
 				Say("Ahh! My weapon!");
-			client->MessageString(Chat::Skills, DISARM_SUCCESS, this->GetCleanName());
+			client->MessageString(Chat::Skills, DISARM_SUCCESS, GetCleanName());
 			if (chance != 1000)
 				client->CheckIncreaseSkill(EQ::skills::SkillDisarm, nullptr, 4);
 			return;
@@ -1848,11 +1855,11 @@ void Mob::NPCSpecialAttacks(const char* parse, int permtag, bool reset, bool rem
 		parse++;
 	}
 
-	if(permtag == 1 && this->GetNPCTypeID() > 0)
+	if(permtag == 1 && GetNPCTypeID() > 0)
 	{
-		if(content_db.SetSpecialAttkFlag(this->GetNPCTypeID(), orig_parse))
+		if(content_db.SetSpecialAttkFlag(GetNPCTypeID(), orig_parse))
 		{
-			LogInfo("NPCTypeID: [{}] flagged to [{}] for Special Attacks.\n",this->GetNPCTypeID(),orig_parse);
+			LogInfo("NPCTypeID: [{}] flagged to [{}] for Special Attacks.\n",GetNPCTypeID(),orig_parse);
 		}
 	}
 }
@@ -2089,9 +2096,9 @@ void NPC::PetOnSpawn(NewSpawn_Struct* ns)
 				if (tmp_lastname.size() < sizeof(ns->spawn.lastName))
 					strn0cpy(ns->spawn.lastName, tmp_lastname.c_str(), sizeof(ns->spawn.lastName));
 			}
-			else 
+			else
 			{
-				if (entity_list.GetNPCByID(GetOwnerID())) 
+				if (entity_list.GetNPCByID(GetOwnerID()))
 				{
 					SetPetOwnerNPC(true);
 				}
@@ -2159,7 +2166,7 @@ void NPC::ModifyNPCStat(const char *identifier, const char *new_value)
 		return;
 	}
 	else if (id == "max_hp") {
-		base_hp = atoi(val.c_str());
+		base_hp = std::stoull(val.c_str());
 
 		CalcMaxHP();
 		if (current_hp > max_hp) {
@@ -2169,7 +2176,7 @@ void NPC::ModifyNPCStat(const char *identifier, const char *new_value)
 		return;
 	}
 	else if (id == "max_mana") {
-		npc_mana = atoi(val.c_str());
+		npc_mana = std::stoull(val.c_str());
 		CalcMaxMana();
 		if (current_mana > max_mana) {
 			current_mana = max_mana;
@@ -2288,11 +2295,15 @@ void NPC::ModifyNPCStat(const char *identifier, const char *new_value)
 		return;
 	}
 	else if (id == "hp_regen") {
-		hp_regen = atoi(val.c_str());
+		hp_regen = strtoll(val.c_str(), nullptr, 10);
+		return;
+	}
+	else if (id == "hp_regen_per_second") {
+		hp_regen_per_second = strtoll(val.c_str(), nullptr, 10);
 		return;
 	}
 	else if (id == "mana_regen") {
-		mana_regen = atoi(val.c_str());
+		mana_regen = strtoll(val.c_str(), nullptr, 10);
 		return;
 	}
 	else if (id == "level") {
@@ -2438,6 +2449,9 @@ float NPC::GetNPCStat(const char *identifier)
 	else if (id == "hp_regen") {
 		return hp_regen;
 	}
+	else if (id == "hp_regen_per_second") {
+		return hp_regen_per_second;
+	}
 	else if (id == "mana_regen") {
 		return mana_regen;
 	}
@@ -2490,6 +2504,8 @@ float NPC::GetNPCStat(const char *identifier)
 	else if (id == "default_atk") {
 		return default_atk;
 	}
+
+	return 0.0f;
 }
 
 void NPC::LevelScale() {
@@ -2524,13 +2540,13 @@ void NPC::LevelScale() {
 		} else {
 			uint8 scale_adjust = 1;
 
-			base_hp += (int)(base_hp * scaling);
-			max_hp += (int)(max_hp * scaling);
+			base_hp += (int64)(base_hp * scaling);
+			max_hp += (int64)(max_hp * scaling);
 			current_hp = max_hp;
 
 			if (max_dmg) {
-				max_dmg += (int)(max_dmg * scaling / scale_adjust);
-				min_dmg += (int)(min_dmg * scaling / scale_adjust);
+				max_dmg += (int64)(max_dmg * scaling / scale_adjust);
+				min_dmg += (int64)(min_dmg * scaling / scale_adjust);
 			}
 
 			STR += (int)(STR * scaling / scale_adjust);
@@ -2565,8 +2581,8 @@ void NPC::LevelScale() {
 
 		AC += (int)(AC * scaling);
 		ATK += (int)(ATK * scaling);
-		base_hp += (int)(base_hp * scaling);
-		max_hp += (int)(max_hp * scaling);
+		base_hp += (int64)(base_hp * scaling);
+		max_hp += (int64)(max_hp * scaling);
 		current_hp = max_hp;
 		STR += (int)(STR * scaling / scale_adjust);
 		STA += (int)(STA * scaling / scale_adjust);
@@ -2588,8 +2604,8 @@ void NPC::LevelScale() {
 
 		if (max_dmg)
 		{
-			max_dmg += (int)(max_dmg * scaling / scale_adjust);
-			min_dmg += (int)(min_dmg * scaling / scale_adjust);
+			max_dmg += (int64)(max_dmg * scaling / scale_adjust);
+			min_dmg += (int64)(min_dmg * scaling / scale_adjust);
 		}
 
 	}
@@ -2646,7 +2662,7 @@ void NPC::SetSwarmTarget(int target_id)
 	return;
 }
 
-int32 NPC::CalcMaxMana()
+int64 NPC::CalcMaxMana()
 {
 	if (npc_mana == 0) {
 		switch (GetCasterClass()) {
@@ -2748,13 +2764,13 @@ void NPC::DoNPCEmote(uint8 event_, uint16 emoteid, Mob* target)
 		}
 
 		if(nes->type == 1)
-			this->Emote("%s", processed.c_str());
+			Emote("%s", processed.c_str());
 		else if(nes->type == 2)
-			this->Shout("%s", processed.c_str());
+			Shout("%s", processed.c_str());
 		else if(nes->type == 3)
 			entity_list.MessageCloseString(this, true, 200, 10, GENERIC_STRING, nes->text);
 		else
-			this->Say("%s", processed.c_str());
+			Say("%s", processed.c_str());
 	}
 }
 
@@ -2858,11 +2874,11 @@ int NPC::GetScore()
     int lv = std::min(70, (int)GetLevel());
     int basedmg = (lv*2)*(1+(lv / 100)) - (lv / 2);
     int minx = 0;
-    int basehp = 0;
+    int64 basehp = 0;
     int hpcontrib = 0;
     int dmgcontrib = 0;
     int spccontrib = 0;
-    int hp = GetMaxHP();
+    int64 hp = GetMaxHP();
     int mindmg = min_dmg;
     int maxdmg = max_dmg;
     int final;
@@ -3300,7 +3316,7 @@ void NPC::AIYellForHelp(Mob *sender, Mob *attacker)
 						LogAIYellForHelpDetail(
 							"NPC [{}] is assisting [{}] against target [{}]",
 							mob->GetCleanName(),
-							this->GetCleanName(),
+							GetCleanName(),
 							attacker->GetCleanName()
 						);
 					}

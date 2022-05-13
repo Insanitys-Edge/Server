@@ -186,7 +186,7 @@ int Lua_NPC::GetPrimaryFaction() {
 	return self->GetPrimaryFaction();
 }
 
-int Lua_NPC::GetNPCHate(Lua_Mob ent) {
+int64 Lua_NPC::GetNPCHate(Lua_Mob ent) {
 	Lua_Safe_Call_Int();
 	return self->GetNPCHate(ent);
 }
@@ -736,7 +736,7 @@ void Lua_NPC::SetNoQuestPause(bool state) {
 }
 
 luabind::scope lua_register_npc() {
-	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")	
+	return luabind::class_<Lua_NPC, Lua_Mob>("NPC")
 	.def(luabind::constructor<>())
 	.def("AI_SetRoambox", (void(Lua_NPC::*)(float,float,float,float,float))&Lua_NPC::AI_SetRoambox)
 	.def("AI_SetRoambox", (void(Lua_NPC::*)(float,float,float,float,float,uint32,uint32))&Lua_NPC::AI_SetRoambox)
@@ -757,7 +757,6 @@ luabind::scope lua_register_npc() {
 	.def("RemoveItem", (void(Lua_NPC::*)(int))&Lua_NPC::RemoveItem)
 	.def("RemoveItem", (void(Lua_NPC::*)(int,int))&Lua_NPC::RemoveItem)
 	.def("RemoveItem", (void(Lua_NPC::*)(int,int,int))&Lua_NPC::RemoveItem)
-
 	.def("AssignWaypoints", (void(Lua_NPC::*)(int))&Lua_NPC::AssignWaypoints)
 	.def("CalculateNewWaypoint", (void(Lua_NPC::*)(void))&Lua_NPC::CalculateNewWaypoint)
 	.def("ChangeLastName", (void(Lua_NPC::*)(const char*))&Lua_NPC::ChangeLastName)
@@ -790,7 +789,7 @@ luabind::scope lua_register_npc() {
 	.def("GetMaxWp", (int(Lua_NPC::*)(void))& Lua_NPC::GetMaxWp)
 	.def("GetMinDMG", (uint32(Lua_NPC::*)(void))& Lua_NPC::GetMinDMG)
 	.def("GetNPCFactionID", (int(Lua_NPC::*)(void))& Lua_NPC::GetNPCFactionID)
-	.def("GetNPCHate", (int(Lua_NPC::*)(Lua_Mob))& Lua_NPC::GetNPCHate)
+	.def("GetNPCHate", (int64(Lua_NPC::*)(Lua_Mob))&Lua_NPC::GetNPCHate)
 	.def("GetNPCSpellsID", (int(Lua_NPC::*)(void))& Lua_NPC::GetNPCSpellsID)
 	.def("GetNPCSpellsID", (int(Lua_NPC::*)(void))& Lua_NPC::GetNPCSpellsID)
 	.def("GetNPCStat", (float(Lua_NPC::*)(const char*))& Lua_NPC::GetNPCStat)
@@ -881,7 +880,7 @@ luabind::scope lua_register_npc() {
 	.def("DeleteQuestLoot", (void(Lua_NPC::*)(int, int, int, int))& Lua_NPC::DeleteQuestLoot)
 	.def("HasRequiredQuestLoot", (bool(Lua_NPC::*)(int, int, int, int))& Lua_NPC::HasRequiredQuestLoot)
 	.def("QuestLootCount", (int(Lua_NPC::*)(int))& Lua_NPC::QuestLootCount)
-	.def("SetNoQuestPause", (void(Lua_NPC::*)(bool))&Lua_NPC::SetNoQuestPause);
+	.def("SetNoQuestPause", (void(Lua_NPC::*)(bool))&Lua_NPC::SetNoQuestPause);&Lua_NPC::UpdateWaypoint);
 }
 
 luabind::scope lua_register_npc_loot_list() {

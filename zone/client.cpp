@@ -371,16 +371,16 @@ Client::~Client() {
 	if(IsInAGuild())
 		guild_mgr.SendGuildMemberUpdateToWorld(GetName(), GuildID(), 0, time(nullptr));
 
-	Mob* horse = entity_list.GetMob(this->CastToClient()->GetHorseId());
+	Mob* horse = entity_list.GetMob(CastToClient()->GetHorseId());
 	if (horse)
 		horse->Depop();
 
-	Mob* merc = entity_list.GetMob(this->GetMercID());
+	Mob* merc = entity_list.GetMob(GetMercID());
 	if (merc)
 		merc->Depop();
 
 	if(Trader)
-		database.DeleteTraderItem(this->CharacterID());
+		database.DeleteTraderItem(CharacterID());
 
 	if(Buyer)
 		ToggleBuyerMode(false);
@@ -699,7 +699,7 @@ bool Client::Save(uint8 iCommitNow) {
 
 	p_timers.Store(&database);
 
-	database.SaveCharacterTribute(this->CharacterID(), &m_pp);
+	database.SaveCharacterTribute(CharacterID(), &m_pp);
 	SaveTaskState(); /* Save Character Task */
 
 	LogFood("Client::Save - hunger_level: [{}] thirst_level: [{}]", m_pp.hunger_level, m_pp.thirst_level);
@@ -714,7 +714,8 @@ bool Client::Save(uint8 iCommitNow) {
 		}
 	}
 
-	SaveMercData();
+	database.SaveCharacterData(CharacterID(), AccountID(), &m_pp, &m_epp); /* Save Character Data */
+
 	return true;
 }
 
@@ -885,7 +886,7 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 			sem->guilddbid = 0;
 
 		strcpy(sem->message, message);
-		sem->minstatus = this->Admin();
+		sem->minstatus = Admin();
 		sem->type = chan_num;
 		if(targetname != 0)
 			strcpy(sem->to, targetname);
@@ -1199,7 +1200,7 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 }
 
 void Client::ChannelMessageSend(const char* from, const char* to, uint8 chan_num, uint8 language, uint8 lang_skill, const char* message, ...) {
-	if ((chan_num==11 && !(this->GetGM())) || (chan_num==10 && this->Admin() < AccountStatus::QuestTroupe)) // dont need to send /pr & /petition to everybody
+	if ((chan_num==11 && !(GetGM())) || (chan_num==10 && Admin() < AccountStatus::QuestTroupe)) // dont need to send /pr & /petition to everybody
 		return;
 	va_list argptr;
 	char buffer[4096];
@@ -1254,7 +1255,7 @@ void Client::ChannelMessageSend(const char* from, const char* to, uint8 chan_num
 	QueuePacket(&app);
 
 	bool senderCanTrainSelf = RuleB(Client, SelfLanguageLearning);
-	bool weAreNotSender = strcmp(this->GetCleanName(), cm->sender);
+	bool weAreNotSender = strcmp(GetCleanName(), cm->sender);
 
 	if (senderCanTrainSelf || weAreNotSender) {
 		if ((chan_num == ChatChannel_Group) && (ListenerSkill < 100)) {	// group message in unmastered language, check for skill up
@@ -1464,8 +1465,7 @@ void Client::SetSkill(EQ::skills::SkillType skillid, uint16 value, bool show_msg
 		return;
 	m_pp.skills[skillid] = value; // We need to be able to #setskill 254 and 255 to reset skills
 
-	database.SaveCharacterSkill(this->CharacterID(), m_pp.class_, skillid, value);
-
+	database.SaveCharacterSkill(CharacterID(), m_pp.class_, skillid, value);
 	auto outapp = new EQApplicationPacket(OP_SkillUpdate, sizeof(SkillUpdate_Struct));
 	SkillUpdate_Struct* skill = (SkillUpdate_Struct*)outapp->pBuffer;
 	skill->skillId=skillid;
@@ -1485,7 +1485,7 @@ void Client::IncreaseLanguageSkill(int skill_id, int value) {
 	if (m_pp.languages[skill_id] > 100) //Lang skill above max
 		m_pp.languages[skill_id] = 100;
 
-	database.SaveCharacterLanguage(this->CharacterID(), skill_id, m_pp.languages[skill_id]);
+	database.SaveCharacterLanguage(CharacterID(), skill_id, m_pp.languages[skill_id]);
 
 	auto outapp = new EQApplicationPacket(OP_SkillUpdate, sizeof(SkillUpdate_Struct));
 	SkillUpdate_Struct* skill = (SkillUpdate_Struct*)outapp->pBuffer;
@@ -1541,22 +1541,22 @@ void Client::UpdateWho(uint8 remove)
 	auto pack = new ServerPacket(ServerOP_ClientList, sizeof(ServerClientList_Struct));
 	auto *s   = (ServerClientList_Struct *) pack->pBuffer;
 	s->remove = remove;
-	s->wid    = this->GetWID();
-	s->IP     = this->GetIP();
-	s->charid = this->CharacterID();
-	strcpy(s->name, this->GetName());
+	s->wid    = GetWID();
+	s->IP     = GetIP();
+	s->charid = CharacterID();
+	strcpy(s->name, GetName());
 
 	s->gm        = GetGM();
-	s->Admin     = this->Admin();
-	s->AccountID = this->AccountID();
-	strcpy(s->AccountName, this->AccountName());
+	s->Admin     = Admin();
+	s->AccountID = AccountID();
+	strcpy(s->AccountName, AccountName());
 
-	s->LSAccountID = this->LSAccountID();
+	s->LSAccountID = LSAccountID();
 	strn0cpy(s->lskey, lskey, sizeof(s->lskey));
 
 	s->zone        = zone->GetZoneID();
 	s->instance_id = zone->GetInstanceID();
-	s->race        = this->GetRace();
+	s->race        = GetRace();
 	s->class_      = GetClass();
 	s->level       = GetLevel();
 
@@ -1592,9 +1592,9 @@ void Client::WhoAll(Who_All_Struct* whom) {
 	else {
 		auto pack = new ServerPacket(ServerOP_Who, sizeof(ServerWhoAll_Struct));
 		ServerWhoAll_Struct* whoall = (ServerWhoAll_Struct*) pack->pBuffer;
-		whoall->admin = this->Admin();
-		whoall->fromid=this->GetID();
-		strcpy(whoall->from, this->GetName());
+		whoall->admin = Admin();
+		whoall->fromid=GetID();
+		strcpy(whoall->from, GetName());
 		strn0cpy(whoall->whom, whom->whom, 64);
 		whoall->lvllow = whom->lvllow;
 		whoall->lvlhigh = whom->lvlhigh;
@@ -1614,7 +1614,7 @@ void Client::FriendsWho(char *FriendsString) {
 		auto pack =
 		    new ServerPacket(ServerOP_FriendsWho, sizeof(ServerFriendsWho_Struct) + strlen(FriendsString));
 		ServerFriendsWho_Struct* FriendsWho = (ServerFriendsWho_Struct*) pack->pBuffer;
-		FriendsWho->FromID = this->GetID();
+		FriendsWho->FromID = GetID();
 		strcpy(FriendsWho->FromName, GetName());
 		strcpy(FriendsWho->FriendsString, FriendsString);
 		worldserver.SendPacket(pack);
@@ -1807,7 +1807,7 @@ void Client::IncStats(uint8 type,int16 increase_val){
 	safe_delete(outapp);
 }
 
-const int32& Client::SetMana(int32 amount) {
+const int64& Client::SetMana(int64 amount) {
 	bool update = false;
 	if (amount < 0)
 		amount = 0;
@@ -1845,9 +1845,9 @@ void Client::CheckManaEndUpdate() {
 		safe_delete(outapp);
 
 		/* Let others know when our mana percent has changed */
-		if (this->GetManaPercent() != last_reported_mana_percent) {
-			Group *group = this->GetGroup();
-			Raid *raid = this->GetRaid();
+		if (GetManaPercent() != last_reported_mana_percent) {
+			Group *group = GetGroup();
+			Raid *raid = GetRaid();
 
 			if (raid) {
 				raid->SendManaPacketFrom(this);
@@ -1866,13 +1866,13 @@ void Client::CheckManaEndUpdate() {
 			entity_list.QueueClientsByXTarget(this, mana_packet, false, EQ::versions::ClientVersionBitmask::maskSoDAndLater);
 			safe_delete(mana_packet);
 
-			last_reported_mana_percent = this->GetManaPercent();
+			last_reported_mana_percent = GetManaPercent();
 		}
 
 		/* Let others know when our endurance percent has changed */
-		if (this->GetEndurancePercent() != last_reported_endurance_percent) {
-			Group *group = this->GetGroup();
-			Raid *raid = this->GetRaid();
+		if (GetEndurancePercent() != last_reported_endurance_percent) {
+			Group *group = GetGroup();
+			Raid *raid = GetRaid();
 
 			if (raid) {
 				raid->SendEndurancePacketFrom(this);
@@ -1891,7 +1891,7 @@ void Client::CheckManaEndUpdate() {
 			entity_list.QueueClientsByXTarget(this, endurance_packet, false, EQ::versions::ClientVersionBitmask::maskSoDAndLater);
 			safe_delete(endurance_packet);
 
-			last_reported_endurance_percent = this->GetEndurancePercent();
+			last_reported_endurance_percent = GetEndurancePercent();
 		}
 
 		last_reported_mana = current_mana;
@@ -2139,78 +2139,84 @@ void Client::QuestReadBook(const char* text, uint8 type) {
 	}
 }
 
-void Client::SendClientMoneyUpdate(uint8 type,uint32 amount){
-	auto outapp = new EQApplicationPacket(OP_TradeMoneyUpdate, sizeof(TradeMoneyUpdate_Struct));
-	TradeMoneyUpdate_Struct* mus= (TradeMoneyUpdate_Struct*)outapp->pBuffer;
-	mus->amount=amount;
-	mus->trader=0;
-	mus->type=type;
-	QueuePacket(outapp);
-	safe_delete(outapp);
+uint32 Client::GetCarriedPlatinum() {
+	return (
+		GetMoney(3, 0) +
+		(GetMoney(2, 0) / 10) +
+		(GetMoney(1, 0) / 100) +
+		(GetMoney(0, 0) / 1000)
+	);
 }
 
-bool Client::TakeMoneyFromPP(uint64 copper, bool updateclient) {
-	int64 copperpp,silver,gold,platinum;
-	copperpp = m_pp.copper;
+bool Client::TakePlatinum(uint32 platinum, bool update_client) {
+	if (GetCarriedPlatinum() >= platinum) {
+		auto copper = static_cast<uint64>(platinum * 1000);
+		return TakeMoneyFromPP(copper, update_client);
+	}
+
+	return false;
+}
+
+bool Client::TakeMoneyFromPP(uint64 copper, bool update_client) {
+	int64 player_copper, silver, gold, platinum;
+	player_copper = m_pp.copper;
 	silver = static_cast<int64>(m_pp.silver) * 10;
 	gold = static_cast<int64>(m_pp.gold) * 100;
 	platinum = static_cast<int64>(m_pp.platinum) * 1000;
 
-	int64 clienttotal = copperpp + silver + gold + platinum;
+	int64 client_total = player_copper + silver + gold + platinum;
 
-	clienttotal -= copper;
-	if(clienttotal < 0)
-	{
+	client_total -= copper;
+	if (client_total < 0) {
 		return false; // Not enough money!
-	}
-	else
-	{
-		copperpp -= copper;
-		if(copperpp <= 0)
-		{
-			copper = std::abs(copperpp);
+	} else {
+		player_copper -= copper;
+		if(player_copper <= 0) {
+			copper = std::abs(player_copper);
 			m_pp.copper = 0;
-		}
-		else
-		{
-			m_pp.copper = copperpp;
-			if(updateclient)
+		} else {
+			m_pp.copper = player_copper;
+
+			if (update_client) {
 				SendMoneyUpdate();
+			}
+
 			SaveCurrency();
 			return true;
 		}
+
 		silver -= copper;
-		if(silver <= 0)
-		{
+		if (silver <= 0) {
 			copper = std::abs(silver);
 			m_pp.silver = 0;
-		}
-		else
-		{
-			m_pp.silver = silver/10;
-			m_pp.copper += (silver-(m_pp.silver*10));
-			if(updateclient)
+		} else {
+			m_pp.silver = silver / 10;
+			m_pp.copper += (silver - (m_pp.silver * 10));
+
+			if (update_client) {
 				SendMoneyUpdate();
+			}
+
 			SaveCurrency();
 			return true;
 		}
 
 		gold -=copper;
 
-		if(gold <= 0)
-		{
+		if (gold <= 0) {
 			copper = std::abs(gold);
 			m_pp.gold = 0;
-		}
-		else
-		{
-			m_pp.gold = gold/100;
-			uint64 silvertest = (gold-(static_cast<uint64>(m_pp.gold)*100))/10;
-			m_pp.silver += silvertest;
-			uint64 coppertest = (gold-(static_cast<uint64>(m_pp.gold)*100+silvertest*10));
-			m_pp.copper += coppertest;
-			if(updateclient)
+		} else {
+			m_pp.gold = gold / 100;
+			uint64 silver_test = (gold - (static_cast<uint64>(m_pp.gold) * 100)) / 10;
+			m_pp.silver += silver_test;
+			uint64 copper_test = (gold - (static_cast<uint64>(m_pp.gold) * 100 + silver_test * 10));
+			m_pp.copper += copper_test;
+
+			if (update_client) {
 				SendMoneyUpdate();
+			}
+
 			SaveCurrency();
 			return true;
 		}
@@ -2219,74 +2225,84 @@ bool Client::TakeMoneyFromPP(uint64 copper, bool updateclient) {
 
 		//Impossible for plat to be negative, already checked above
 
-		m_pp.platinum = platinum/1000;
-		uint64 goldtest = (platinum-(static_cast<uint64>(m_pp.platinum)*1000))/100;
-		m_pp.gold += goldtest;
-		uint64 silvertest = (platinum-(static_cast<uint64>(m_pp.platinum)*1000+goldtest*100))/10;
-		m_pp.silver += silvertest;
-		uint64 coppertest = (platinum-(static_cast<uint64>(m_pp.platinum)*1000+goldtest*100+silvertest*10));
-		m_pp.copper = coppertest;
-		if(updateclient)
+		m_pp.platinum = platinum / 1000;
+		uint64 gold_test = (platinum - (static_cast<uint64>(m_pp.platinum) * 1000)) / 100;
+		m_pp.gold += gold_test;
+		uint64 silver_test = (platinum - (static_cast<uint64>(m_pp.platinum) * 1000 + gold_test * 100)) / 10;
+		m_pp.silver += silver_test;
+		uint64 copper_test = (platinum - (static_cast<uint64>(m_pp.platinum) * 1000 + gold_test * 100 + silver_test * 10));
+		m_pp.copper = copper_test;
+
+		if (update_client) {
 			SendMoneyUpdate();
+		}
+
 		RecalcWeight();
 		SaveCurrency();
 		return true;
 	}
 }
 
-void Client::AddMoneyToPP(uint64 copper, bool updateclient){
-	uint64 tmp;
-	uint64 tmp2;
-	tmp = copper;
+void Client::AddPlatinum(uint32 platinum, bool update_client) {
+	auto copper = static_cast<uint64>(platinum * 1000);
+	AddMoneyToPP(copper, update_client);
+}
+
+void Client::AddMoneyToPP(uint64 copper, bool update_client){
+	uint64 temporary_copper;
+	uint64 temporary_copper_two;
+	temporary_copper = copper;
 
 	/* Add Amount of Platinum */
-	tmp2 = tmp/1000;
-	int32 new_val = m_pp.platinum + tmp2;
-	if(new_val < 0) { m_pp.platinum = 0; }
-	else { m_pp.platinum = m_pp.platinum + tmp2; }
-	tmp-=tmp2*1000;
+	temporary_copper_two = temporary_copper / 1000;
+	int32 new_value = m_pp.platinum + temporary_copper_two;
 
-	//if (updateclient)
-	//	SendClientMoneyUpdate(3,tmp2);
+	if (new_value < 0) {
+		m_pp.platinum = 0;
+	} else {
+		m_pp.platinum = m_pp.platinum + temporary_copper_two;
+	}
+
+	temporary_copper -= temporary_copper_two * 1000;
 
 	/* Add Amount of Gold */
-	tmp2 = tmp/100;
-	new_val = m_pp.gold + tmp2;
-	if(new_val < 0) { m_pp.gold = 0; }
-	else { m_pp.gold = m_pp.gold + tmp2; }
+	temporary_copper_two = temporary_copper / 100;
+	new_value = m_pp.gold + temporary_copper_two;
 
-	tmp-=tmp2*100;
-	//if (updateclient)
-	//	SendClientMoneyUpdate(2,tmp2);
+	if (new_value < 0) {
+		m_pp.gold = 0;
+	} else {
+		m_pp.gold = m_pp.gold + temporary_copper_two;
+	}
+
+	temporary_copper -= temporary_copper_two * 100;
 
 	/* Add Amount of Silver */
-	tmp2 = tmp/10;
-	new_val = m_pp.silver + tmp2;
-	if(new_val < 0) {
+	temporary_copper_two = temporary_copper / 10;
+	new_value = m_pp.silver + temporary_copper_two;
+
+	if (new_value < 0) {
 		m_pp.silver = 0;
 	} else {
-		m_pp.silver = m_pp.silver + tmp2;
+		m_pp.silver = m_pp.silver + temporary_copper_two;
 	}
-	tmp-=tmp2*10;
-	//if (updateclient)
-	//	SendClientMoneyUpdate(1,tmp2);
 
-	// Add Copper
-	//tmp	= tmp - (tmp2* 10);
-	//if (updateclient)
-	//	SendClientMoneyUpdate(0,tmp);
-	tmp2 = tmp;
-	new_val = m_pp.copper + tmp2;
-	if(new_val < 0) {
+	temporary_copper -= temporary_copper_two * 10;
+
+	/* Add Amount of Copper */
+	temporary_copper_two = temporary_copper;
+	new_value = m_pp.copper + temporary_copper_two;
+
+	if (new_value < 0) {
 		m_pp.copper = 0;
 	} else {
-		m_pp.copper = m_pp.copper + tmp2;
+		m_pp.copper = m_pp.copper + temporary_copper_two;
 	}
 
-
 	//send them all at once, since the above code stopped working.
-	if(updateclient)
+	if (update_client) {
 		SendMoneyUpdate();
+	}
 
 	RecalcWeight();
 
@@ -2303,30 +2319,35 @@ void Client::EVENT_ITEM_ScriptStopReturn(){
 	char buffer[50];
 	gettimeofday(&read_time, 0);
 	sprintf(buffer, "%li.%li \n", read_time.tv_sec, read_time.tv_usec);
-	this->SetEntityVariable("Stop_Return", buffer);
+	SetEntityVariable("Stop_Return", buffer);
 }
 
-void Client::AddMoneyToPP(uint32 copper, uint32 silver, uint32 gold, uint32 platinum, bool updateclient){
-	this->EVENT_ITEM_ScriptStopReturn();
+void Client::AddMoneyToPP(uint32 copper, uint32 silver, uint32 gold, uint32 platinum, bool update_client){
+	EVENT_ITEM_ScriptStopReturn();
 
 	int32 new_value = m_pp.platinum + platinum;
-	if(new_value >= 0 && new_value > m_pp.platinum)
+	if (new_value >= 0 && new_value > m_pp.platinum) {
 		m_pp.platinum += platinum;
+	}
 
 	new_value = m_pp.gold + gold;
-	if(new_value >= 0 && new_value > m_pp.gold)
+	if (new_value >= 0 && new_value > m_pp.gold) {
 		m_pp.gold += gold;
+	}
 
 	new_value = m_pp.silver + silver;
-	if(new_value >= 0 && new_value > m_pp.silver)
+	if (new_value >= 0 && new_value > m_pp.silver) {
 		m_pp.silver += silver;
+	}
 
 	new_value = m_pp.copper + copper;
-	if(new_value >= 0 && new_value > m_pp.copper)
+	if (new_value >= 0 && new_value > m_pp.copper) {
 		m_pp.copper += copper;
+	}
 
-	if(updateclient)
+	if (update_client) {
 		SendMoneyUpdate();
+	}
 
 	RecalcWeight();
 	SaveCurrency();
@@ -2349,41 +2370,55 @@ void Client::SendMoneyUpdate() {
 	FastQueuePacket(&outapp);
 }
 
-bool Client::HasMoney(uint64 Copper) {
+bool Client::HasMoney(uint64 copper) {
 
-	if ((static_cast<uint64>(m_pp.copper) +
+	if (
+		(static_cast<uint64>(m_pp.copper) +
 		(static_cast<uint64>(m_pp.silver) * 10) +
 		(static_cast<uint64>(m_pp.gold) * 100) +
-		(static_cast<uint64>(m_pp.platinum) * 1000)) >= Copper)
+		(static_cast<uint64>(m_pp.platinum) * 1000)) >= copper
+	) {
 		return true;
+	}
 
 	return false;
 }
 
 uint64 Client::GetCarriedMoney() {
 
-	return ((static_cast<uint64>(m_pp.copper) +
-		(static_cast<uint64>(m_pp.silver) * 10) +
-		(static_cast<uint64>(m_pp.gold) * 100) +
-		(static_cast<uint64>(m_pp.platinum) * 1000)));
+	return (
+		(
+			static_cast<uint64>(m_pp.copper) +
+			(static_cast<uint64>(m_pp.silver) * 10) +
+			(static_cast<uint64>(m_pp.gold) * 100) +
+			(static_cast<uint64>(m_pp.platinum) * 1000)
+		)
+	);
 }
 
 uint64 Client::GetAllMoney() {
 
 	return (
-		(static_cast<uint64>(m_pp.copper) +
-		(static_cast<uint64>(m_pp.silver) * 10) +
-		(static_cast<uint64>(m_pp.gold) * 100) +
-		(static_cast<uint64>(m_pp.platinum) * 1000) +
-		(static_cast<uint64>(m_pp.copper_bank) +
-		(static_cast<uint64>(m_pp.silver_bank) * 10) +
-		(static_cast<uint64>(m_pp.gold_bank) * 100) +
-		(static_cast<uint64>(m_pp.platinum_bank) * 1000) +
-		(static_cast<uint64>(m_pp.copper_cursor) +
-		(static_cast<uint64>(m_pp.silver_cursor) * 10) +
-		(static_cast<uint64>(m_pp.gold_cursor) * 100) +
-		(static_cast<uint64>(m_pp.platinum_cursor) * 1000) +
-		(static_cast<uint64>(m_pp.platinum_shared) * 1000)))));
+		(
+			static_cast<uint64>(m_pp.copper) +
+			(static_cast<uint64>(m_pp.silver) * 10) +
+			(static_cast<uint64>(m_pp.gold) * 100) +
+			(static_cast<uint64>(m_pp.platinum) * 1000) +
+			(
+				static_cast<uint64>(m_pp.copper_bank) +
+				(static_cast<uint64>(m_pp.silver_bank) * 10) +
+				(static_cast<uint64>(m_pp.gold_bank) * 100) +
+				(static_cast<uint64>(m_pp.platinum_bank) * 1000) +
+				(
+					static_cast<uint64>(m_pp.copper_cursor) +
+					(static_cast<uint64>(m_pp.silver_cursor) * 10) +
+					(static_cast<uint64>(m_pp.gold_cursor) * 100) +
+					(static_cast<uint64>(m_pp.platinum_cursor) * 1000) +
+					(static_cast<uint64>(m_pp.platinum_shared) * 1000)
+				)
+			)
+		)
+	);
 }
 
 bool Client::CheckIncreaseSkill(EQ::skills::SkillType skillid, Mob *against_who, int chancemodi) {
@@ -2395,7 +2430,7 @@ bool Client::CheckIncreaseSkill(EQ::skills::SkillType skillid, Mob *against_who,
 		return false;
 	if (skillid > EQ::skills::HIGHEST_SKILL)
 		return false;
-	int skillval = GetRawSkill(skillid);	
+	int skillval = GetRawSkill(skillid);
 	int maxskill = GetMaxSkillAfterSpecializationRules(skillid, MaxSkill(skillid));
 	std::string export_string = fmt::format(
 		"{} {}",
@@ -2420,7 +2455,7 @@ bool Client::CheckIncreaseSkill(EQ::skills::SkillType skillid, Mob *against_who,
 	// Make sure we're not already at skill cap
 	if (skillval < maxskill)
 	{
-		double Chance = 0;		
+		double Chance = 0;
 		if (RuleI(Character, SkillUpMaximumChancePercentage) + chancemodi - RuleI(Character, SkillUpMinimumChancePercentage) <= RuleI(Character, SkillUpMinimumChancePercentage)) {
 			Chance = RuleI(Character, SkillUpMinimumChancePercentage);
 		}
@@ -2436,6 +2471,14 @@ bool Client::CheckIncreaseSkill(EQ::skills::SkillType skillid, Mob *against_who,
 		if(zone->random.Real(0, 99) < Chance)
 		{
 			SetSkill(skillid, GetRawSkill(skillid) + 1);
+			std::string export_string = fmt::format(
+				"{} {} {} {}",
+				skillid,
+				skillval+1,
+				maxskill,
+				0
+			);
+			parse->EventPlayer(EVENT_SKILL_UP, this, export_string, 0);
 			LogSkills("Skill [{}] at value [{}] successfully gain with [{}] chance (mod [{}])", skillid, skillval, Chance, chancemodi);
 			return true;
 		} else {
@@ -2463,6 +2506,13 @@ void Client::CheckLanguageSkillIncrease(uint8 langid, uint8 TeacherSkill) {
 
 		if(zone->random.Real(0,100) < Chance) {	// if they make the roll
 			IncreaseLanguageSkill(langid);	// increase the language skill by 1
+			std::string export_string = fmt::format(
+				"{} {} {}",
+				langid,
+				LangSkill + 1,
+				100
+			);
+			parse->EventPlayer(EVENT_LANGUAGE_SKILL_UP, this, export_string, 0);
 			LogSkills("Language [{}] at value [{}] successfully gain with [{}] % chance", langid, LangSkill, Chance);
 		}
 		else
@@ -2682,12 +2732,12 @@ void Client::LogMerchant(Client* player, Mob* merchant, uint32 quantity, uint32 
 
 void Client::Disarm(Client* disarmer, int chance) {
 	int16 slot = EQ::invslot::SLOT_INVALID;
-	const EQ::ItemInstance *inst = this->GetInv().GetItem(EQ::invslot::slotPrimary);
+	const EQ::ItemInstance *inst = GetInv().GetItem(EQ::invslot::slotPrimary);
 	if (inst && inst->IsWeapon()) {
 		slot = EQ::invslot::slotPrimary;
 	}
 	else {
-		inst = this->GetInv().GetItem(EQ::invslot::slotSecondary);
+		inst = GetInv().GetItem(EQ::invslot::slotSecondary);
 		if (inst && inst->IsWeapon())
 			slot = EQ::invslot::slotSecondary;
 	}
@@ -2711,14 +2761,14 @@ void Client::Disarm(Client* disarmer, int chance) {
 						mi->number_in_stack = 0;
 					FastQueuePacket(&outapp); // this deletes item from the weapon slot on the client
 					if (PutItemInInventory(slot_id, *InvItem, true))
-						database.SaveInventory(this->CharacterID(), AccountID(), GetClass(), NULL, slot);
+						database.SaveInventory(CharacterID(), AccountID(), GetClass(), NULL, slot);
 					auto matslot = (slot == EQ::invslot::slotPrimary ? EQ::textures::weaponPrimary : EQ::textures::weaponSecondary);
 					if (matslot != EQ::textures::materialInvalid)
 						SendWearChange(matslot);
 				}
 				MessageString(Chat::Skills, DISARMED);
 				if (disarmer != this)
-					disarmer->MessageString(Chat::Skills, DISARM_SUCCESS, this->GetCleanName());
+					disarmer->MessageString(Chat::Skills, DISARM_SUCCESS, GetCleanName());
 				if (chance != 1000)
 					disarmer->CheckIncreaseSkill(EQ::skills::SkillDisarm, nullptr, 4);
 				CalcBonuses();
@@ -2823,7 +2873,7 @@ bool Client::BindWound(Mob *bindmob, bool start, bool fail)
 
 						max_percent = mod_bindwound_percent(max_percent, bindmob);
 
-						int max_hp = bindmob->GetMaxHP() * max_percent / 100;
+						int64 max_hp = bindmob->GetMaxHP() * max_percent / 100;
 
 						// send bindmob new hp's
 						if (bindmob->GetHP() < bindmob->GetMaxHP() && bindmob->GetHP() <= (max_hp)-1) {
@@ -3281,7 +3331,7 @@ void Client::SetTint(int16 in_slot, uint32 color) {
 	EQ::textures::Tint_Struct new_color;
 	new_color.Color = color;
 	SetTint(in_slot, new_color);
-	database.SaveCharacterMaterialColor(this->CharacterID(), in_slot, color);
+	database.SaveCharacterMaterialColor(CharacterID(), in_slot, color);
 }
 
 // Still need to reconcile bracer01 versus bracer02
@@ -3291,7 +3341,7 @@ void Client::SetTint(int16 in_slot, EQ::textures::Tint_Struct& color) {
 	if (matslot != EQ::textures::materialInvalid)
 	{
 		m_pp.item_tint.Slot[matslot].Color = color.Color;
-		database.SaveCharacterMaterialColor(this->CharacterID(), in_slot, color.Color);
+		database.SaveCharacterMaterialColor(CharacterID(), in_slot, color.Color);
 	}
 
 }
@@ -3328,7 +3378,7 @@ void Client::SetLanguageSkill(int langid, int value)
 		value = 100; //Max lang value
 
 	m_pp.languages[langid] = value;
-	database.SaveCharacterLanguage(this->CharacterID(), langid, value);
+	database.SaveCharacterLanguage(CharacterID(), langid, value);
 
 	auto outapp = new EQApplicationPacket(OP_SkillUpdate, sizeof(SkillUpdate_Struct));
 	SkillUpdate_Struct* skill = (SkillUpdate_Struct*)outapp->pBuffer;
@@ -3816,31 +3866,50 @@ void Client::GetRaidAAs(RaidLeadershipAA_Struct *into) const {
 
 void Client::EnteringMessages(Client* client)
 {
-	//server rules
 	std::string rules;
-	if(database.GetVariable("Rules", rules))
-	{
+	if (database.GetVariable("Rules", rules)) {
 		uint8 flag = database.GetAgreementFlag(client->AccountID());
-		if(!flag)
-		{
-			client->Message(Chat::Red,"You must agree to the Rules, before you can move. (type #serverrules to view the rules)");
-			client->Message(Chat::Red,"You must agree to the Rules, before you can move. (type #serverrules to view the rules)");
-			client->Message(Chat::Red,"You must agree to the Rules, before you can move. (type #serverrules to view the rules)");
+		if (!flag) {
+			auto rules_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+				"#serverrules",
+				false,
+				"rules"
+			);
+
+			client->Message(
+				Chat::White,
+				fmt::format(
+					"You must agree to the {} before you can move.",
+					rules_link
+				).c_str()
+			);
+
 			client->SendAppearancePacket(AT_Anim, ANIM_FREEZE);
 		}
 	}
 }
 
-void Client::SendRules(Client* client)
+void Client::SendRules()
 {
 	std::string rules;
 
-	if (!database.GetVariable("Rules", rules))
+	if (!database.GetVariable("Rules", rules)) {
 		return;
+	}
 
-	auto lines = SplitString(rules, '\n');
-	for (auto&& e : lines)
-		client->Message(Chat::White, "%s", e.c_str());
+	auto lines = split_string(rules, "|");
+	auto line_number = 1;
+	for (auto&& line : lines) {
+		Message(
+			Chat::White,
+			fmt::format(
+				"{}. {}",
+				line_number,
+				line
+			).c_str()
+		);
+		line_number++;
+	}
 }
 
 void Client::SetEndurance(int32 newEnd)
@@ -4623,7 +4692,7 @@ void Client::ClearGroupAAs() {
 	m_pp.raid_leadership_exp = 0;
 
 	Save();
-	database.SaveCharacterLeadershipAA(this->CharacterID(), &m_pp);
+	database.SaveCharacterLeadershipAA(CharacterID(), &m_pp);
 }
 
 void Client::UpdateGroupAAs(int32 points, uint32 type) {
@@ -5247,7 +5316,7 @@ void Client::SetStartZone(uint32 zoneid, float x, float y, float z, float headin
 	// setting city to zero allows the player to use /setstartcity to set the city themselves
 	if(zoneid == 0) {
 		m_pp.binds[4].zone_id = 0;
-		this->Message(Chat::Yellow,"Your starting city has been reset. Use /setstartcity to choose a new one");
+		Message(Chat::Yellow,"Your starting city has been reset. Use /setstartcity to choose a new one");
 		return;
 	}
 
@@ -5344,10 +5413,10 @@ void Client::ShowSkillsWindow()
 		// Row End
 		popup_text += "</tr>";
 	}
-	
+
 	// Table End
 	popup_text += "</table>";
-	
+
 	SendPopupToClient(
 		"Skills",
 		popup_text.c_str()
@@ -6254,7 +6323,7 @@ void Client::NPCSpawn(NPC *target_npc, const char *identifier, uint32 extra)
 			this,
 			target_npc->CastToNPC(),
 			extra
-		); 
+		);
 	} else if (is_delete || is_remove || is_update) {
 		uint8 spawn_update_type = (
 			is_delete ?
@@ -6353,7 +6422,7 @@ void Client::ConsentCorpses(std::string consent_name, bool deny)
 
 void Client::Doppelganger(uint16 spell_id, Mob *target, const char *name_override, int pet_count, int pet_duration)
 {
-	if(!target || !IsValidSpell(spell_id) || this->GetID() == target->GetID())
+	if(!target || !IsValidSpell(spell_id) || GetID() == target->GetID())
 		return;
 
 	PetRecord record;
@@ -7063,8 +7132,8 @@ void Client::AddAlternateCurrencyValue(uint32 currency_id, int32 amount, int8 me
 	if (method == 1){
 		/* QS: PlayerLogAlternateCurrencyTransactions :: Cursor to Item Storage */
 		if (RuleB(QueryServ, PlayerLogAlternateCurrencyTransactions)){
-			std::string event_desc = StringFormat("Added via Quest :: Cursor to Item :: alt_currency_id:%i amount:%i in zoneid:%i instid:%i", currency_id, this->GetZoneID(), this->GetInstanceID());
-			QServ->PlayerLogEvent(Player_Log_Alternate_Currency_Transactions, this->CharacterID(), event_desc);
+			std::string event_desc = StringFormat("Added via Quest :: Cursor to Item :: alt_currency_id:%i amount:%i in zoneid:%i instid:%i", currency_id, GetZoneID(), GetInstanceID());
+			QServ->PlayerLogEvent(Player_Log_Alternate_Currency_Transactions, CharacterID(), event_desc);
 		}
 	}
 
@@ -7402,7 +7471,7 @@ void Client::ProcessXTargetAutoHaters()
 	std::queue<int> empty_slots;
 	for (int i = 0; i < GetMaxXTargets(); ++i) {
 		if (XTargets[i].Type != Auto)
-			continue;		
+			continue;
 
 		if (XTargets[i].ID != 0 && !GetXTargetAutoMgr()->contains_mob(XTargets[i].ID)) {
 			XTargets[i].ID = 0;
@@ -7441,7 +7510,7 @@ void Client::ProcessXTargetAutoHaters()
 				break;
 		}
 	}
-	
+
 	m_dirtyautohaters = false;
 	SendXTargetUpdates();
 }
@@ -8002,7 +8071,7 @@ void Client::UpdatePersonalFaction(int32 char_id, int32 npc_value, int32 faction
 	bool repair = false;
 	bool change = false;
 
-	if (this->itembonuses.HeroicCHA)
+	if (itembonuses.HeroicCHA)
 	{
 		int faction_mod = itembonuses.HeroicCHA / 5;
 		// If our result isn't truncated, then just do that
@@ -8641,7 +8710,7 @@ void Client::QuestReward(Mob* target, uint32 copper, uint32 silver, uint32 gold,
 	qr->exp_reward = exp;
 
 	if (copper > 0 || silver > 0 || gold > 0 || platinum > 0)
-		AddMoneyToPP(copper, silver, gold, platinum, false);
+		AddMoneyToPP(copper, silver, gold, platinum);
 
 	if (itemid > 0)
 		SummonItem(itemid, -1, 0, 0, 0, 0, 0, false, EQ::invslot::slotCursor);
@@ -8676,7 +8745,7 @@ void Client::QuestReward(Mob* target, const QuestReward_Struct &reward, bool fac
 	qr->mob_id = target ? target->GetID() : 0;		// Entity ID for the from mob name
 
 	if (reward.copper > 0 || reward.silver > 0 || reward.gold > 0 || reward.platinum > 0)
-		AddMoneyToPP(reward.copper, reward.silver, reward.gold, reward.platinum, false);
+		AddMoneyToPP(reward.copper, reward.silver, reward.gold, reward.platinum);
 
 	for (int i = 0; i < QUESTREWARD_COUNT; ++i)
 		if (reward.item_id[i] > 0)
@@ -8701,16 +8770,16 @@ void Client::QuestReward(Mob* target, const QuestReward_Struct &reward, bool fac
 }
 
 void Client::SendHPUpdateMarquee(){
-	if (!this || !this->IsClient() || !this->current_hp || !this->max_hp)
+	if (!this || !IsClient() || !current_hp || !max_hp)
 		return;
 
 	/* Health Update Marquee Display: Custom*/
-	uint8 health_percentage = (uint8)(this->current_hp * 100 / this->max_hp);
+	uint8 health_percentage = (uint8)(current_hp * 100 / max_hp);
 	if (health_percentage >= 100)
 		return;
 
 	std::string health_update_notification = StringFormat("Health: %u%%", health_percentage);
-	this->SendMarqueeMessage(Chat::Yellow, 510, 0, 3000, 3000, health_update_notification);
+	SendMarqueeMessage(Chat::Yellow, 510, 0, 3000, 3000, health_update_notification);
 }
 
 uint32 Client::GetMoney(uint8 type, uint8 subtype) {
@@ -9288,15 +9357,15 @@ bool Client::GotoPlayer(std::string player_name)
 		auto heading     = static_cast<float>(atof(row[5]));
 
 		if (instance_id > 0 && !database.CheckInstanceExists(instance_id)) {
-			this->Message(Chat::Yellow, "Instance no longer exists...");
+			Message(Chat::Yellow, "Instance no longer exists...");
 			return false;
 		}
 
 		if (instance_id > 0) {
-			database.AddClientToInstance(instance_id, this->CharacterID());
+			database.AddClientToInstance(instance_id, CharacterID());
 		}
 
-		this->MovePC(zone_id, instance_id, x, y, z, heading);
+		MovePC(zone_id, instance_id, x, y, z, heading);
 
 		return true;
 	}
@@ -9389,63 +9458,202 @@ void Client::CheckVirtualZoneLines()
 
 void Client::ShowDevToolsMenu()
 {
-	std::string menu_commands_search;
-	std::string menu_commands_show;
-	std::string reload_commands_show;
-	std::string devtools_toggle;
+	std::string menu_search;
+	std::string menu_show;
+	std::string menu_reload_one;
+	std::string menu_reload_two;
+	std::string menu_reload_three;
+	std::string menu_reload_four;
+	std::string menu_reload_five;
+	std::string menu_reload_six;
+	std::string menu_reload_seven;
+	std::string menu_reload_eight;
+	std::string menu_toggle;
 
 	/**
 	 * Search entity commands
 	 */
-	menu_commands_search += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#list npcs", false, "NPC") + "] ";
-	menu_commands_search += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#list players", false, "Players") + "] ";
-	menu_commands_search += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#list corpses", false, "Corpses") + "] ";
-	menu_commands_search += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#list doors", false, "Doors") + "] ";
-	menu_commands_search += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#list objects", false, "Objects") + "] ";
-	menu_commands_search += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#fz", false, "Zones") + "] ";
-	menu_commands_search += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#fi", false, "Items") + "] ";
+	menu_search += EQ::SayLinkEngine::GenerateQuestSaylink("#list corpses", false, "Corpses");
+	menu_search += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#list doors", false, "Doors");
+	menu_search += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#finditem", false, "Items");
+	menu_search += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#list npcs", false, "NPC");
+	menu_search += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#list objects", false, "Objects");
+	menu_search += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#list players", false, "Players");
+	menu_search += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#findzone", false, "Zones");
 
 	/**
 	 * Show
 	 */
-	menu_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#showzonepoints", false, "Zone Points") + "] ";
-	menu_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#showzonegloballoot", false, "Zone Global Loot") + "] ";
+	menu_show += EQ::SayLinkEngine::GenerateQuestSaylink("#showzonepoints", false, "Zone Points");
+	menu_show += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#showzonegloballoot", false, "Zone Global Loot");
 
 	/**
 	 * Reload
 	 */
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#rq", false, "Quests") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadmerchants", false, "Merchants") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadallrules", false, "Rules Globally") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadstatic", false, "Ground Spawns") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadstatic", false, "Alternate Currencies") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadstatic", false, "DB Emotes") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadstatic", false, "Doors") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadtraps", false, "Traps") + "] ";
-	reload_commands_show += "[" + EQ::SayLinkEngine::GenerateQuestSaylink("#reloadzps", false, "Zone Points") + "] ";
+	menu_reload_one += EQ::SayLinkEngine::GenerateQuestSaylink("#reload aa", false, "AAs");
+	menu_reload_one += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload alternate_currencies", false, "Alternate Currencies");
+	menu_reload_one += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload blocked_spells", false, "Blocked Spells");
+	menu_reload_one += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload content_flags", false, "Content Flags");
+
+	menu_reload_two += EQ::SayLinkEngine::GenerateQuestSaylink("#reload doors", false, "Doors");
+	menu_reload_two += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload ground_spawns", false, "Ground Spawns");
+
+	menu_reload_three += EQ::SayLinkEngine::GenerateQuestSaylink("#reload logs", false, "Level Based Experience Modifiers");
+	menu_reload_three += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload logs", false, "Log Settings");
+
+	menu_reload_four += EQ::SayLinkEngine::GenerateQuestSaylink("#reload merchants", false, "Merchants");
+	menu_reload_four += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload npc_emotes", false, "NPC Emotes");
+	menu_reload_four += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload objects", false, "Objects");
+
+	menu_reload_five += EQ::SayLinkEngine::GenerateQuestSaylink("#reload perl_export", false, "Perl Event Export Settings");
+	menu_reload_five += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload quest", false, "Quests");
+
+	menu_reload_six += EQ::SayLinkEngine::GenerateQuestSaylink("#reload rules", false, "Rules");
+	menu_reload_six += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload static", false, "Static Zone Data");
+	menu_reload_six += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload tasks", false, "Tasks");
+	
+	menu_reload_seven += EQ::SayLinkEngine::GenerateQuestSaylink("#reload titles", false, "Titles");
+	menu_reload_seven += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload traps 1", false, "Traps");
+	menu_reload_seven += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload variables", false, "Variables");
+	menu_reload_seven += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload veteran_rewards", false, "Veteran Rewards");
+	
+	menu_reload_eight += EQ::SayLinkEngine::GenerateQuestSaylink("#reload world", false, "World");
+	menu_reload_eight += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload zone", false, "Zone");
+	menu_reload_eight += " | " + EQ::SayLinkEngine::GenerateQuestSaylink("#reload zone_points", false, "Zone Points");
 
 	/**
 	 * Show window status
 	 */
-	devtools_toggle = "Disabled [" + EQ::SayLinkEngine::GenerateQuestSaylink("#devtools enable", false, "Enable") + "] ";
+	menu_toggle = EQ::SayLinkEngine::GenerateQuestSaylink("#devtools enable", false, "Enable");
 	if (IsDevToolsEnabled()) {
-		devtools_toggle = "Enabled [" + EQ::SayLinkEngine::GenerateQuestSaylink("#devtools disable", false, "Disable") + "] ";
+		menu_toggle = EQ::SayLinkEngine::GenerateQuestSaylink("#devtools disable", false, "Disable");
 	}
 
 	/**
 	 * Print menu
 	 */
 	SendChatLineBreak();
+
+	Message(Chat::White, "Developer Tools Menu");
+
 	Message(
-		Chat::White, "| [Devtools] %s Show this menu with %s | Current expansion [%s]",
-		devtools_toggle.c_str(),
-		EQ::SayLinkEngine::GenerateQuestSaylink("#dev", false, "#dev").c_str(),
-		content_service.GetCurrentExpansionName().c_str()
+		Chat::White,
+		fmt::format(
+			"Current Expansion | {}",
+			content_service.GetCurrentExpansionName()
+		).c_str()
 	);
-	Message(Chat::White, "| [Devtools] Search %s", menu_commands_search.c_str());
-	Message(Chat::White, "| [Devtools] Show %s", menu_commands_show.c_str());
-	Message(Chat::White, "| [Devtools] Reload %s", reload_commands_show.c_str());
-	Message(Chat::White, "| [Devtools] Search commands with #help <search>");
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Show Menu | {}",
+			EQ::SayLinkEngine::GenerateQuestSaylink("#dev", false, "#dev")
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Toggle | {}",
+			menu_toggle
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Search | {}",
+			menu_search
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Show | {}",
+			menu_show
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_one
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_two
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_three
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_four
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_five
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_six
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_seven
+		).c_str()
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Reload | {}",
+			menu_reload_eight
+		).c_str()
+	);
+
+	auto help_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#help",
+		false,
+		"#help"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Note: You can search for commands with {} [Search String]",
+			help_link
+		).c_str()
+	);
+
 	SendChatLineBreak();
 }
 
@@ -10154,7 +10362,7 @@ void Client::SetAnon(uint8 anon_flag) {
 	m_pp.anon = anon_flag;
 	auto outapp = new EQApplicationPacket(OP_SpawnAppearance, sizeof(SpawnAppearance_Struct));
 	SpawnAppearance_Struct* spawn_appearance = (SpawnAppearance_Struct*)outapp->pBuffer;
-	spawn_appearance->spawn_id = this->GetID();
+	spawn_appearance->spawn_id = GetID();
 	spawn_appearance->type = AT_Anon;
 	spawn_appearance->parameter = anon_flag;
 	entity_list.QueueClients(this, outapp);
@@ -10167,7 +10375,7 @@ void Client::SetAFK(uint8 afk_flag) {
 	AFK = afk_flag;
 	auto outapp = new EQApplicationPacket(OP_SpawnAppearance, sizeof(SpawnAppearance_Struct));
 	SpawnAppearance_Struct* spawn_appearance = (SpawnAppearance_Struct*)outapp->pBuffer;
-	spawn_appearance->spawn_id = this->GetID();
+	spawn_appearance->spawn_id = GetID();
 	spawn_appearance->type = AT_AFK;
 	spawn_appearance->parameter = afk_flag;
 	entity_list.QueueClients(this, outapp);
@@ -10287,8 +10495,8 @@ void Client::RemoveItem(uint32 item_id, uint32 quantity)
 }
 
 void Client::SetGMStatus(int newStatus) {
-	if (this->Admin() != newStatus)
-		database.UpdateGMStatus(this->AccountID(), newStatus);
+	if (Admin() != newStatus)
+		database.UpdateGMStatus(AccountID(), newStatus);
 }
 
 void Client::ApplyWeaponsStance()
@@ -10780,7 +10988,7 @@ uint16 Client::LearnDisciplines(uint8 min_level, uint8 max_level)
 				);
 				break;
 			}
-			
+
 			if (HasDisciplineLearned(spell_id)) {
 				continue;
 			}
@@ -10839,7 +11047,7 @@ uint16 Client::GetClassTrackingDistanceMultiplier(uint16 class_) {
 		return RuleI(Character, BeastlordTrackingDistanceMultiplier);
 	case BERSERKER:
 		return RuleI(Character, BerserkerTrackingDistanceMultiplier);
-	default: 
+	default:
 		return 0;
 	}
 }
@@ -11165,6 +11373,84 @@ void Client::FakeUnscribeSpell(int slot)
 	safe_delete(outapp);
 }
 
+void Client::ReconnectUCS()
+{
+	EQApplicationPacket      *outapp         = nullptr;
+	std::string              buffer;
+	std::string              mail_key        = database.GetMailKey(CharacterID(), true);
+	EQ::versions::UCSVersion connection_type = EQ::versions::ucsUnknown;
+
+	// chat server packet
+	switch (ClientVersion()) {
+		case EQ::versions::ClientVersion::Titanium:
+			connection_type = EQ::versions::ucsTitaniumChat;
+			break;
+		case EQ::versions::ClientVersion::SoF:
+			connection_type = EQ::versions::ucsSoFCombined;
+			break;
+		case EQ::versions::ClientVersion::SoD:
+			connection_type = EQ::versions::ucsSoDCombined;
+			break;
+		case EQ::versions::ClientVersion::UF:
+			connection_type = EQ::versions::ucsUFCombined;
+			break;
+		case EQ::versions::ClientVersion::RoF:
+			connection_type = EQ::versions::ucsRoFCombined;
+			break;
+		case EQ::versions::ClientVersion::RoF2:
+			connection_type = EQ::versions::ucsRoF2Combined;
+			break;
+		default:
+			connection_type = EQ::versions::ucsUnknown;
+			break;
+	}
+
+	buffer = StringFormat(
+		"%s,%i,%s.%s,%c%s",
+		Config->ChatHost.c_str(),
+		Config->ChatPort,
+		Config->ShortName.c_str(),
+		GetName(),
+		connection_type,
+		mail_key.c_str()
+	);
+
+	outapp = new EQApplicationPacket(OP_SetChatServer, (buffer.length() + 1));
+	memcpy(outapp->pBuffer, buffer.c_str(), buffer.length());
+	outapp->pBuffer[buffer.length()] = '\0';
+
+	QueuePacket(outapp);
+	safe_delete(outapp);
+
+	// mail server packet
+	switch (ClientVersion()) {
+		case EQ::versions::ClientVersion::Titanium:
+			connection_type = EQ::versions::ucsTitaniumMail;
+			break;
+		default:
+			// retain value from previous switch
+			break;
+	}
+
+	buffer = StringFormat(
+		"%s,%i,%s.%s,%c%s",
+		Config->MailHost.c_str(),
+		Config->MailPort,
+		Config->ShortName.c_str(),
+		GetName(),
+		connection_type,
+		mail_key.c_str()
+	);
+
+	outapp = new EQApplicationPacket(OP_SetChatServer2, (buffer.length() + 1));
+	memcpy(outapp->pBuffer, buffer.c_str(), buffer.length());
+	outapp->pBuffer[buffer.length()] = '\0';
+
+
+	QueuePacket(outapp);
+	safe_delete(outapp);
+}
+
 void Client::SwapReferences(uint32 in_class_id, PlayerProfile_Struct& in_MercPP, ExtendedProfile_Struct& in_MercEPP)
 {
 	class_ = in_class_id;
@@ -11213,4 +11499,545 @@ void Client::ForceMerchantWindow(uint32 entityId, uint8 type, uint32 merchant_id
 			BulkSendMerchantInventory(merchant_id > 0 ? merchant_id : merchantNpc->MerchantType, merchantNpc->GetNPCTypeID(), merchant_id == 0 ? 0 : 1);
 		}
 	}
+}
+
+void Client::SendReloadCommandMessages() {
+	SendChatLineBreak();
+
+	auto aa_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload aa",
+		false,
+		"#reload aa"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Alternate Advancement Data globally",
+			aa_link
+		).c_str()
+	);
+
+	auto alternate_currencies_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload alternate_currencies",
+		false,
+		"#reload alternate_currencies"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Alternate Currencies globally",
+			alternate_currencies_link
+		).c_str()
+	);
+
+	auto blocked_spells_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload blocked_spells",
+		false,
+		"#reload blocked_spells"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Blocked Spells globally",
+			blocked_spells_link
+		).c_str()
+	);
+
+	auto content_flags_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload content_flags",
+		false,
+		"#reload content_flags"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Content Flags globally",
+			content_flags_link
+		).c_str()
+	);
+
+	auto doors_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload doors",
+		false,
+		"#reload doors"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Doors globally",
+			doors_link
+		).c_str()
+	);
+
+	auto ground_spawns_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload ground_spawns",
+		false,
+		"#reload ground_spawns"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Ground Spawns globally",
+			ground_spawns_link
+		).c_str()
+	);
+
+	auto level_mods_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload level_mods",
+		false,
+		"#reload level_mods"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Level Based Experience Modifiers globally",
+			level_mods_link
+		).c_str()
+	);
+
+	auto logs_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload logs",
+		false,
+		"#reload logs"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Log Settings globally",
+			logs_link
+		).c_str()
+	);
+
+	auto merchants_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload merchants",
+		false,
+		"#reload merchants"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Merchants globally",
+			merchants_link
+		).c_str()
+	);
+
+	auto npc_emotes_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload npc_emotes",
+		false,
+		"#reload npc_emotes"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads NPC Emotes globally",
+			npc_emotes_link
+		).c_str()
+	);
+
+	auto objects_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload objects",
+		false,
+		"#reload objects"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Objects globally",
+			objects_link
+		).c_str()
+	);
+
+	auto perl_export_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload perl_export",
+		false,
+		"#reload perl_export"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Perl Event Export Settings globally",
+			perl_export_link
+		).c_str()
+	);
+
+	auto quest_link_one = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload quest",
+		false,
+		"#reload quest"
+	);
+
+	auto quest_link_two = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload quest",
+		false,
+		"0"
+	);
+
+	auto quest_link_three = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload quest 1",
+		false,
+		"1"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} [{}|{}] - Reloads Quests and Timers in your current zone if specified (0 = Do Not Reload Timers, 1 = Reload Timers)",
+			quest_link_one,
+			quest_link_two,
+			quest_link_three
+		).c_str()
+	);
+
+	auto rules_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload rules",
+		false,
+		"#reload rules"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Rules globally",
+			rules_link
+		).c_str()
+	);
+
+	auto static_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload static",
+		false,
+		"#reload static"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Static Zone Data globally",
+			static_link
+		).c_str()
+	);
+
+	auto tasks_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload tasks",
+		false,
+		"#reload tasks"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} [Task ID] - Reloads Tasks globally or by ID if specified",
+			tasks_link
+		).c_str()
+	);
+
+	auto titles_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload titles",
+		false,
+		"#reload titles"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Titles globally",
+			titles_link
+		).c_str()
+	);
+
+	auto traps_link_one = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload traps",
+		false,
+		"#reload traps"
+	);
+
+	auto traps_link_two = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload traps",
+		false,
+		"0"
+	);
+
+	auto traps_link_three = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload traps 1",
+		false,
+		"1"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} [{}|{}] - Reloads Traps in your current zone or globally if specified",
+			traps_link_one,
+			traps_link_two,
+			traps_link_three
+		).c_str()
+	);
+
+	auto variables_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload variables",
+		false,
+		"#reload variables"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Variables globally",
+			variables_link
+		).c_str()
+	);
+
+	auto veteran_rewards_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload veteran_rewards",
+		false,
+		"#reload veteran_rewards"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Veteran Rewards globally",
+			veteran_rewards_link
+		).c_str()
+	);
+
+	auto world_link_one = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload world",
+		false,
+		"#reload world"
+	);
+
+	auto world_link_two = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload world",
+		false,
+		"0"
+	);
+
+	auto world_link_three = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload world 1",
+		false,
+		"1"
+	);
+
+	auto world_link_four = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload world 2",
+		false,
+		"2"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} [{}|{}|{}] - Reloads Quests and repops globally if specified (0 = No Repop, 1 = Repop, 2 = Force Repop)",
+			world_link_one,
+			world_link_two,
+			world_link_three,
+			world_link_four
+		).c_str()
+	);
+
+	auto zone_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload zone",
+		false,
+		"#reload zone"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} [Zone ID] [Version] - Reloads Zone configuration for your current zone, can load another Zone's configuration if specified",
+			zone_link
+		).c_str()
+	);
+
+	auto zone_points_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload zone_points",
+		false,
+		"#reload zone_points"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads Zone Points globally",
+			zone_points_link
+		).c_str()
+	);
+
+	SendChatLineBreak();
+}
+
+bool Client::CheckMerchantDataBucket(uint8 bucket_comparison, std::string bucket_value, std::string player_value)
+{
+	std::vector<std::string> bucket_checks;
+	bool found = false;
+	bool passes = false;
+
+	switch (bucket_comparison) {
+		case MerchantBucketComparison::BucketEqualTo:
+		{
+			if (player_value != bucket_value) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketNotEqualTo:
+		{
+			if (player_value == bucket_value) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketGreaterThanOrEqualTo:
+		{
+			if (player_value < bucket_value) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketLesserThanOrEqualTo:
+		{
+			if (player_value > bucket_value) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketGreaterThan:
+		{
+			if (player_value <= bucket_value) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketLesserThan:
+		{
+			if (player_value >= bucket_value) {
+				break;
+			}
+
+			passes = true;
+			
+			break;
+		}
+		case MerchantBucketComparison::BucketIsAny:
+		{
+			bucket_checks = split_string(bucket_value, "|");
+			if (bucket_checks.empty()) {
+				break;
+			}
+
+			for (const auto &bucket : bucket_checks) {
+				if (player_value == bucket) {
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketIsNotAny:
+		{
+			bucket_checks = split_string(bucket_value, "|");
+			if (bucket_checks.empty()) {
+				break;
+			}
+
+			for (const auto &bucket : bucket_checks) {
+				if (player_value == bucket) {
+					found = true;
+					break;
+				}
+			}
+
+			if (found) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketIsBetween:
+		{
+			bucket_checks = split_string(bucket_value, "|");
+			if (bucket_checks.empty()) {
+				break;
+			}
+
+			if (
+				std::stoll(player_value) < std::stoll(bucket_checks[0]) ||
+				std::stoll(player_value) > std::stoll(bucket_checks[1])
+			) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+		case MerchantBucketComparison::BucketIsNotBetween:
+		{
+			bucket_checks = split_string(bucket_value, "|");
+			if (bucket_checks.empty()) {
+				break;
+			}
+
+			if (
+				std::stoll(player_value) >= std::stoll(bucket_checks[0]) &&
+				std::stoll(player_value) <= std::stoll(bucket_checks[1])
+			) {
+				break;
+			}
+
+			passes = true;
+			break;
+		}
+	}
+
+	return passes;
+}
+
+std::map<std::string,std::string> Client::GetMerchantDataBuckets()
+{
+	std::map<std::string,std::string> merchant_data_buckets;
+
+	auto query = fmt::format(
+		"SELECT `key`, `value` FROM data_buckets WHERE `key` LIKE '{}-%'",
+		EscapeString(GetBucketKey())
+	);
+	auto results = database.QueryDatabase(query);
+
+	if (!results.Success() || !results.RowCount()) {
+		return merchant_data_buckets;
+	}
+
+	for (auto row : results) {
+		merchant_data_buckets.insert(std::pair<std::string,std::string>(row[0], row[1]));
+	}
+
+	return merchant_data_buckets;
 }
