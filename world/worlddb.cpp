@@ -895,7 +895,7 @@ bool WorldDatabase::GetCharSelInventory(uint32 account_id, uint32 class_id, char
 		"AND"
 		" slotid <= %i "
 		"AND"
-		" (class_id = %i OR class_id = 0) ",
+		" (class_id = %i) ",
 		name,
 		account_id,
 		EQ::invslot::slotHead,

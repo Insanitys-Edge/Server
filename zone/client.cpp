@@ -10934,17 +10934,7 @@ void Client::OutputAccountCharacters()
 
 void Client::SaveMercData()
 {
-	for (auto mercData : validMercCharacterData)
-	{
-		if (mercData.first == GetClass())
-		{
-			database.SaveCharacterData(CharacterID(), AccountID(), &m_pp, &m_epp); // currently controlled player
-		}
-		else
-		{
-			database.SaveCharacterData(CharacterID(), mercData.first, &mercData.second->m_pp, &mercData.second->m_epp); // currently controlled player
-		}
-	}
+	database.SaveCharacterData(CharacterID(), AccountID(), &m_pp, &m_epp); // currently controlled player
 }
 
 MercCharacter_Struct* Client::GetMercCharacterDataByName(const char* merc_name)
@@ -11005,7 +10995,7 @@ void Client::SwapWithClass(uint32 class_id)
 			SwapReferences(class_id, mercResult->second->m_pp, mercResult->second->m_epp);
 			//swap loaded spells
 			SwapLoadedSpellsWithMerc(ppofCurrentMerc, targetppofCurrentCharacter);
-			SwapInventoryWithMerc(m_inv, targetinvofCurrentCharacter);
+			SwapInventoryWithMerc(targetinvofCurrentCharacter, invofCurrentMerc);
 			BuffFadeBeneficial();
 
 			if (GetMerc())
