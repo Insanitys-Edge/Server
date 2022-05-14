@@ -27,40 +27,6 @@
 
 extern WorldServer worldserver;
 
-EQ::ItemInstance* Mob::GetInvItem(uint16 slot) {
-	if(IsClient())
-	{
-		return CastToClient()->GetInv().GetItem(slot);
-	}
-	else if(IsMerc())
-	{
-		auto inv = CastToMerc()->GetInv();
-		if(inv)
-			return inv->GetItem(slot);
-	}
-	return nullptr;
-}
-
-int Mob::GetInvItemID(uint16 slot) {
-	if(IsClient())
-	{
-		auto item = CastToClient()->GetInv().GetItem(slot);
-		if(item)
-			return item->GetID();
-	}
-	else if(IsMerc())
-	{
-		auto inv = CastToMerc()->GetInv();
-		if(inv)
-		{
-			auto item = inv->GetItem(slot);
-			if(item)
-				return item->GetID();
-		}
-	}
-	return 0;
-}
-
 // @merth: this needs to be touched up
 uint32 Client::NukeItem(uint32 itemnum, uint8 where_to_check) {
 	if (itemnum == 0)

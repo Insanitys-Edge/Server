@@ -215,8 +215,6 @@ public:
 	int ACSum(bool skip_caps = false);
 	inline int GetDisplayAC() { return 1000 * (ACSum(true) + compute_defense()) / 847; }
 	int offense(EQ::skills::SkillType skill);
-	EQ::ItemInstance* GetInvItem(uint16 slot);
-	int GetInvItemID(uint16 slot);
 	int GetBestMeleeSkill();
 	virtual int GetOffense(EQ::skills::SkillType skill);
 	void CalcAC() { mitigation_ac = ACSum(); }
