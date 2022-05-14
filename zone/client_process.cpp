@@ -1840,6 +1840,10 @@ void Client::OPGMSummon(const EQApplicationPacket *app)
 void Client::DoHPRegen() {
 	SetHP(GetHP() + CalcHPRegen());
 	SendHPUpdate();
+	if (GetHP() < -10)
+	{
+		Kill();
+	}
 }
 
 void Client::DoManaRegen() {
