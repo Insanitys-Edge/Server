@@ -868,6 +868,11 @@ void Client::CompleteConnect()
 		ShowDevToolsMenu();
 	}
 
+	if (GetBaseRace() == DRAKKIN)
+	{
+		Message(Chat::Red, "Drakkin are an abomination, and as such are crippled, and lose 3% of their health per tick. We highly recommend you log out and delete your character. It might get worse as you play...");
+	}
+
 	// shared tasks memberlist
 	if (RuleB(TaskSystem, EnableTaskSystem) && GetTaskState()->HasActiveSharedTask()) {
 
@@ -4346,9 +4351,6 @@ void Client::Handle_OP_ClientUpdate(const EQApplicationPacket *app) {
 			cmob->MakeSpawnUpdate(ppus);
 			entity_list.QueueCloseClients(cmob, outapp, true, 300, this, false);
 			safe_delete(outapp);
-
-		else if (GetBoatID() != 0)
-			name = GetBoatName();
 
 			/* Update the boat's position on the server, without sending an update */
 			cmob->GMMove(ppu->x_pos, ppu->y_pos, ppu->z_pos, EQ12toFloat(ppu->heading));
