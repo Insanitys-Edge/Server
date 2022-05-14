@@ -658,7 +658,7 @@ void WorldDatabase::SetSoFDefaultStartZone(PlayerProfile_Struct* in_pp, CharCrea
 		in_pp->y = in_pp->binds[0].y = -20.0f;
 		in_pp->z = in_pp->binds[0].z = 0.79f;
 		in_pp->heading = in_pp->binds[0].heading = 0.0f;
-		in_pp->zone_id = in_pp->binds[0].zone_id = Zones::CRESCENT; // Crescent Reach.
+		in_pp->zone_id = in_pp->binds[0].zone_id = Zones::ERUDSXING; // Literal hell
 	}
 }
 

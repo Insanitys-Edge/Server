@@ -303,6 +303,11 @@ int64 Client::CalcHPRegen(bool bCombat)
 			base = fast_regen;
 	}
 
+	if (GetBaseRace() == DRAKKIN)
+	{
+		return -3;
+	}
+
 	int64 regen = base + item_regen + spellbonuses.HPRegen; // TODO: client does this in buff tick
 	return (regen * RuleI(Character, HPRegenMultiplier) / 100);
 }
