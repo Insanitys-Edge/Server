@@ -3458,6 +3458,9 @@ int64_t Client::GetStatValueEdgeType(eStatEntry eLabel)
 		}
 		case eStatRunspeed:
 		{
+			if (GetBaseRace() == DRAKKIN)
+				return 0;
+
 			return (static_cast<double>(0.025 * GetRunspeed()) / (double)runspeed) * 100000.0f;
 		}
 		case eStatMeleePower:
