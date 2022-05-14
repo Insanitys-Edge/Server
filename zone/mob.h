@@ -327,9 +327,8 @@ public:
 	virtual int32 GetActSpellDuration(uint16 spell_id, int32 duration);
 	virtual int32 GetActSpellCasttime(uint16 spell_id, int32 casttime);
 	virtual int64 GetActReflectedSpellDamage(int32 spell_id, int64 value, int effectiveness);
-	float ResistSpell(uint8 resist_type, uint16 spell_id, Mob *caster, bool use_resist_override = false,
-		int resist_override = 0, bool CharismaCheck = false, bool CharmTick = false, bool IsRoot = false,
-		int level_override = -1);
+	float ResistSpell(uint8 resist_type, uint16 spell_id, Mob* caster, Mob* target = nullptr, bool use_resist_override = false,
+		int resist_override = 0, bool tick_save = false);
 	int GetResist(uint8 resist_type);
 	int ResistPhysical(int level_diff, uint8 caster_level);
 	int ResistElementalWeaponDmg(const EQ::ItemInstance *item);

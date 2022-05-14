@@ -158,21 +158,31 @@ int32 Client::LevelRegen()
 	bool sitting = IsSitting();
 	bool feigned = GetFeigned();
 	int level = GetLevel();
-	bool bonus = GetPlayerRaceBit(GetBaseRace()) & RuleI(Character, BaseHPRegenBonusRaces);
+	bool bonus = false;//GetPlayerRaceBit(GetBaseRace()) & RuleI(Character, BaseHPRegenBonusRaces);
 	uint8 multiplier1 = bonus ? 2 : 1;
+
+	if (IsClient())
+	{
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst && inst->GetID() == RaceCharmIDs::CharmTroll ||
+			inst && inst->GetID() == RaceCharmIDs::CharmIksar)
+		{
+			bonus = true;
+		}
+	}
 	int64 hp = 0;
 	//these calculations should match up with the info from Monkly Business, which was last updated ~05/2008: http://www.monkly-business.net/index.php?pageid=abilities
 	if (level < 51) {
 		//if (sitting) {
-			if (level < 20) {
-				hp += 2 * multiplier1;
-			}
-			else if (level < 50) {
-				hp += 3 * multiplier1;
-			}
-			else {	//level == 50
-				hp += 4 * multiplier1;
-			}
+		if (level < 20) {
+			hp += 2 * multiplier1;
+		}
+		else if (level < 50) {
+			hp += 3 * multiplier1;
+		}
+		else {	//level == 50
+			hp += 4 * multiplier1;
+		}
 		//}
 		//else {	//feigned or standing
 		//	hp += 1 * multiplier1;
@@ -219,10 +229,10 @@ int32 Client::LevelRegen()
 			}
 		}
 		hp += int32(float(tmp) * multiplier2);
-		if (sitting) {
-			hp += 3 * multiplier1;
-		}
-		else if (feigned) {
+		//if (sitting) {
+		hp += 3 * multiplier1;
+		//}
+		if (feigned) {
 			hp += 1 * multiplier1;
 		}
 	}
@@ -474,6 +484,7 @@ uint32 Mob::GetClassLevelFactor()
 
 int64 Client::CalcBaseHP()
 {
+
 	if (ClientVersion() >= EQ::versions::ClientVersion::SoF && RuleB(Character, SoDClientUseSoDHPManaEnd)) {
 		int stats = GetSTA();
 		if (stats > 255) {
@@ -498,6 +509,15 @@ int64 Client::CalcBaseHP()
 		}
 		base_hp = (5) + (GetLevel() * lm / 10) + (((GetSTA() - Post255) * GetLevel() * lm / 3000)) + ((Post255 * GetLevel()) * lm / 6000);
 	}
+	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+	if (inst)
+	{
+		if (inst->GetID() == RaceCharmIDs::CharmDwarf)
+		{
+			base_hp += GetLevel() * 10;
+		}
+	}
+
 	return base_hp;
 }
 
@@ -714,27 +734,42 @@ int64 Client::CalcManaRegen(bool bCombat)
 		//if (IsSitting() || CanMedOnHorse()) {
 			// kind of weird to do it here w/e
 			// client does some base medding regen for shrouds here
-			if (GetClass() != BARD) {
-				auto skill = GetSkill(EQ::skills::SkillMeditate);
-				if (skill > 0) {
-					regen++;
-					if (skill > 1)
-						regen++;
-					if (skill >= 15)
-						regen += skill / 15;
-				}
-			}
+			//if (GetClass() != BARD) {
+			//	auto skill = GetSkill(EQ::skills::SkillMeditate);
+			//	if (skill > 0) {
+			//		regen++;
+			//		if (skill > 1)
+			//			regen++;
+			//		if (skill >= 15)
+			//			regen += skill / 15;
+			//	}
+			//}
 		//	if (old)
 		//		regen = std::max(regen, 2);
 		///*}*/ else if (old) {
 		//	regen = std::max(regen, 1);
 		/*}*/
+		regen = CalcBaseManaRegen();
 	}
 
 	if (level > 61) {
 		regen++;
 		if (level > 63)
 			regen++;
+	}
+
+	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+	if (inst)
+	{
+		switch (inst->GetID())
+		{
+		case RaceCharmIDs::CharmHuman:
+			regen += 2;
+			break;
+		case RaceCharmIDs::CharmErudite:
+			regen += GetLevel() / 5;
+			break;
+		}
 	}
 
 	regen += aabonuses.ManaRegen;

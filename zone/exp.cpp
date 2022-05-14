@@ -926,39 +926,43 @@ uint32 Client::GetEXPForLevel(uint16 check_level)
 
 	uint32 finalxp = uint32(base * mod);
 
-	if(RuleB(Character,UseOldRaceExpPenalties))
-	{
-		float racemod = 1.0;
-		if(GetBaseRace() == TROLL || GetBaseRace() == IKSAR) {
-			racemod = 1.2;
-		} else if(GetBaseRace() == OGRE) {
-			racemod = 1.15;
-		} else if(GetBaseRace() == BARBARIAN) {
-			racemod = 1.05;
-		} else if(GetBaseRace() == HALFLING) {
-			racemod = 0.95;
-		}
+	float racemod = 1.0;
+	//if (IsClient())
+	//{
+	//	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+	//	if (inst)
+	//	{
+	//		if (inst->GetID() == RaceCharmIDs::CharmIksar) {
+	//			racemod = 1.2;
+	//		}
+	//		else if (inst->GetID() == RaceCharmIDs::CharmOgre || inst->GetID() == RaceCharmIDs::CharmTroll) {
+	//			racemod = 1.15;
+	//		}
+	//		else if (inst->GetID() == RaceCharmIDs::CharmBarbarian || inst->GetID() == RaceCharmIDs::CharmVahShir) {
+	//			racemod = 1.05;
+	//		}
+	//		else if (inst->GetID() == RaceCharmIDs::CharmHalfling) {
+	//			racemod = 0.95;
+	//		}
+	//	}
+	//}
 
-		finalxp = uint32(finalxp * racemod);
-	}
+	finalxp = uint32(finalxp * racemod);
 
-	if(RuleB(Character,UseOldClassExpPenalties))
-	{
-		float classmod = 1.0;
-		if(GetClass() == PALADIN || GetClass() == SHADOWKNIGHT || GetClass() == RANGER || GetClass() == BARD) {
-			classmod = 1.4;
-		} else if(GetClass() == MONK) {
-			classmod = 1.2;
-		} else if(GetClass() == WIZARD || GetClass() == ENCHANTER || GetClass() == MAGICIAN || GetClass() == NECROMANCER) {
-			classmod = 1.1;
-		} else if(GetClass() == ROGUE) {
-			classmod = 0.91;
-		} else if(GetClass() == WARRIOR) {
-			classmod = 0.9;
-		}
+	float classmod = 1.0;
+	//if(GetClass() == PALADIN || GetClass() == SHADOWKNIGHT || GetClass() == RANGER || GetClass() == BARD) {
+	//	classmod = 1.4;
+	//} else if(GetClass() == MONK) {
+	//	classmod = 0.95;
+	//} else if(GetClass() == WIZARD || GetClass() == ENCHANTER || GetClass() == MAGICIAN || GetClass() == NECROMANCER) {
+	//	classmod = 1.1;
+	//} else if(GetClass() == ROGUE) {
+	//	classmod = 0.91;
+	//} else if(GetClass() == WARRIOR) {
+	//	classmod = 0.9;
+	//}
 
-		finalxp = uint32(finalxp * classmod);
-	}
+	finalxp = uint32(finalxp * classmod);
 
 	finalxp = mod_client_xp_for_level(finalxp, check_level);
 

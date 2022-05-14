@@ -156,9 +156,6 @@ public:
 	int GetMaxWIS();
 	int GetMaxCHA();
 	double ResistSpell(int resist_type, int spell_id, Lua_Mob caster);
-	double ResistSpell(int resist_type, int spell_id, Lua_Mob caster, bool use_resist_override);
-	double ResistSpell(int resist_type, int spell_id, Lua_Mob caster, bool use_resist_override, int resist_override);
-	double ResistSpell(int resist_type, int spell_id, Lua_Mob caster, bool use_resist_override, int resist_override, bool charisma_check);
 	int GetSpecializeSkillValue(int spell_id);
 	int GetNPCTypeID();
 	bool IsTargeted();

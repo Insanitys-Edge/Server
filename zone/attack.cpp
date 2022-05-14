@@ -891,8 +891,14 @@ int Mob::GetClassRaceACBonus()
 	}
 
 	//EDGE TODO: Racial AC from Iksar but on a charm.
-	//if (GetRace() == IKSAR)
-	//	ac_bonus += EQ::Clamp(static_cast<int>(level), 10, 35);
+	if (IsClient())
+	{
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst && inst->GetID() == RaceCharmIDs::CharmIksar)
+		{
+			ac_bonus += EQ::Clamp(static_cast<int>(level), 10, 35);
+		}
+	}
 
 	return ac_bonus;
 }
@@ -3952,6 +3958,16 @@ void Mob::CommonDamage(Mob* attacker, int64 &damage, const uint16 spell_id, cons
 				can_stun = false;
 			if (GetSpecialAbility(UNSTUNABLE))
 				can_stun = false;
+
+			if(IsClient())
+			{
+				EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+				if (inst && inst->GetID() == RaceCharmIDs::CharmOgre)
+				{
+					can_stun = false;
+				}
+			}
+
 		}
 		if (can_stun) {
 			int bashsave_roll = zone->random.Int(0, 100);

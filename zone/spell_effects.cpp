@@ -1305,6 +1305,16 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 #ifdef SPELL_EFFECT_SPAM
 				snprintf(effect_desc, _EDLEN, "Blind: %+i", effect_value);
 #endif
+
+				if (zone->random.Roll(RuleI(Spells, BlindBreakCheckChance)))
+				{
+					if (ResistSpell(spells[spell_id].resist_difficulty, spell_id, caster, this))
+					{
+						BuffFadeBySlot(buffslot);
+						break;
+					}
+				}
+
 				// 'cure blind'
 				if (BeneficialSpell(spell_id) && spells[spell_id].buff_duration == 0) {
 					int buff_count = GetMaxBuffSlots();
@@ -3951,10 +3961,9 @@ void Mob::DoBuffTic(const Buffs_Struct &buff, int slot, Mob *caster)
 			*/
 
 			if (zone->random.Roll(RuleI(Spells, RootBreakCheckChance))) {
-				float resist_check =
-				    ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster, 0, 0, 0, 0, true);
+				float resist_check = ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster, this);
 
-				if (resist_check == 100)
+				if (resist_check == 100.0f)
 					break;
 				else if (!TryFadeEffect(slot))
 					BuffFadeBySlot(slot);
@@ -3977,7 +3986,7 @@ void Mob::DoBuffTic(const Buffs_Struct &buff, int slot, Mob *caster)
 
 		case SE_Fear: {
 			if (zone->random.Roll(RuleI(Spells, FearBreakCheckChance))) {
-				float resist_check = ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster,0,0,true);
+				float resist_check = ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster, this);
 
 				if (resist_check == 100)
 					break;

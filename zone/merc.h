@@ -343,7 +343,6 @@ private:
 	int64 GetMaxEndurance() const {return max_end;} //This gets our endurance from the last CalcMaxEndurance() call
 	int64 CalcEnduranceRegen(); //Calculates endurance regen used in DoEnduranceRegen()
 	int64 CalcEnduranceRegenCap();
-	void SetEndurance(int32 newEnd); //This sets the current endurance to the new value
 	void DoEnduranceUpkeep(); //does the endurance upkeep
 	void CalcRestState();
 

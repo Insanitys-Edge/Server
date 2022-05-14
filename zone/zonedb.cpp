@@ -1203,6 +1203,14 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		m_epp->last_invsnapshot_time = atoul(row[r]); r++;						 // "`e_last_invsnapshot`		"
 		m_epp->next_invsnapshot_time = m_epp->last_invsnapshot_time + (RuleI(Character, InvSnapshotMinIntervalM) * 60);
 	}
+
+	pp->STR = 100;
+	pp->STA = 100;
+	pp->CHA = 100;
+	pp->DEX = 100;
+	pp->INT = 100;
+	pp->AGI = 100;
+	pp->WIS = 100;
 	return true;
 }
 
@@ -2648,7 +2656,7 @@ const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load
 		t->always_aggro           = n.always_aggro != 0;
 		t->exp_mod                = n.exp_mod;
 		t->skip_auto_scale        = false; // hardcoded here for now
-		t->hp_regen_per_second    = n.hp_regen_rate;
+		t->hp_regen_per_second    = 0; // EDGE TODO: Revisit HP Regen as Combat Regen
 
 		// If NPC with duplicate NPC id already in table,
 		// free item we attempted to add.

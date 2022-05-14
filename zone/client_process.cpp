@@ -821,11 +821,11 @@ void Client::BulkSendInventoryItems()
 }
 
 void Client::BulkSendMerchantInventory(int merchant_id, int npcid, bool bSpecialLogic) {
-	const EQ::ItemData* handyitem = nullptr;
+	const EQ::ItemData* handy_item = nullptr;
 	uint32 numItemSlots = 80; //The max number of items passed in the transaction.
 	
 	if (m_ClientVersionBit & EQ::versions::maskRoFAndLater) { // RoF+ can send 200 items
-		merchant_slots = 200;
+		numItemSlots = 200;
 	}
 
 	const EQ::ItemData *item = nullptr;
@@ -850,7 +850,7 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid, bool bSpecial
 	uint32 slot_id = 1;
 	uint8 handy_chance = 0;
 	for (auto ml : merchant_list) {
-		if (slot_id > merchant_slots) {
+		if (slot_id > numItemSlots) {
 			break;
 		}
 
@@ -941,7 +941,7 @@ void Client::BulkSendMerchantInventory(int merchant_id, int npcid, bool bSpecial
 	auto temporary_merchant_list_two = zone->tmpmerchanttable[npcid];
 	temporary_merchant_list.clear();
 	for (auto ml : temporary_merchant_list_two) {
-		if (slot_id > merchant_slots) {
+		if (slot_id > numItemSlots) {
 			break;
 		}
 

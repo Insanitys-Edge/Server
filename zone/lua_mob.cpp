@@ -659,22 +659,6 @@ double Lua_Mob::ResistSpell(int resist_type, int spell_id, Lua_Mob caster) {
 	return self->ResistSpell(resist_type, spell_id, caster);
 }
 
-double Lua_Mob::ResistSpell(int resist_type, int spell_id, Lua_Mob caster, bool use_resist_override) {
-	Lua_Safe_Call_Real();
-	return self->ResistSpell(resist_type, spell_id, caster, use_resist_override);
-}
-
-double Lua_Mob::ResistSpell(int resist_type, int spell_id, Lua_Mob caster, bool use_resist_override, int resist_override) {
-	Lua_Safe_Call_Real();
-	return self->ResistSpell(resist_type, spell_id, caster, use_resist_override, resist_override);
-}
-
-double Lua_Mob::ResistSpell(int resist_type, int spell_id, Lua_Mob caster, bool use_resist_override, int resist_override,
-	bool charisma_check) {
-	Lua_Safe_Call_Real();
-	return self->ResistSpell(resist_type, spell_id, caster, use_resist_override, resist_override, charisma_check);
-}
-
 int Lua_Mob::GetSpecializeSkillValue(int spell_id) {
 	Lua_Safe_Call_Int();
 	return self->GetSpecializeSkillValue(spell_id);
@@ -2796,9 +2780,6 @@ luabind::scope lua_register_mob() {
 	.def("RemoveNimbusEffect", (void(Lua_Mob::*)(int))&Lua_Mob::RemoveNimbusEffect)
 	.def("RemovePet", &Lua_Mob::RemovePet)
 	.def("ResistSpell", (double(Lua_Mob::*)(int,int,Lua_Mob))&Lua_Mob::ResistSpell)
-	.def("ResistSpell", (double(Lua_Mob::*)(int,int,Lua_Mob,bool))&Lua_Mob::ResistSpell)
-	.def("ResistSpell", (double(Lua_Mob::*)(int,int,Lua_Mob,bool,int))&Lua_Mob::ResistSpell)
-	.def("ResistSpell", (double(Lua_Mob::*)(int,int,Lua_Mob,bool,int,bool))&Lua_Mob::ResistSpell)
 	.def("RunTo", (void(Lua_Mob::*)(double, double, double))&Lua_Mob::RunTo)
 	.def("Say", (void(Lua_Mob::*)(const char*))& Lua_Mob::Say)
 	.def("Say", (void(Lua_Mob::*)(const char*, int))& Lua_Mob::Say)

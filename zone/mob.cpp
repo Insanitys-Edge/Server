@@ -772,18 +772,67 @@ int Mob::_GetRunSpeed() const {
 	bool has_horse = false;
 	if (IsClient())
 	{
-		if(CastToClient()->GetGMSpeed())
+		if (CastToClient()->GetGMSpeed())
 		{
 			speed_mod = 325;
 		}
+
 		else if (CastToClient()->GetHorseId())
 		{
 			Mob* horse = entity_list.GetMob(CastToClient()->GetHorseId());
-			if(horse)
+			if (horse)
 			{
 				speed_mod = horse->GetBaseRunspeed();
 				base_walk = horse->GetBaseWalkspeed();
 				has_horse = true;
+			}
+		}
+
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (!has_horse && inst)
+		{
+			switch (inst->GetID())
+			{
+			case RaceCharmIDs::CharmHalfElf:
+			{
+				speed_mod += 3;
+				break;
+			}
+			case RaceCharmIDs::CharmHighElf:
+			{
+				speed_mod += 2;
+				break;
+			}
+			case RaceCharmIDs::CharmWoodElf:
+			{
+				speed_mod += 4;
+				break;
+			}
+			case RaceCharmIDs::CharmGnome:
+			case RaceCharmIDs::CharmDwarf:
+			{
+				speed_mod += 1;
+				break;
+			}
+			case RaceCharmIDs::CharmFroglok:
+			case RaceCharmIDs::CharmVahShir:
+			{
+				speed_mod += 5;
+				break;
+			}
+			case RaceCharmIDs::CharmErudite:
+			{
+				if (speed_mod > 5)
+				{
+					speed_mod -= 5;
+				}
+				break;
+			}
+
+			default:
+			{
+				break;
+			}
 			}
 		}
 	}

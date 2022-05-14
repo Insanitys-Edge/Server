@@ -152,6 +152,21 @@ bool IsDamageSpell(uint16 spellid)
 	return false;
 }
 
+bool IsDirectDamageSpell(uint16 spellid)
+{
+	if (spells[spellid].buff_duration > 0)
+		return false;
+
+	for (int o = 0; o < EFFECT_COUNT; o++)
+	{
+		uint32 tid = spells[spellid].effect_id[o];
+		if ((tid == SE_CurrentHPOnce || tid == SE_CurrentHP) && spells[spellid].base_value[o] < 0)
+			return true;
+	}
+
+	return false;
+}
+
 
 bool IsFearSpell(uint16 spell_id)
 {
@@ -1012,6 +1027,23 @@ bool IsDebuffSpell(uint16 spell_id)
 		return false;
 	else
 		return true;
+}
+
+bool IsRainSpell(uint16 spell_id)
+{
+	if (IsDetrimentalSpell(spell_id) && spells[spell_id].target_type == ST_AETarget &&
+		spells[spell_id].aoe_duration > 2000 && spells[spell_id].aoe_duration < 360000)		// Sentinel and Sanctuary have durations of 360,000
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+bool IsRootSpell(uint16 spell_id)
+{
+	return IsEffectInSpell(spell_id, SE_Root);
 }
 
 bool IsResistDebuffSpell(uint16 spell_id)

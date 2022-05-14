@@ -1224,7 +1224,6 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	database.LoadCharacterMaterialColor(cid, &m_pp); /* Load Character Material */
 	database.LoadCharacterPotions(cid, &m_pp); /* Load Character Potion Belt */
 	database.LoadCharacterCurrency(AccountID(), &m_pp); /* Load Character Currency into PP */
-	database.LoadCharacterData(cid, &m_pp, &m_epp); /* Load Character Data from DB into PP as well as E_PP */
 	database.LoadCharacterSkills(cid, m_pp.class_, &m_pp); /* Load Character Skills */
 	database.LoadCharacterInspectMessage(cid, &m_inspect_message); /* Load Character Inspect Message */
 	database.LoadCharacterSpellBook(cid, m_pp.class_, &m_pp); /* Load Character Spell Book */
@@ -1769,17 +1768,17 @@ void Client::Handle_OP_AAAction(const EQApplicationPacket *app)
 		PurchaseAlternateAdvancementRank(action->ability);
 	}
 	else if (action->action == aaActionDisableEXP) { //Turn Off AA Exp
-		if (m_epp.perAA > 0)
-			MessageString(Chat::White, AA_OFF);
+		//if (m_epp.perAA > 0)
+		//	MessageString(Chat::White, AA_OFF);
 
 		m_epp.perAA = 0;
 		SendAlternateAdvancementStats();
 	}
 	else if (action->action == aaActionSetEXP) {
-		if (m_epp.perAA == 0)
-			MessageString(Chat::White, AA_ON);
-		m_epp.perAA = action->exp_value;
-		if (m_epp.perAA < 0 || m_epp.perAA > 100)
+		//if (m_epp.perAA == 0)
+		////	MessageString(Chat::White, AA_ON);
+		//m_epp.perAA = action->exp_value;
+		//if (m_epp.perAA < 0 || m_epp.perAA > 100)
 			m_epp.perAA = 0;	// stop exploit with sanity check
 
 								// send an update
@@ -3255,6 +3254,9 @@ void Client::Handle_OP_AutoFire(const EQApplicationPacket *app)
 
 void Client::Handle_OP_Bandolier(const EQApplicationPacket *app)
 {
+
+	return;
+
 	// Although there are three different structs for OP_Bandolier, they are all the same size.
 	//
 	if (app->size != sizeof(BandolierCreate_Struct)) {
@@ -5778,6 +5780,42 @@ void Client::Handle_OP_EnvDamage(const EQApplicationPacket *app)
 		damage = 31337;
 	}
 
+	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+	if (inst)
+	{
+		if (inst->GetID() == RaceCharmIDs::CharmVahShir)
+		{
+			if (ed->dmgtype == EQ::constants::EnvironmentalDamage::Falling)
+			{
+				Message(
+					Chat::Red,
+					fmt::format(
+						"Your Cat status protects you from {} points of {} damage.",
+						damage,
+						EQ::constants::GetEnvironmentalDamageName(ed->dmgtype)
+					).c_str()
+				);
+				return;
+			}
+		}
+
+		if (inst->GetID() == RaceCharmIDs::CharmFroglok)
+		{
+			if (ed->dmgtype == EQ::constants::EnvironmentalDamage::Drowning)
+			{
+				Message(
+					Chat::Red,
+					fmt::format(
+						"Your Frog status protects you from {} points of {} damage.",
+						damage,
+						EQ::constants::GetEnvironmentalDamageName(ed->dmgtype)
+					).c_str()
+				);
+				return;
+			}
+		}
+	}
+
 	if (admin >= minStatusToAvoidFalling && GetGM()) {
 		Message(
 			Chat::Red,
@@ -5808,7 +5846,8 @@ void Client::Handle_OP_EnvDamage(const EQApplicationPacket *app)
 		return;
 	} else if (zone->GetZoneID() == Zones::TUTORIAL || zone->GetZoneID() == Zones::LOAD) { // Hard coded tutorial and load zones for no fall damage
 		return;
-	} else {
+	}
+	else {
 		SetHP(GetHP() - (damage * RuleR(Character, EnvironmentDamageMulipliter)));
 		int final_damage = (damage * RuleR(Character, EnvironmentDamageMulipliter));
 		std::string export_string = fmt::format(

@@ -1613,6 +1613,39 @@ namespace PlayerAppearance
 #define RACE_PEGASUS_732 732
 #define RACE_INTERACTIVE_OBJECT_2250 2250
 
+////#define RACE_BARBARIAN_2 2
+//#define RACE_ERUDITE_3 3
+//#define RACE_WOOD_ELF_4 4
+//#define RACE_HIGH_ELF_5 5
+//#define RACE_DARK_ELF_6 6
+//#define RACE_HALF_ELF_7 7
+//#define RACE_DWARF_8 8
+//#define RACE_TROLL_9 9
+//#define RACE_OGRE_10 10
+//#define RACE_HALFLING_11 11
+//#define RACE_GNOME_12 12
+
+enum RaceCharmIDs {
+	None = 0,
+	CharmHuman = 101,
+	CharmBarbarian = 102,
+	CharmErudite = 103,
+	CharmWoodElf = 104,
+	CharmHighElf = 105,
+	CharmDarkElf = 106,
+	CharmHalfElf = 107,
+	CharmDwarf = 108,
+	CharmTroll = 109,
+	CharmOgre = 110,
+	CharmHalfling = 111,
+	CharmGnome = 112,
+	CharmIksar = 113,
+	CharmVahShir = 114,
+	CharmFroglok = 115,
+	CharmInstaDeath = 116,
+	CharmMax
+};
+
 const char* GetRaceName(uint16 race);
 const char* GetRaceNamePlural(uint16 race);
 
