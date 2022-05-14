@@ -1033,8 +1033,8 @@ public:
 	uint8 SlotConvert2(uint8 slot); //Maybe not needed.
 	void Escape(); //keep or quest function
 
-	static bool Client::ClearAndCopyBagContents(EQ::ItemInstance* new_bag, EQ::ItemInstance* old_bag);
-	static bool Client::CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag);
+	static bool ClearAndCopyBagContents(EQ::ItemInstance* new_bag, EQ::ItemInstance* old_bag);
+	static bool CopyBagContents(EQ::ItemInstance* new_bag, const EQ::ItemInstance* old_bag);
 	void DisenchantSummonedBags(bool client_update = true);
 	void RemoveNoRent(bool client_update = true);
 	void RemoveDuplicateLore(bool client_update = true);
