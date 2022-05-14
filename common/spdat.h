@@ -1261,8 +1261,46 @@ typedef enum {
 #define SE_Duration_Endurance_Pct		526 // implemented - Decrease Current Endurance by % of Total Hit Points per Tick, up to a MAX per tick
 
 //Begin custom
-#define SE_ChangeClass		600 // implemented - change class to base_value
-#define SE_SummonAllies		601 // implemented - serverwide TL to your location for party members
+#define SE_SmartHeal			600
+#define SE_SwapHealth			601
+#define SE_SwapPosition			602
+#define SE_SummonMultipleUndead		603
+#define SE_Lifetap		604
+#define SE_Lifeburn		605
+#define SE_MeleeTaunt		606
+#define SE_SumCorpsePet		607
+#define SE_PetsMoveToTarget		608
+#define SE_PetSkillAttack		609
+#define SE_PetSpellAttack		610
+#define SE_Vacuum		611
+#define SE_Pull		612
+#define SE_Toggle		613
+#define SE_AugmentItem		614
+#define SE_TogglePvP		615
+#define SE_SumClone		616
+#define SE_Seppuku		617
+#define SE_EdgeTaunt			618 // implemented - Taunt
+#define SE_Tracking			619 // clientsided
+#define SE_EdgeDoubleAttack		620
+#define SE_AugmentBias		621
+#define SE_AugmentHighest	622
+#define SE_Lockpicking		623
+#define SE_RootImmunity		624
+#define SE_SnareImmunity	625
+#define SE_MezImmunity		626
+#define SE_Mastermind		627
+#define SE_FactionReset		628
+#define SE_RaceChange		629
+#define SE_DoubleRegen		630
+#define SE_ItemGraphic		631
+#define SE_DoAttack		632
+#define SE_BlockSelfHealing		633
+#define SE_BlockHealingOverTime		634
+#define SE_NegateRegen		635
+#define SE_PositionBehind 636
+#define SE_SummonServerGroup 637
+#define SE_ChangeClass		638 // implemented - change class to base_value
+
 
 // LAST
 

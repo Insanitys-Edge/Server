@@ -1822,6 +1822,7 @@ void Client::OPGMSummon(const EQApplicationPacket *app)
 				szp->y_pos = (float)gms->y;
 				szp->z_pos = (float)gms->z;
 				szp->ignorerestrictions = 2;
+				szp->NoCombat = 0;
 				worldserver.SendPacket(pack);
 				safe_delete(pack);
 			}

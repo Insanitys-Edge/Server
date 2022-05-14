@@ -14763,6 +14763,13 @@ void Client::Handle_OP_Translocate(const EQApplicationPacket *app)
 		return;
 	}
 
+	if (IsEngaged())
+	{
+		Message(Chat::Red, "You cannot accept a Translocation in combat. Resending offer.");
+		ResendOPTranslocateConfirm();
+		return;
+	}
+
 	if (its->Complete == 1) {
 		uint32 spell_id = PendingTranslocateData.spell_id;
 		bool in_translocate_zone = (

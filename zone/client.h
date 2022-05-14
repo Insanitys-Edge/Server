@@ -677,6 +677,8 @@ public:
 	void UpdateGroupAAs(int32 points, uint32 type);
 	void SacrificeConfirm(Client* caster);
 	void Sacrifice(Client* caster);
+	void SendCrossZoneOPTranslocateConfirm(ServerZonePlayer_Struct* szp);
+	void ResendOPTranslocateConfirm();
 	void GoToDeath();
 	inline const int32 GetInstanceID() const { return zone->GetInstanceID(); }
 	void SetZoning(bool in) { bZoning = in; }

@@ -4015,6 +4015,58 @@ void Client::Sacrifice(Client *caster)
 	}
 }
 
+void Client::SendCrossZoneOPTranslocateConfirm(ServerZonePlayer_Struct* szp) {
+
+	if (PendingTranslocate)
+		return;
+
+	auto outapp = new EQApplicationPacket(OP_Translocate, sizeof(Translocate_Struct));
+	Translocate_Struct* ts = (Translocate_Struct*)outapp->pBuffer;
+
+	strcpy(ts->Caster, szp->adminname);
+		PendingTranslocateData.zone_id = ZoneID(szp->zone);
+		PendingTranslocateData.instance_id = szp->instance_id;
+		PendingTranslocateData.y = szp->y_pos;
+		PendingTranslocateData.x = szp->x_pos;
+		PendingTranslocateData.z = szp->z_pos;
+		PendingTranslocateData.heading = 0.0;
+
+	ts->unknown008 = 0;
+	ts->Complete = 0;
+
+	PendingTranslocate = true;
+	TranslocateTime = time(nullptr);
+
+	QueuePacket(outapp);
+	safe_delete(outapp);
+
+	return;
+}
+
+void Client::ResendOPTranslocateConfirm() {
+	if (PendingTranslocate)
+	{
+
+		auto outapp = new EQApplicationPacket(OP_Translocate, sizeof(Translocate_Struct));
+		Translocate_Struct* ts = (Translocate_Struct*)outapp->pBuffer;
+
+		strcpy(ts->Caster, "The server");
+		ts->ZoneID = PendingTranslocateData.zone_id;
+		ts->y = PendingTranslocateData.y;
+		ts->x = PendingTranslocateData.x;
+		ts->z = PendingTranslocateData.z;
+		ts->SpellID = PendingTranslocateData.spell_id;
+		ts->unknown008 = 0;
+		ts->Complete = 0;
+
+		PendingTranslocate = true;
+		TranslocateTime = time(nullptr);
+
+		QueuePacket(outapp);
+		safe_delete(outapp);
+	}
+}
+
 void Client::SendOPTranslocateConfirm(Mob *Caster, uint16 SpellID) {
 
 	if(!Caster || PendingTranslocate)
@@ -11214,6 +11266,7 @@ void Client::SwapWithClass(uint32 class_id)
 
 			if (GetPet() && GetPet()->GetPetType() != PetType::petCharmed)
 				GetPet()->Depop();
+
 			else if (GetPet())
 			{
 				GetPet()->BuffFadeByEffect(SE_Charm);
@@ -11225,12 +11278,18 @@ void Client::SwapWithClass(uint32 class_id)
 			SendAlternateAdvancementPoints();
 			SendAlternateAdvancementStats();
 
+			//Recalc bonuses, we have new data across the board
+			CalcBonuses();
+
+			SetHP(1);
+			SetMana(0);
+			SetEndurance(0);
+
 			SendHPUpdate();
 			SendManaUpdate();
 			SendEnduranceUpdate();
 
-			//Recalc bonuses, we have new data across the board
-			CalcBonuses();
+			SendArmorAppearance();
 
 			//Save, just so we can test saving to DB.
 			Save();

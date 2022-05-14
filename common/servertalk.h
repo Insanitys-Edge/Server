@@ -572,6 +572,7 @@ struct ServerZonePlayer_Struct {
 	float	x_pos;
 	float	y_pos;
 	float	z_pos;
+	char NoCombat;
 };
 
 struct RezzPlayer_Struct {

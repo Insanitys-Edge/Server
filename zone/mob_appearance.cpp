@@ -383,12 +383,19 @@ void Mob::SendArmorAppearance(Client *one_client)
 				if (item != nullptr) {
 					SendWearChange(i, one_client);
 				}
+				else {
+					SendWearChange(i, one_client);
+				}
 			}
 		}
 	}
 
 	for (uint8 i = 0; i <= EQ::textures::materialCount; ++i) {
 		if (GetTextureProfileMaterial(i)) {
+			SendWearChange(i, one_client);
+		}
+		else
+		{
 			SendWearChange(i, one_client);
 		}
 	}

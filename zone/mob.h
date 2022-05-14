@@ -746,6 +746,7 @@ public:
 	uint8 GetItemTypeBySkill(EQ::skills::SkillType skill);
 	virtual void MakePet(uint16 spell_id, const char* pettype, const char *petname = nullptr);
 	virtual void MakePoweredPet(uint16 spell_id, const char* pettype, int16 petpower, const char *petname = nullptr, float in_size = 0.0f);
+	virtual Mob* MakePoweredNPCPet(uint16 spell_id, uint32 npcTypeId, const char* petType, int16 petpower, float in_size = 0.0f);
 	bool IsWarriorClass() const;
 	char GetCasterClass() const;
 	uint8 GetArchetype() const;

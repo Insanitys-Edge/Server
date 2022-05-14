@@ -51,6 +51,7 @@ void command_summon(Client *c, const Seperator *sep)
 			szp->y_pos = c->GetY();
 			szp->z_pos = c->GetZ();
 			szp->instance_id = zone->GetInstanceID();
+			szp->NoCombat = 0;
 			worldserver.SendPacket(pack);
 			safe_delete(pack);
 			return;

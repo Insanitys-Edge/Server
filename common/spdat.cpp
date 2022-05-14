@@ -336,7 +336,7 @@ bool IsSummonPCSpell(uint16 spell_id)
 
 bool IsCharmSpell(uint16 spell_id)
 {
-	return IsEffectInSpell(spell_id, SE_Charm);
+	return IsEffectInSpell(spell_id, SE_Charm) || IsEffectInSpell(spell_id, SE_SumClone);
 }
 
 bool IsBlindSpell(uint16 spell_id)

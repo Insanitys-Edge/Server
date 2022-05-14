@@ -618,6 +618,10 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		ServerZonePlayer_Struct* szp = (ServerZonePlayer_Struct*)pack->pBuffer;
 		auto client = entity_list.GetClientByName(szp->name);
 		if (client) {
+
+			if (szp->NoCombat && client->IsEngaged())
+				break;
+
 			if (!strcasecmp(szp->adminname, szp->name)) {
 				client->Message(
 					Chat::White,
@@ -653,7 +657,11 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 				);
 			}
 
-			if (!szp->instance_id) {
+			if (szp->NoCombat)
+			{
+				client->SendCrossZoneOPTranslocateConfirm(szp);
+			}
+			else if (!szp->instance_id) {
 				client->MovePC(ZoneID(szp->zone), szp->instance_id, szp->x_pos, szp->y_pos, szp->z_pos, client->GetHeading(), szp->ignorerestrictions, GMSummon);
 			} else {
 				if (database.GetInstanceID(client->CharacterID(), ZoneID(szp->zone))) {
@@ -786,6 +794,7 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 			szp->x_pos = client->GetX();
 			szp->y_pos = client->GetY();
 			szp->z_pos = client->GetZ();
+			szp->NoCombat = 0;
 			SendPacket(outpack);
 			safe_delete(outpack);
 		}

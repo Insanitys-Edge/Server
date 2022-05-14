@@ -3034,10 +3034,512 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				break;
 			}
 
+			case SE_DoAttack:
+			{
+				if (!caster || !caster->GetTarget())
+					break;
+
+				if (IsAttackAllowed(caster->GetTarget()) && CombatRange(caster->GetTarget()))
+				{
+					double num_attacks = 3; //EQ::Clamp((floor(log10(caster->GetEndurance()))) - 3.0, 0.0, 200.0);
+					for (int i = 0; i <= (int)num_attacks; i++)
+					{
+						caster->Attack(caster->GetTarget());
+					}
+					caster->SetEndurance(caster->GetEndurance() / 10);
+				}
+
+				break;
+			}
+
 			case SE_PersistentEffect:
 				MakeAura(spell_id);
 				break;
+				
+			case SE_Seppuku:
+			{
+				if (!caster || !caster->IsClient())
+					break;
 
+				caster->Kill();
+				break;
+			}
+
+			case SE_Tracking:
+			{
+				if (!caster || !caster->IsClient())
+					break;
+
+				caster->Message(13, "You gain the benefit of this tome by having it on your spell gems.");
+				break;
+			}
+
+			case SE_EdgeDoubleAttack:
+			{
+				if (!caster || !caster->IsClient())
+					break;
+
+				caster->Message(13, "You gain the benefit of this tome by having it on your spell gems.");
+				break;
+			}
+
+			case SE_Lockpicking:
+			{
+				if (!caster || !caster->IsClient())
+					break;
+
+				caster->Message(13, "You gain the benefit of this tome by having it on your spell gems.");
+				break;
+			}
+
+			case SE_FactionReset:
+			{
+				if (!caster || !caster->IsClient())
+					break;
+
+				caster->Message(Chat::BrightBlue, "lmao not implemented");
+				break;
+			}
+
+			case SE_RaceChange:
+			{
+				if (!caster || !caster->IsClient())
+					break;
+
+				caster->CastToClient()->SetBaseRace(spell.base_value[i]);
+				caster->CastToClient()->Save(2);
+				break;
+			}
+
+			case SE_ItemGraphic:
+			{
+				if (!caster)
+					break;
+
+				std::string graphicID = std::string("IT") + itoa(spell.base_value[i]);
+				caster->ProjectileAnimation(caster->GetTarget(), 0, false, 0, 0, 0, 0, graphicID.c_str(), EQ::skills::SkillBash);
+
+				break;
+			}
+
+			case SE_SmartHeal: {
+
+			/*	if (!caster)
+					break;
+
+				if (!caster->IsClient())
+					break;
+
+				int64 value = spell.base_value[i];
+				uint64 heal_amt = caster->GetActSpellHealing(spell_id, value, this, false);
+
+				Raid *r = entity_list.GetRaidByClient(caster->CastToClient());
+				if (r)
+				{
+					uint32 gid = 0xFFFFFFFF;
+					gid = r->GetGroup(caster->GetName());
+					if (gid < 11)
+					{
+						r->SmartHealGroup(heal_amt, caster, spell.range);
+						break;
+					}
+				}
+
+				Group *g = entity_list.GetGroupByClient(caster->CastToClient());
+
+				if (!g) {
+					caster->HealDamage(heal_amt);
+					break;
+				}
+
+				g->SmartHealGroup(heal_amt, caster, spell.range);*/
+				break;
+
+			}
+
+			case SE_SwapHealth: {
+
+				if (!caster)
+					break;
+
+				float casterHpRatio = caster->GetHPRatio();
+				float thisHpRatio = GetHPRatio();
+
+				float shouldUs = GetMaxHP() * (casterHpRatio / 100.f);
+				float shouldCaster = caster->GetMaxHP() * (thisHpRatio / 100.f);
+				caster->SetHP(shouldCaster);
+				SetHP(shouldUs);
+				if (GetHP() < 1)
+					SetHP(1);
+				if (caster->GetHP() < 1)
+					caster->SetHP(1);
+
+				SendHPUpdate();
+				caster->SendHPUpdate();
+				break;
+			}
+
+			case SE_SwapPosition: {
+
+				if (!caster)
+					break;
+
+				glm::vec4 casterPos = caster->GetPosition();
+				glm::vec4 thisPos = GetPosition();
+				caster->GMMove(thisPos.x, thisPos.y, thisPos.z, thisPos.w);
+				GMMove(casterPos.x, casterPos.y, casterPos.z, casterPos.w);
+
+				break;
+			}
+			
+			case SE_SummonMultipleUndead:
+			{
+				if (!caster)
+					break;
+
+				//int numUndead = 0;
+				//int petSpell = 0;
+
+				//int32 val = caster->GetActSpellHealing(spell_id, spell.base[i], this);
+
+				//std::vector<Mob*> pets = caster->GetPets();
+				//for (Mob* pet : pets)
+				//{
+
+				//	switch (pet->typeofpet)
+				//	{
+				//	case petNecro:
+				//		numUndead++;
+				//		break;
+				//	default:
+				//		break;
+
+				//	}
+
+				//	pet->HealDamage(val, caster, spell_id);
+				//	pet->SendHPUpdate();
+				//}
+
+				//caster->HealDamage(val, caster, spell_id);
+				//caster->SendHPUpdate();
+				//
+				//if (!pets.empty())
+				//{
+				//	for (int i = numUndead; i < 3; i++)
+				//	{
+				//		caster->MakePet(43030, "skel_pet_9_");
+				//	}
+				//}
+				break;
+			}
+
+			case SE_Lifeburn: {
+
+
+				if (caster) //Lifeburn
+				{
+					int64 dmg = caster->GetHP(); // just your current HP
+					caster->SetHP(1); // 2003 patch notes say ~ 1/4 HP. Should this be 1/4 your current HP or do 3/4 max HP dmg? Can it kill you?
+					dmg = -dmg;
+
+					//do any AAs apply to these spells?
+					if (dmg < 0) {
+						if (!PassCastRestriction(spell.max_value[i]))
+							break;
+						dmg = -dmg;
+
+						if(caster->IsAttackAllowed(target))
+							Damage(caster, dmg, spell_id, spell.skill, false, buffslot, false);
+					}
+					break;
+				}
+			}
+
+			case SE_MeleeTaunt:
+			{
+				if (caster)
+				{
+					if (caster->Attack(this, EQ::invslot::slotPrimary, 0, false, true))
+					{
+						if (IsNPC())
+							caster->Taunt(CastToNPC(), true, 0, true);
+					}
+				}
+				break;
+			}
+
+			case SE_EdgeTaunt:
+			{
+				if (caster && IsNPC())
+				{
+					Mob *hate_top = this->GetHateMost();
+
+					if (hate_top && hate_top != caster) {
+						int64 newhate = (this->GetHateAmount(hate_top) - this->GetHateAmount(caster)) * 1.1f;
+						this->CastToNPC()->AddToHateList(caster, newhate);
+					} else {
+						this->CastToNPC()->AddToHateList(caster, 1000);
+					}
+
+					this->SetTarget(caster);
+					caster->SayString(SUCCESSFUL_TAUNT, GetCleanName());
+					//caster->Taunt(CastToNPC(), true, 0, true);
+				}
+				break;
+			}
+
+			case SE_SumCorpsePet:
+			{
+				//if (caster)
+				//{
+				//	if (IsCorpse() && IsNPCCorpse())
+				//	{
+				//		bool returnearly = false;
+
+				//		Mob* pet = GetPet();
+				//		if(pet)
+				//		{
+				//			if (pet->CastToNPC()->GetPetSpellID() == spell_id)
+				//				returnearly = true;
+				//		}
+
+				//		if (returnearly)
+				//		{
+				//			if (IsClient())
+				//			{
+				//				Message(13, "You have too many pets! Cancelling pet summon spell.");
+				//			}
+				//			break;
+				//		}
+				//		else
+				//			caster->MakePoweredNPCPet(spell_id, CastToCorpse()->npctype_id, 0, "rotting_corpse", GetSize());
+				//	}
+				//	else
+				//	{
+				//		caster->Message(13, "That's not a corpse. Try reanimating something that's dead next time.");
+				//	}
+				//}
+				break;
+			}
+
+			case SE_SumClone:
+			{
+				if (!caster)
+					break;
+
+				if (IsNPC())
+				{						
+					if (!IsAttackAllowed(caster))
+					{
+						if (caster->IsClient())
+						{
+							caster->Message(13, "This spell cannot affect this target.");
+						}
+						break;
+					}
+				}
+
+				Mob* pet = caster && caster->GetPet() ? caster->GetPet() : nullptr;
+				if(pet)
+				{
+						caster->Message(13, "You have too many pets! Cancelling pet summon spell.");
+						break;
+				}
+
+				else if (IsClient() && !caster->IsClient() || caster->IsClient() && caster->CastToClient()->GetGM())
+				{
+					break;
+				}
+				else if (IsNPC())
+					caster->MakePoweredNPCPet(spell_id, CastToNPC()->npctype_id, spells[spell_id].teleport_zone, -1);
+				else
+					break;
+				// TODO: we need to sync the states for these clients ...
+				// Will fix buttons for now
+				if (caster->IsClient()) {
+					auto c = caster->CastToClient();
+					if (c->ClientVersionBit() & EQ::versions::maskUFAndLater) {
+						c->SetPetCommandState(PET_BUTTON_SIT, 0);
+						c->SetPetCommandState(PET_BUTTON_STOP, 0);
+						c->SetPetCommandState(PET_BUTTON_REGROUP, 0);
+						c->SetPetCommandState(PET_BUTTON_FOLLOW, 1);
+						c->SetPetCommandState(PET_BUTTON_GUARD, 0);
+						c->SetPetCommandState(PET_BUTTON_TAUNT, 1);
+						c->SetPetCommandState(PET_BUTTON_HOLD, 0);
+						c->SetPetCommandState(PET_BUTTON_GHOLD, 0);
+						c->SetPetCommandState(PET_BUTTON_FOCUS, 0);
+						c->SetPetCommandState(PET_BUTTON_SPELLHOLD, 0);
+					}
+				}
+				break;
+			}
+
+			case SE_PetsMoveToTarget:
+			{
+
+				if (!caster)
+					break;
+
+				Mob* pet = caster && caster->GetPet() ? caster->GetPet() : nullptr;
+				if (pet)
+				{
+						pet->GMMove(GetX(), GetY(), GetZ(), GetHeading());
+						pet->WipeHateList();
+						pet->AddToHateList(this);
+						pet->SetTarget(this);
+				}
+				break;
+			}
+
+			case SE_PetSkillAttack:
+			{
+#ifdef SPELL_EFFECT_SPAM
+				snprintf(effect_desc, _EDLEN, "Skill Attack");
+#endif
+				if (!caster)
+					break;
+
+				Mob* pet = caster && caster->GetPet() ? caster->GetPet() : nullptr;
+				if (pet)
+				{
+					switch (spells[spell_id].skill) {
+					case EQ::skills::SkillThrowing:
+						pet->DoThrowingAttackDmg(this, nullptr, nullptr, spells[spell_id].base_value[i], spells[spell_id].limit_value[i]);
+						break;
+					case EQ::skills::SkillArchery:
+						pet->DoArcheryAttackDmg(this, nullptr, nullptr, spells[spell_id].base_value[i], spells[spell_id].limit_value[i]);
+						break;
+					default:
+						pet->DoMeleeSkillAttackDmg(this, spells[spell_id].base_value[i], spells[spell_id].skill, spells[spell_id].limit_value[i]);
+						break;
+					}
+				}
+				
+				break;
+			}
+
+			case SE_PetSpellAttack:
+			{
+#ifdef SPELL_EFFECT_SPAM
+				snprintf(effect_desc, _EDLEN, "Skill Attack");
+#endif
+				if (!caster)
+					break;
+
+				std::list<Mob*> iterator_list;
+
+				Mob* pet = caster && caster->GetPet() ? caster->GetPet() : nullptr;
+				if (pet)
+				{
+					uint32 spellidToCast = spells[spell_id].base_value[i];
+					if (pet->IsCasting())
+					{
+						pet->InterruptSpell();
+					}
+					pet->CastSpell(spellidToCast, GetTarget() ? GetTarget()->GetID() : GetID());
+				}
+				break;
+			}
+
+			case SE_Vacuum:
+			{
+#ifdef SPELL_EFFECT_SPAM
+				snprintf(effect_desc, _EDLEN, "Skill Attack");
+#endif
+				if (!caster)
+					break;
+
+				if (!caster->GetTarget())
+					break;
+
+				
+				GMMove(caster->GetTarget()->GetX(), caster->GetTarget()->GetY(), caster->GetTarget()->GetZ(), caster->GetHeading());
+
+				break;
+			}
+
+			case SE_Pull:
+			{
+#ifdef SPELL_EFFECT_SPAM
+				snprintf(effect_desc, _EDLEN, "Skill Attack");
+#endif
+				//BuffFadeByEffect(SE_Levitate);
+				if (caster && caster->GetTarget()) {
+					float my_x = GetX();
+					float my_y = GetY();
+					float my_z = GetZ();
+					float target_x = caster->GetX();
+					float target_y = caster->GetY();
+					float target_z = caster->GetZ();
+					if ((caster->CheckLosFN(caster->GetTarget())))
+					{
+						float value, x_vector, y_vector, hypot;
+
+						float new_ground = zone && zone->zonemap ? FindDestGroundZ(glm::vec3(target_x, target_y, target_z)) : my_z;
+
+						//caster->FaceTarget();
+
+						float newX = 0;
+						float newY = 0;
+						float newZ = 0;
+
+						if (caster->PlotPositionAroundTarget(this, newX, newY, newZ, true))
+						{
+							if (IsClient())
+								CastToClient()->MovePC(zone->GetZoneID(), zone->GetInstanceID(), newX, newY, newZ, GetReciprocalHeading(GetPosition()));
+							else
+								GMMove(newX, newY, newZ, GetHeading());
+						}
+					}
+				}
+
+				//GMMove(caster->GetX(), caster->GetY(), caster->GetZ(), caster->GetHeading(), true, false);
+
+				break;
+			}
+
+			case SE_SummonServerGroup:
+			{
+
+				if (!caster || !caster->IsClient() || caster->IsClient() && !caster->HasGroup())
+					break;
+
+				if (caster->IsClient() && caster->HasGroup() && strcmp(caster->GetGroup()->GetLeaderName(), caster->GetCleanName()) != 0)
+				{
+					Message(Chat::SpellFailure, "You can't use this as you're not the group leader.");
+					break;
+				}
+
+				if (zone && zone->GetInstanceID() > 0)
+				{
+					Message(Chat::SpellFailure, "You can't use this unless you're in an instance.");
+					break;
+				}
+
+				if (GetGroup())
+				{
+					auto groupPtr = caster->GetGroup();
+
+					for (uint32 i = 0; i < MAX_GROUP_MEMBERS; ++i)
+					{
+						auto pack = new ServerPacket(ServerOP_ZonePlayer, sizeof(ServerZonePlayer_Struct));
+						ServerZonePlayer_Struct* szp = (ServerZonePlayer_Struct*)pack->pBuffer;
+						strcpy(szp->adminname, caster->GetCleanName());
+						szp->adminrank = 255;
+						szp->ignorerestrictions = 2;
+						strcpy(szp->name, groupPtr->membername[i]);
+						strcpy(szp->zone, zone->GetShortName());
+						szp->x_pos = caster->GetX(); // May need to add a factor of 8 in here..
+						szp->y_pos = caster->GetY();
+						szp->z_pos = caster->GetZ();
+						szp->instance_id = zone->GetInstanceID();
+						szp->NoCombat = 1;
+						worldserver.SendPacket(pack);
+						safe_delete(pack);
+					}
+				}
+				break;
+			}
 			// Handled Elsewhere
 			case SE_ImmuneFleeing:
 			case SE_NegateSpellEffect:
@@ -3326,6 +3828,14 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 			case SE_ImprovedInvisAnimals:
 			case SE_InvisVsUndead:
 			case SE_InvisVsUndead2:
+			case SE_Toggle:
+			case SE_RootImmunity:
+			case SE_SnareImmunity:
+			case SE_MezImmunity:
+			case SE_Mastermind:
+			case SE_DoubleRegen:
+			case SE_BlockHealingOverTime:
+			case SE_BlockSelfHealing:
 			{
 				break;
 			}
