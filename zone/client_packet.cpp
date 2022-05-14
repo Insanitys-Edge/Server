@@ -4347,6 +4347,9 @@ void Client::Handle_OP_ClientUpdate(const EQApplicationPacket *app) {
 			entity_list.QueueCloseClients(cmob, outapp, true, 300, this, false);
 			safe_delete(outapp);
 
+		else if (GetBoatID() != 0)
+			name = GetBoatName();
+
 			/* Update the boat's position on the server, without sending an update */
 			cmob->GMMove(ppu->x_pos, ppu->y_pos, ppu->z_pos, EQ12toFloat(ppu->heading));
 			return;
