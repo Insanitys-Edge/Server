@@ -360,7 +360,7 @@ public:
 					void SaveBackup();
 
 	/* New PP Save Functions */
-	bool SaveCurrency(){ return database.SaveCharacterCurrency(this->CharacterID(), &m_pp); }
+	bool SaveCurrency(){ return database.SaveCharacterCurrency(this->AccountID(), &m_pp); }
 	bool SaveAA();
 	void RemoveExpendedAA(int aa_id);
 
