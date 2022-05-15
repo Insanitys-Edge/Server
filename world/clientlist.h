@@ -51,7 +51,6 @@ public:
 
 	void	ClientUpdate(ZoneServer* zoneserver, ServerClientList_Struct* scl);
 	void	CLERemoveZSRef(ZoneServer* iZS);
-	void	DisconnectCLE(ClientListEntry* entry);
 	ClientListEntry* CheckAuth(uint32 iLSID, const char* iKey);
 	ClientListEntry* FindCharacter(const char* name);
 	ClientListEntry* FindCLEByAccountID(uint32 iAccID);
@@ -60,18 +59,14 @@ public:
 	ClientListEntry* FindCLEByLSID(uint32 iLSID);
 	ClientListEntry* GetCLE(uint32 iID);
 	void	GetCLEIP(uint32 iIP);
-	bool	CheckCLEIP(uint32 iIP);
 	uint32	GetCLEIPCount(uint32 iLSAccountID);
 	void	DisconnectByIP(uint32 iIP);
-	void	EnforceSessionLimit(uint32 iLSAccountID);
-	bool	CheckSessionLimit(uint32 iLSAccountID);
-	bool	IsAccountInGame(uint32 iLSAccountID);
-
 	void	CLCheckStale();
 	void	CLEKeepAlive(uint32 numupdates, uint32* wid);
 	void	CLEAdd(uint32 iLSID, const char* iLoginServerName, const char* iLoginName, const char* iLoginKey, int16 iWorldAdmin = AccountStatus::Player, uint32 ip = 0, uint8 local=0);
 	void	UpdateClientGuild(uint32 char_id, uint32 guild_id);
 	void	RemoveCLEByLSID(uint32 iLSID);
+	bool    IsAccountInGame(uint32 iLSID);
 
 	int GetClientCount();
 	void GetClients(const char *zone_name, std::vector<ClientListEntry *> &into);

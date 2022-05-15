@@ -124,20 +124,11 @@ void LoginServer::ProcessUsertoWorldReqLeg(uint16_t opcode, EQ::Net::Packet &p)
 		SendPacket(&outpack);
 		return;
 	}
-	if (status < 80)
-	{
-		if (!client_list.CheckSessionLimit(utwr->lsaccountid))
-		{
-			LogDebug("Account Info: Session Restricted for [{0}] : [{0}]", utwr->lsaccountid, utwr->IPAddr);
-			utwrs->response = -4;
-			SendPacket(&outpack);
-			return;
-		}
 
-		else if (!client_list.CheckCLEIP(inet_addr(utwr->IPAddr)))
-		{
-			LogDebug("Account Info: IP Restricted for [{0}] : [{0}] ", utwr->lsaccountid, utwr->IPAddr);
-			utwrs->response = -5;
+	if (RuleB(World, EnforceCharacterLimitAtLogin)) {
+		if (client_list.IsAccountInGame(utwr->lsaccountid)) {
+			LogDebug("[ProcessUsertoWorldReqLeg] User already online account_id [{0}]", utwr->lsaccountid);
+			utwrs->response = UserToWorldStatusAlreadyOnline;
 			SendPacket(&outpack);
 			return;
 		}
@@ -215,19 +206,10 @@ void LoginServer::ProcessUsertoWorldReq(uint16_t opcode, EQ::Net::Packet &p)
 		return;
 	}
 
-	if (status < 80)
-	{
-		if (!client_list.CheckSessionLimit(utwr->lsaccountid))
-		{
-			LogDebug("Account Info: Session Restricted for [{0}] : [{0}]", utwr->lsaccountid, utwr->IPAddr);
-			utwrs->response = -4;
-			SendPacket(&outpack);
-			return;
-		}
-		else if (!client_list.CheckCLEIP(inet_addr(utwr->IPAddr)))
-		{
-			LogDebug("Account Info: IP Restricted for [{0}] : [{0}] ", utwr->lsaccountid, utwr->IPAddr);
-			utwrs->response = -5;
+	if (RuleB(World, EnforceCharacterLimitAtLogin)) {
+		if (client_list.IsAccountInGame(utwr->lsaccountid)) {
+			LogDebug("[ProcessUsertoWorldReq] User already online account_id [{0}]", utwr->lsaccountid);
+			utwrs->response = UserToWorldStatusAlreadyOnline;
 			SendPacket(&outpack);
 			return;
 		}
@@ -245,14 +227,6 @@ void LoginServer::ProcessLSClientAuthLegacy(uint16_t opcode, EQ::Net::Packet &p)
 
 	try {
 		auto client_authentication_request = p.GetSerialize<ClientAuthLegacy_Struct>(0);
-			bool okSession = client_list.CheckSessionLimit(client_authentication_request.ip);
-
-			bool okIP = client_list.CheckCLEIP(client_authentication_request.ip);
-
-			if (okSession && okIP || client_authentication_request.loginserver_admin_level >= 80)
-			{
-				client_list.CLEAdd(client_authentication_request.loginserver_account_id, "eqemu", client_authentication_request.loginserver_account_name, client_authentication_request.key, client_authentication_request.is_world_admin, client_authentication_request.ip, client_authentication_request.is_client_from_local_network);
-			}
 
 		LogDebug(
 			"Processing Loginserver Auth Legacy | account_id [{0}] account_name [{1}] key [{2}] admin [{3}] ip [{4}] "
@@ -287,12 +261,6 @@ void LoginServer::ProcessLSClientAuth(uint16_t opcode, EQ::Net::Packet &p)
 
 	try {
 		auto client_authentication_request = p.GetSerialize<ClientAuth_Struct>(0);
-
-
-		bool okSession = client_list.CheckSessionLimit(client_authentication_request.ip);
-
-		bool okIP = client_list.CheckCLEIP(client_authentication_request.ip);
-
 
 		LogDebug(
 			"Processing Loginserver Auth | account_id [{0}] account_name [{1}] loginserver_name [{2}] key [{3}] "
