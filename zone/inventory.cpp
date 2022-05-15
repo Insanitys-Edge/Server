@@ -3356,11 +3356,11 @@ int64_t Client::GetStatValueEdgeType(eStatEntry eLabel)
 		}
 		case eStatCurMana:
 		{
-			return GetMana();
+			return GetMana() ? GetMana() : 0;
 		}
 		case eStatMaxMana:
 		{
-			return GetMaxMana();
+			return GetMaxMana() ? GetMaxMana() : 1;
 		}
 		case eStatCurEndur:
 		{
