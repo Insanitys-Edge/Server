@@ -215,7 +215,7 @@ void LoginServer::ProcessUsertoWorldReq(uint16_t opcode, EQ::Net::Packet &p)
 		return;
 	}
 
-	/*if (status < 80)
+	if (status < 80)
 	{
 		if (!client_list.CheckSessionLimit(utwr->lsaccountid))
 		{
@@ -231,7 +231,7 @@ void LoginServer::ProcessUsertoWorldReq(uint16_t opcode, EQ::Net::Packet &p)
 			SendPacket(&outpack);
 			return;
 		}
-	}*/
+	}
 
 	LogDebug("[ProcessUsertoWorldReq] Sent response to account_id [{0}]", utwr->lsaccountid);
 
