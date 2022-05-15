@@ -292,6 +292,23 @@ int64 Client::CalcHPRegen(bool bCombat)
 		base = 0;
 
 	base *= 1.5;
+
+	if (IsBerserk())
+	{
+		if (GetHPRatio() < 15.0f)	
+			base *= 4.0;
+		else if (GetHPRatio() < 20.0f)
+			base *= 3.5;
+		else if (GetHPRatio() < 25.0f)
+			base *= 3.0;
+		else if (GetHPRatio() < 30.0f)
+			base *= 2.5;
+		else if (GetHPRatio() < 35.0f)
+			base *= 2.0;
+		else if (GetHPRatio() < 45.0f)
+			base *= 1.5;
+	}
+
 	base += GroupLeadershipAAHealthRegeneration();
 	// some IsKnockedOut that sets to -1
 	base = base * 100.0f * AreaHPRegen * 0.01f + 0.5f;

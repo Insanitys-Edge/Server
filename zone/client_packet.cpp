@@ -14768,7 +14768,7 @@ void Client::Handle_OP_Translocate(const EQApplicationPacket *app)
 		return;
 	}
 
-	if (IsEngaged())
+	if (GetXTargetAutoMgr() && !GetXTargetAutoMgr()->empty())
 	{
 		Message(Chat::Red, "You cannot accept a Translocation in combat. Resending offer.");
 		ResendOPTranslocateConfirm();

@@ -619,9 +619,6 @@ void WorldServer::HandleMessage(uint16 opcode, const EQ::Net::Packet &p)
 		auto client = entity_list.GetClientByName(szp->name);
 		if (client) {
 
-			if (szp->NoCombat && client->IsEngaged())
-				break;
-
 			if (!strcasecmp(szp->adminname, szp->name)) {
 				client->Message(
 					Chat::White,
