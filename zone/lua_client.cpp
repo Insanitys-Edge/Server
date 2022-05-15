@@ -990,6 +990,17 @@ void Lua_Client::SummonItem(uint32 item_id, int charges, uint32 aug1, uint32 aug
 	self->SummonItem(item_id, charges, aug1, aug2, aug3, aug4, aug5, 0, attuned, to_slot);
 }
 
+void Lua_Client::SummonCursorItem(uint32 item_id) {
+	Lua_Safe_Call_Void();
+	self->SummonItem(item_id, 0, MainCursor);
+}
+
+void Lua_Client::SummonCursorItem(uint32 item_id, int charges) {
+	Lua_Safe_Call_Void();
+	self->SummonItem(item_id, charges, MainCursor);
+}
+
+
 void Lua_Client::SetStats(int type, int value) {
 	Lua_Safe_Call_Void();
 	self->SetStats(type, value);
@@ -2896,6 +2907,8 @@ luabind::scope lua_register_client() {
 	.def("SummonItem", (void(Lua_Client::*)(uint32,int,uint32,uint32,uint32,uint32,uint32))&Lua_Client::SummonItem)
 	.def("SummonItem", (void(Lua_Client::*)(uint32,int,uint32,uint32,uint32,uint32,uint32,bool))&Lua_Client::SummonItem)
 	.def("SummonItem", (void(Lua_Client::*)(uint32,int,uint32,uint32,uint32,uint32,uint32,bool,int))&Lua_Client::SummonItem)
+	.def("SummonCursorItem", (void(Lua_Client::*)(uint32))& Lua_Client::SummonCursorItem)
+	.def("SummonCursorItem", (void(Lua_Client::*)(uint32,int))& Lua_Client::SummonCursorItem)
 	.def("TGB", (bool(Lua_Client::*)(void))&Lua_Client::TGB)
 	.def("TakeMoneyFromPP", (bool(Lua_Client::*)(uint64))&Lua_Client::TakeMoneyFromPP)
 	.def("TakeMoneyFromPP", (bool(Lua_Client::*)(uint64,bool))&Lua_Client::TakeMoneyFromPP)
