@@ -261,21 +261,21 @@ int64 Client::CalcHPRegen(bool bCombat)
 				base++;
 		}
 
-		if ((Timer::GetCurrentTime() - tmSitting) > 60000) {
-			if (!IsAffectedByBuffByGlobalGroup(GlobalGroup::Lich)) {
-				auto tic_diff = std::min((Timer::GetCurrentTime() - tmSitting) / 60000, static_cast<uint32>(9));
-				if (tic_diff != 1) { // starts at 2 mins
-					int tic_bonus = tic_diff * 1.5 * base;
-					if (m_pp.InnateSkills[InnateRegen] != InnateDisabled)
-						tic_bonus = tic_bonus * 1.2;
-					base = tic_bonus;
-					skip_innate = true;
-				} else if (m_pp.InnateSkills[InnateRegen] == InnateDisabled) { // no innate regen gets first tick
-					int tic_bonus = base * 1.5;
-					base = tic_bonus;
-				}
-			}
-		}
+		//if ((Timer::GetCurrentTime() - tmSitting) > 60000) {
+		//	if (!IsAffectedByBuffByGlobalGroup(GlobalGroup::Lich)) {
+		//		auto tic_diff = std::min((Timer::GetCurrentTime() - tmSitting) / 60000, static_cast<uint32>(9));
+		//		if (tic_diff != 1) { // starts at 2 mins
+		//			int tic_bonus = tic_diff * 1.5 * base;
+		//			if (m_pp.InnateSkills[InnateRegen] != InnateDisabled)
+		//				tic_bonus = tic_bonus * 1.2;
+		//			base = tic_bonus;
+		//			skip_innate = true;
+		//		} else if (m_pp.InnateSkills[InnateRegen] == InnateDisabled) { // no innate regen gets first tick
+		//			int tic_bonus = base * 1.5;
+		//			base = tic_bonus;
+		//		}
+		//	}
+		//}
 	//}
 
 	if (!skip_innate && m_pp.InnateSkills[InnateRegen] != InnateDisabled) {
@@ -291,17 +291,18 @@ int64 Client::CalcHPRegen(bool bCombat)
 	if (IsStarved())
 		base = 0;
 
+	base *= 1.5;
 	base += GroupLeadershipAAHealthRegeneration();
 	// some IsKnockedOut that sets to -1
 	base = base * 100.0f * AreaHPRegen * 0.01f + 0.5f;
 	// another check for IsClient && !(base + item_regen) && Cur_HP <= 0 do --base; do later
 
-	if (!bCombat && CanFastRegen() && (IsSitting() || CanMedOnHorse())) {
-		auto max_hp = GetMaxHP();
-		int fast_regen = 6 * (max_hp / zone->newzone_data.FastRegenHP);
-		if (base < fast_regen) // weird, but what the client is doing
-			base = fast_regen;
-	}
+	//if (!bCombat && CanFastRegen() && (IsSitting() || CanMedOnHorse())) {
+	//	auto max_hp = GetMaxHP();
+	//	int fast_regen = 6 * (max_hp / zone->newzone_data.FastRegenHP);
+	//	if (base < fast_regen) // weird, but what the client is doing
+	//		base = fast_regen;
+	//}
 
 	if (GetBaseRace() == DRAKKIN)
 	{
