@@ -3504,18 +3504,6 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 				if (!caster || !caster->IsClient() || caster->IsClient() && !caster->HasGroup())
 					break;
 
-				if (caster->IsClient() && caster->HasGroup() && strcmp(caster->GetGroup()->GetLeaderName(), caster->GetCleanName()) != 0)
-				{
-					Message(Chat::SpellFailure, "You can't use this as you're not the group leader.");
-					break;
-				}
-
-				if (zone && zone->GetInstanceID() > 0)
-				{
-					Message(Chat::SpellFailure, "You can't use this unless you're in an instance.");
-					break;
-				}
-
 				if (GetGroup())
 				{
 					auto groupPtr = caster->GetGroup();

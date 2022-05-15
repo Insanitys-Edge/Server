@@ -3420,6 +3420,9 @@ int64_t Client::GetStatValueEdgeType(eStatEntry eLabel)
 		}
 		case eStatWalkspeed:
 		{
+			if (GetBaseRace() == DRAKKIN)
+				return 0;
+
 			return (static_cast<double>(0.025 * GetWalkspeed()) / (double)walkspeed)  * 100000.0f;
 		}
 		case eStatRunspeed:
@@ -3483,15 +3486,15 @@ int64_t Client::GetStatValueEdgeType(eStatEntry eLabel)
 		}
 		case eStatAC:
 		{
-			return GetAC();
+			return ACSum();
 		}
 		case eStatATK:
 		{
-			return GetATKBonus();
+			return GetOffense(EQ::skills::Skill1HBlunt);
 		}
 		case eStatMitigation:
 		{
-			return GetMitigationAC() * 100000;
+			return ACSum();
 		}
 		case eStatAAPoints:
 		{
