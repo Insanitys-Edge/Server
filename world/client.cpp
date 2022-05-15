@@ -458,15 +458,15 @@ bool Client::HandleSendLoginInfoPacket(const EQApplicationPacket *app)
 		LogClientLogin("[HandleSendLoginInfoPacket] Checking Auth id [{}] passed", id);
 		if (!is_player_zoning) {
 			// Track who is in and who is out of the game
-			char *inout= (char *) "";
+			char* inout = (char*)"";
 
-			if (cle->GetOnline() == CLE_Status::Never){
+			if (cle->GetOnline() == CLE_Status::Never) {
 				// Desktop -> Char Select
-				inout = (char *) "In";
+				inout = (char*)"In";
 			}
 			else {
 				// Game -> Char Select
-				inout=(char *) "Out";
+				inout = (char*)"Out";
 			}
 
 			// Always at Char select at this point.
@@ -481,16 +481,16 @@ bool Client::HandleSendLoginInfoPacket(const EQApplicationPacket *app)
 			cle->SetOnline();
 		}
 
-		const WorldConfig *Config=WorldConfig::get();
+		const WorldConfig* Config = WorldConfig::get();
 
-		if(Config->UpdateStats) {
+		if (Config->UpdateStats) {
 			auto pack = new ServerPacket;
 			pack->opcode = ServerOP_LSPlayerJoinWorld;
 			pack->size = sizeof(ServerLSPlayerJoinWorld_Struct);
 			pack->pBuffer = new uchar[pack->size];
-			memset(pack->pBuffer,0,pack->size);
-			ServerLSPlayerJoinWorld_Struct* join =(ServerLSPlayerJoinWorld_Struct*)pack->pBuffer;
-			strcpy(join->key,GetLSKey());
+			memset(pack->pBuffer, 0, pack->size);
+			ServerLSPlayerJoinWorld_Struct* join = (ServerLSPlayerJoinWorld_Struct*)pack->pBuffer;
+			strcpy(join->key, GetLSKey());
 			join->lsaccount_id = GetLSID();
 			loginserverlist.SendPacket(pack);
 			safe_delete(pack);
