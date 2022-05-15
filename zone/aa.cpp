@@ -1431,6 +1431,36 @@ bool ZoneDatabase::LoadAlternateAdvancement(Client *c, uint32 class_id) {
 		}
 	}
 
+	if (!c->GetAAByAAID(31001))
+		c->SetAA(31001, 1);
+	if (!c->GetAAByAAID(31002))
+		c->SetAA(31002, 1);
+	if (!c->GetAAByAAID(31003))
+		c->SetAA(31003, 1);
+	if (!c->GetAAByAAID(31004))
+		c->SetAA(31004, 1);
+	if (!c->GetAAByAAID(31005))
+		c->SetAA(31005, 1);
+	if (!c->GetAAByAAID(31006))
+		c->SetAA(31006, 1);
+	if (!c->GetAAByAAID(31007))
+		c->SetAA(31007, 1);
+	if (!c->GetAAByAAID(31008))
+		c->SetAA(31008, 1);
+	if (!c->GetAAByAAID(31009))
+		c->SetAA(31009, 1);
+	if (!c->GetAAByAAID(31010))
+		c->SetAA(31010, 1);
+	if (!c->GetAAByAAID(31012))
+		c->SetAA(31012, 1);
+	if (!c->GetAAByAAID(31013))
+		c->SetAA(31013, 1);
+	if (!c->GetAAByAAID(31014))
+		c->SetAA(31014, 1);
+	if (!c->GetAAByAAID(31015))
+		c->SetAA(31015, 1);
+	if (!c->GetAAByAAID(32000))
+		c->SetAA(32000, 1);
 	return true;
 }
 
