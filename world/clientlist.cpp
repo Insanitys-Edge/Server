@@ -42,7 +42,7 @@ extern ZSList			zoneserver_list;
 uint32 numplayers = 0;	//this really wants to be a member variable of ClientList...
 
 ClientList::ClientList()
-: CLStale_timer(10000)
+: CLStale_timer(7500)
 {
 	NextCLEID = 1;
 
