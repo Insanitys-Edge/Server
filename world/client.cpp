@@ -102,6 +102,7 @@ enum class NameApprovalResponse : int {
 
 Client::Client(EQStreamInterface* ieqs)
 :	autobootup_timeout(RuleI(World, ZoneAutobootTimeoutMS)),
+	CLE_keepalive_timer(RuleI(World, ClientKeepaliveTimeoutMS)),
 	connect(1000),
 	eqs(ieqs)
 {
@@ -134,8 +135,11 @@ Client::~Client() {
 	numclients--;
 
 	//let the stream factory know were done with this stream
+	if (eqs)
+	{
 	eqs->Close();
 	eqs->ReleaseFromUse();
+	}
 	safe_delete(eqs);
 }
 
@@ -736,7 +740,7 @@ bool Client::HandleEnterWorldPacket(const EQApplicationPacket *app) {
 	}
 
 	if (RuleB(World, EnableIPExemptions) || RuleI(World, MaxClientsPerIP) >= 0) {
-		client_list.GetCLEIP(GetIP()); //Check current CLE Entry IPs against incoming connection
+		client_list.GetCLEIP(this->GetIP()); //Check current CLE Entry IPs against incoming connection
 	}
 
 	EnterWorld_Struct *ew=(EnterWorld_Struct *)app->pBuffer;
@@ -1063,9 +1067,9 @@ bool Client::HandlePacket(const EQApplicationPacket *app) {
 		}
 		case OP_WorldLogout:
 		{
-			// I don't see this getting executed on logout
 			eqs->Close();
-			cle->SetOnline(CLE_Status::Offline); //allows this player to log in again without an ip restriction.
+			client_list.DisconnectCLE(cle);
+			//cle->SetOnline(CLE_Status_Offline); //allows this player to log in again without an ip restriction.
 			return false;
 		}
 		case OP_ZoneChange:
@@ -1114,9 +1118,10 @@ bool Client::Process() {
 		SendApproveWorld();
 		connect.Disable();
 	}
-
+	if (CLE_keepalive_timer.Check()) {
 	if (cle)
 		cle->KeepAlive();
+	}
 
 	/************ Get all packets from packet manager out queue and process them ************/
 	EQApplicationPacket *app = 0;
