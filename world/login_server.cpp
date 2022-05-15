@@ -264,6 +264,16 @@ void LoginServer::ProcessLSClientAuthLegacy(uint16_t opcode, EQ::Net::Packet &p)
 			client_authentication_request.ip,
 			client_authentication_request.is_client_from_local_network
 		);
+
+		client_list.CLEAdd(
+			client_authentication_request.loginserver_account_id,
+			"eqemu",
+			client_authentication_request.loginserver_account_name,
+			client_authentication_request.key,
+			client_authentication_request.is_world_admin,
+			client_authentication_request.ip,
+			client_authentication_request.is_client_from_local_network
+		);
 	}
 	catch (std::exception &ex) {
 		LogError("Error parsing ClientAuthLegacy packet from world\nReason [{0}]", ex.what());
