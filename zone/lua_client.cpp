@@ -992,12 +992,12 @@ void Lua_Client::SummonItem(uint32 item_id, int charges, uint32 aug1, uint32 aug
 
 void Lua_Client::SummonCursorItem(uint32 item_id) {
 	Lua_Safe_Call_Void();
-	self->SummonItem(item_id, 0, EQ::invslot::slotCursor);
+	self->SummonItem(item_id, 0);
 }
 
 void Lua_Client::SummonCursorItem(uint32 item_id, int charges) {
 	Lua_Safe_Call_Void();
-	self->SummonItem(item_id, charges, EQ::invslot::slotCursor);
+	self->SummonItem(item_id, charges);
 }
 
 
