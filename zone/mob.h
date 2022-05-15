@@ -331,7 +331,7 @@ public:
 	int ResistPhysical(int level_diff, uint8 caster_level);
 	int ResistElementalWeaponDmg(const EQ::ItemInstance *item);
 	int CheckBaneDamage(const EQ::ItemInstance *item);
-	uint16 GetSpecializeSkillValue(uint16 spell_id) const;
+	uint16 GetSpecializeSkillValue(uint16 spell_id);
 	void SendSpellBarDisable();
 	void SendSpellBarEnable(uint16 spellid);
 	void ZeroCastingVars();
@@ -484,7 +484,7 @@ public:
 	inline void SetDuelWeaponsEquiped(bool val) { has_duelweaponsequiped = val; }
 	bool CanFacestab() { return can_facestab; }
 	void SetFacestab(bool val) { can_facestab = val; }
-	virtual uint16 GetSkill(EQ::skills::SkillType skill_num) const { return 0; }
+	virtual uint16 GetSkill(EQ::skills::SkillType skill_num) { return 0; }
 	virtual uint32 GetEquippedItemFromTextureSlot(uint8 material_slot) const { return(0); }
 	virtual int32 GetEquipmentMaterial(uint8 material_slot) const;
 	virtual int32 GetHerosForgeModel(uint8 material_slot) const;
@@ -1019,13 +1019,13 @@ public:
 	void ApplyDamageTable(DamageHitInfo &hit);
 	virtual int GetHandToHandDamage(void);
 
-	bool CanThisClassDoubleAttack(void) const;
-	bool CanThisClassTripleAttack() const;
-	bool CanThisClassDualWield(void) const;
-	bool CanThisClassRiposte(void) const;
-	bool CanThisClassDodge(void) const;
-	bool CanThisClassParry(void) const;
-	bool CanThisClassBlock(void) const;
+	bool CanThisClassDoubleAttack(void);
+	bool CanThisClassTripleAttack();
+	bool CanThisClassDualWield(void);
+	bool CanThisClassRiposte(void);
+	bool CanThisClassDodge(void);
+	bool CanThisClassParry(void);
+	bool CanThisClassBlock(void);
 
 	int GetHandToHandDelay(void);
 	uint32 GetClassLevelFactor();

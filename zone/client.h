@@ -789,13 +789,16 @@ public:
 	uint16 GetSkillPoints() { return m_pp.points;}
 	void SetSkillPoints(int inp) { m_pp.points = inp;}
 
-	void IncreaseSkill(int skill_id, int value = 1) { if (skill_id <= EQ::skills::HIGHEST_SKILL) { m_pp.skills[skill_id] += value; } }
+	void IncreaseSkill(int skill_id, int value = 1) { if (skill_id <= EQ::skills::HIGHEST_SKILL) { skills[skill_id] += value; } }
 	void IncreaseLanguageSkill(int skill_id, int value = 1);
-	virtual uint16 GetSkill(EQ::skills::SkillType skill_id) const { if (skill_id <= EQ::skills::HIGHEST_SKILL) { return(itembonuses.skillmod[skill_id] > 0 ? (itembonuses.skillmodmax[skill_id] > 0 ? std::min(m_pp.skills[skill_id] + itembonuses.skillmodmax[skill_id], m_pp.skills[skill_id] * (100 + itembonuses.skillmod[skill_id]) / 100) : m_pp.skills[skill_id] * (100 + itembonuses.skillmod[skill_id]) / 100) : m_pp.skills[skill_id]); } return 0; }
-	uint32 GetRawSkill(EQ::skills::SkillType skill_id) const { if (skill_id <= EQ::skills::HIGHEST_SKILL) { return(m_pp.skills[skill_id]); } return 0; }
-	bool HasSkill(EQ::skills::SkillType skill_id) const;
-	bool CanHaveSkill(EQ::skills::SkillType skill_id) const;
+	uint16 GetCurrentSkillValueOrMax(EQ::skills::SkillType skill_id);
+	virtual uint16 GetSkill(EQ::skills::SkillType skill_id);
+	uint32 GetRawSkill(EQ::skills::SkillType skill_id) { if (skill_id <= EQ::skills::HIGHEST_SKILL) { return(skills[skill_id]); } return 0; }
+	bool HasSkill(EQ::skills::SkillType skill_id);
+	bool CanHaveSkill(EQ::skills::SkillType skill_id);
+	bool CanClassHaveSkill(EQ::skills::SkillType skill_id, uint32 class_id);
 	void SetSkill(EQ::skills::SkillType skill_num, uint16 value, bool show_msg = true);
+	void TempSetSkill(EQ::skills::SkillType skill_num, uint16 value, bool show_msg = true);
 	void AddSkill(EQ::skills::SkillType skillid, uint16 value);
 	void CheckSpecializeIncrease(uint16 spell_id);
 	void CheckSongSkillIncrease(uint16 spell_id);
@@ -806,8 +809,8 @@ public:
 	void ShowSkillsWindow();
 	void SendStatsWindow(Client* client, bool use_window);
 
-	uint16 MaxSkill(EQ::skills::SkillType skillid, uint16 class_, uint16 level) const;
-	inline uint16 MaxSkill(EQ::skills::SkillType skillid) const { return MaxSkill(skillid, GetClass(), GetLevel()); }
+	uint16 MaxSkill(EQ::skills::SkillType skillid, uint16 class_, uint16 level) ;
+	inline uint16 MaxSkill(EQ::skills::SkillType skillid) { return MaxSkill(skillid, GetClass(), GetLevel()); }
 	uint8 SkillTrainLevel(EQ::skills::SkillType skillid, uint16 class_);
 
 	void SendTradeskillSearchResults(const std::string &query, unsigned long objtype, unsigned long someid);
@@ -1882,6 +1885,7 @@ private:
 	PlayerProfile_Struct m_pp;
 	ExtendedProfile_Struct m_epp;
 	EQ::InventoryProfile m_inv;
+	uint32				skills[MAX_PP_SKILL];
 	Object* m_tradeskill_object;
 	PetInfo m_petinfo; // current pet data, used while loading from and saving to DB
 	PetInfo m_suspendedminion; // pet data for our suspended minion.

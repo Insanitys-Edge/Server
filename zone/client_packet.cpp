@@ -1229,7 +1229,11 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	database.LoadCharacterMaterialColor(cid, &m_pp); /* Load Character Material */
 	database.LoadCharacterPotions(cid, &m_pp); /* Load Character Potion Belt */
 	database.LoadCharacterCurrency(AccountID(), &m_pp); /* Load Character Currency into PP */
-	database.LoadCharacterSkills(cid, m_pp.class_, &m_pp); /* Load Character Skills */
+	database.LoadCharacterSkills(cid, &m_pp); /* Load Character Skills */
+	for (int i = 0; i < EQ::skills::SkillCount; i++)
+	{
+		skills[i] = m_pp.skills[i];
+	}
 	database.LoadCharacterInspectMessage(cid, &m_inspect_message); /* Load Character Inspect Message */
 	database.LoadCharacterSpellBook(cid, m_pp.class_, &m_pp); /* Load Character Spell Book */
 	database.LoadCharacterMemmedSpells(cid, m_pp.class_, &m_pp);  /* Load Character Memorized Spells */

@@ -370,7 +370,7 @@ public:
 	bool LoadCharacterMaterialColor(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterMemmedSpells(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterPotions(uint32 character_id, PlayerProfile_Struct* pp);
-	bool LoadCharacterSkills(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
+	bool LoadCharacterSkills(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterSpellBook(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterTribute(uint32 character_id, PlayerProfile_Struct* pp);
 
@@ -387,7 +387,7 @@ public:
 	bool SaveCharacterMaterialColor(uint32 character_id, uint32 slot_id, uint32 color);
 	bool SaveCharacterMemorizedSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id);
 	bool SaveCharacterPotionBelt(uint32 character_id, uint8 potion_id, uint32 item_id, uint32 icon);
-	bool SaveCharacterSkill(uint32 character_id, uint32 class_id, uint32 skill_id, uint32 value);
+	bool SaveCharacterSkill(uint32 character_id, uint32 skill_id, uint32 value);
 	bool SaveCharacterSpell(uint32 character_id, uint32 class_id, uint32 spell_id, uint32 slot_id);
 	bool SaveCharacterTribute(uint32 character_id, PlayerProfile_Struct* pp);
 	

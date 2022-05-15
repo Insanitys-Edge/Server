@@ -178,8 +178,8 @@ public:
 	inline const uint8 GetClientVersion() const { return _OwnerClientVersion; }
 
 	virtual void SetTarget(Mob* mob);
-	bool HasSkill(EQ::skills::SkillType skill_id) const;
-	bool CanHaveSkill(EQ::skills::SkillType skill_id) const;
+	bool HasSkill(EQ::skills::SkillType skill_id);
+	bool CanHaveSkill(EQ::skills::SkillType skill_id);
 	uint16 MaxSkill(EQ::skills::SkillType skillid, uint16 class_, uint16 level) const;
 	inline uint16 MaxSkill(EQ::skills::SkillType skillid) const { return MaxSkill(skillid, GetClass(), GetLevel()); }
 	virtual void DoClassAttacks(Mob *target);

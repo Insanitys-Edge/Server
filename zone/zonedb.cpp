@@ -1335,14 +1335,14 @@ bool ZoneDatabase::LoadCharacterDisciplines(uint32 character_id, PlayerProfile_S
 	return true;
 }
 
-bool ZoneDatabase::LoadCharacterSkills(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp){
+bool ZoneDatabase::LoadCharacterSkills(uint32 character_id, PlayerProfile_Struct* pp){
 	std::string query = StringFormat(
 		"SELECT				"
 		"skill_id,			"
 		"`value`			"
 		"FROM				"
 		"`character_skills` "
-		"WHERE `id` = %u AND `class_id` = %u ORDER BY `skill_id`", character_id, class_id);
+		"WHERE `id` = %u ORDER BY `skill_id`", character_id);
 	auto results = database.QueryDatabase(query);
 	int i = 0;
 	/* Initialize Skill */
@@ -1559,8 +1559,8 @@ bool ZoneDatabase::SaveCharacterMaterialColor(uint32 character_id, uint32 slot_i
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterSkill(uint32 character_id, uint32 class_id, uint32 skill_id, uint32 value){
-	std::string query = StringFormat("REPLACE INTO `character_skills` (id, class_id, skill_id, value) VALUES (%u, %u, %u, %u)", character_id, class_id, skill_id, value); auto results = QueryDatabase(query);
+bool ZoneDatabase::SaveCharacterSkill(uint32 character_id, uint32 skill_id, uint32 value){
+	std::string query = StringFormat("REPLACE INTO `character_skills` (id, skill_id, value) VALUES (%u, %u, %u)", character_id, skill_id, value); auto results = QueryDatabase(query);
 	LogDebug("ZoneDatabase::SaveCharacterSkill for character ID: [{}], skill_id:[{}] value:[{}] done", character_id, skill_id, value);
 	return true;
 }
@@ -5136,7 +5136,6 @@ std::map<uint32, MercCharacter_Struct*> ZoneDatabase::LoadCharactersOnAccount(Cl
 		}
 
 		charStruct->m_pp.class_ = i;
-		database.LoadCharacterSkills(charid, i, &charStruct->m_pp); /* Load Character Skills */
 		database.LoadCharacterSpellBook(charid, i, &charStruct->m_pp); /* Load Character Spell Book */
 		database.LoadCharacterMemmedSpells(charid, i, &charStruct->m_pp);  /* Load Character Memorized Spells */
 		database.LoadAlternateAdvancement(c, i);

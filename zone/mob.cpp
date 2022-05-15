@@ -3456,7 +3456,7 @@ void Mob::Kill() {
 	Death(this, 0, SPELL_UNKNOWN, EQ::skills::SkillHandtoHand);
 }
 
-bool Mob::CanThisClassDualWield(void) const {
+bool Mob::CanThisClassDualWield(void) {
 	if(!IsClient()) {
 		return(GetSkill(EQ::skills::SkillDualWield) > 0);
 	}
@@ -3487,7 +3487,7 @@ bool Mob::CanThisClassDualWield(void) const {
 	return false;
 }
 
-bool Mob::CanThisClassDoubleAttack(void) const
+bool Mob::CanThisClassDoubleAttack(void)
 {
 	if(!IsClient()) {
 		return(GetSkill(EQ::skills::SkillDoubleAttack) > 0);
@@ -3499,7 +3499,7 @@ bool Mob::CanThisClassDoubleAttack(void) const
 	}
 }
 
-bool Mob::CanThisClassTripleAttack() const
+bool Mob::CanThisClassTripleAttack()
 {
 	if (!IsClient())
 		return false; // When they added the real triple attack skill, mobs lost the ability to triple
@@ -3540,7 +3540,7 @@ bool Mob::IsWarriorClass(void) const
 
 }
 
-bool Mob::CanThisClassParry(void) const
+bool Mob::CanThisClassParry(void)
 {
 	if(!IsClient()) {
 		return(GetSkill(EQ::skills::SkillParry) > 0);
@@ -3549,7 +3549,7 @@ bool Mob::CanThisClassParry(void) const
 	}
 }
 
-bool Mob::CanThisClassDodge(void) const
+bool Mob::CanThisClassDodge(void)
 {
 	if(!IsClient()) {
 		return(GetSkill(EQ::skills::SkillDodge) > 0);
@@ -3558,7 +3558,7 @@ bool Mob::CanThisClassDodge(void) const
 	}
 }
 
-bool Mob::CanThisClassRiposte(void) const
+bool Mob::CanThisClassRiposte(void)
 {
 	if(!IsClient()) {
 		return(GetSkill(EQ::skills::SkillRiposte) > 0);
@@ -3567,7 +3567,7 @@ bool Mob::CanThisClassRiposte(void) const
 	}
 }
 
-bool Mob::CanThisClassBlock(void) const
+bool Mob::CanThisClassBlock(void)
 {
 	if(!IsClient()) {
 		return(GetSkill(EQ::skills::SkillBlock) > 0);

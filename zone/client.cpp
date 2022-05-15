@@ -1460,12 +1460,31 @@ bool Client::UpdateLDoNPoints(uint32 theme_id, int points) {
 	return true;
 }
 
+void Client::TempSetSkill(EQ::skills::SkillType skillid, uint16 value, bool show_msg) {
+	auto outapp = new EQApplicationPacket(OP_SkillUpdate, sizeof(SkillUpdate_Struct));
+	SkillUpdate_Struct* skill = (SkillUpdate_Struct*)outapp->pBuffer;
+	skill->skillId = skillid;
+	skill->value = value;
+	skill->show_msg = (uint8)show_msg;
+	QueuePacket(outapp);
+	safe_delete(outapp);
+}
+
 void Client::SetSkill(EQ::skills::SkillType skillid, uint16 value, bool show_msg) {
 	if (skillid > EQ::skills::HIGHEST_SKILL)
 		return;
-	m_pp.skills[skillid] = value; // We need to be able to #setskill 254 and 255 to reset skills
 
-	database.SaveCharacterSkill(CharacterID(), m_pp.class_, skillid, value);
+	if (!CanHaveSkill(skillid)) //So we don't write any skills in the DB that we shouldn't.
+		return;
+
+	if (skills[skillid] > value) // Don't write skills that are technically lower, ever.
+	{
+		return;
+	}
+
+	skills[skillid] = value; // We need to be able to #setskill 254 and 255 to reset skills
+
+	database.SaveCharacterSkill(CharacterID(), skillid, value);
 	auto outapp = new EQApplicationPacket(OP_SkillUpdate, sizeof(SkillUpdate_Struct));
 	SkillUpdate_Struct* skill = (SkillUpdate_Struct*)outapp->pBuffer;
 	skill->skillId=skillid;
@@ -2520,11 +2539,11 @@ void Client::CheckLanguageSkillIncrease(uint8 langid, uint8 TeacherSkill) {
 	}
 }
 
-bool Client::HasSkill(EQ::skills::SkillType skill_id) const {
+bool Client::HasSkill(EQ::skills::SkillType skill_id) {
 	return((GetSkill(skill_id) > 0) && CanHaveSkill(skill_id));
 }
 
-bool Client::CanHaveSkill(EQ::skills::SkillType skill_id) const {
+bool Client::CanHaveSkill(EQ::skills::SkillType skill_id) {
 	if (ClientVersion() < EQ::versions::ClientVersion::RoF2 && class_ == BERSERKER && skill_id == EQ::skills::Skill1HPiercing)
 		skill_id = EQ::skills::Skill2HPiercing;
 
@@ -2532,7 +2551,15 @@ bool Client::CanHaveSkill(EQ::skills::SkillType skill_id) const {
 	//if you don't have it by max level, then odds are you never will?
 }
 
-uint16 Client::MaxSkill(EQ::skills::SkillType skillid, uint16 class_, uint16 level) const {
+bool Client::CanClassHaveSkill(EQ::skills::SkillType skill_id, uint32 class_id) {
+	if (ClientVersion() < EQ::versions::ClientVersion::RoF2 && class_id == BERSERKER && skill_id == EQ::skills::Skill1HPiercing)
+		skill_id = EQ::skills::Skill2HPiercing;
+
+	return(content_db.GetSkillCap(class_id, skill_id, RuleI(Character, MaxLevel)) > 0);
+	//if you don't have it by max level, then odds are you never will?
+}
+
+uint16 Client::MaxSkill(EQ::skills::SkillType skillid, uint16 class_, uint16 level) {
 	if (ClientVersion() < EQ::versions::ClientVersion::RoF2 && class_ == BERSERKER && skillid == EQ::skills::Skill1HPiercing)
 		skillid = EQ::skills::Skill2HPiercing;
 
@@ -2565,12 +2592,12 @@ uint16 Client::GetMaxSkillAfterSpecializationRules(EQ::skills::SkillType skillid
 
 		for (int i = EQ::skills::SkillSpecializeAbjure; i <= EQ::skills::SkillSpecializeEvocation; ++i)
 		{
-			if(m_pp.skills[i] > 50)
+			if(skills[i] > 50)
 			{
 				HasPrimarySpecSkill = true;
 				NumberOfPrimarySpecSkills++;
 			}
-			if(m_pp.skills[i] > PrimarySkillValue)
+			if(skills[i] > PrimarySkillValue)
 			{
 				if(PrimarySkillValue > SecondarySkillValue)
 				{
@@ -2579,12 +2606,12 @@ uint16 Client::GetMaxSkillAfterSpecializationRules(EQ::skills::SkillType skillid
 				}
 
 				PrimarySpecialization = i;
-				PrimarySkillValue = m_pp.skills[i];
+				PrimarySkillValue = skills[i];
 			}
-			else if(m_pp.skills[i] > SecondarySkillValue)
+			else if(skills[i] > SecondarySkillValue)
 			{
 				SecondaryForte = i;
-				SecondarySkillValue = m_pp.skills[i];
+				SecondarySkillValue = skills[i];
 			}
 		}
 
@@ -2639,6 +2666,37 @@ uint16 Client::GetMaxSkillAfterSpecializationRules(EQ::skills::SkillType skillid
 
 	return Result;
 }
+
+uint16 Client::GetCurrentSkillValueOrMax(EQ::skills::SkillType skill_id) {
+	
+	if (!CanHaveSkill(skill_id))
+	{
+		return 0;
+	}
+
+	uint16 MaxSkillAfterRules = GetMaxSkillAfterSpecializationRules(skill_id, MaxSkill(skill_id));
+
+	return MaxSkillAfterRules < skills[skill_id] ? MaxSkillAfterRules : skills[skill_id];
+}
+
+uint16 Client::GetSkill(EQ::skills::SkillType skill_id) { 
+	
+	if (!CanHaveSkill(skill_id))
+	{
+		return 0;
+	}
+
+	if (skill_id <= EQ::skills::HIGHEST_SKILL) 
+	{ 
+		return(itembonuses.skillmod[skill_id] > 0 ? 
+			(itembonuses.skillmodmax[skill_id] > 0	? 
+				std::min(skills[skill_id] + itembonuses.skillmodmax[skill_id], skills[skill_id] * (100 + itembonuses.skillmod[skill_id]) / 100)
+				: GetCurrentSkillValueOrMax(skill_id) * (100 + itembonuses.skillmod[skill_id]) / 100)
+				: GetCurrentSkillValueOrMax(skill_id));
+	} 
+	return 0; 
+}
+
 
 void Client::SetPVP(bool toggle, bool message) {
 	m_pp.pvp = toggle ? 1 : 0;
@@ -11343,11 +11401,6 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 		//SetLevel(m_pp.level, true);
 		SendSpellSuppressionPacket(true);
 
-		for (int i = 0; i < EQ::skills::SkillCount; i++)
-		{
-			m_PlayerPP.skills[i] = m_pp.skills[i];
-		}
-
 		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
 		{
 			m_PlayerPP.mem_spells[i] = m_pp.mem_spells[i];
@@ -11395,11 +11448,7 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)
 		{
-			if (m_pp.skills[i] != m_MercPP.skills[i])
-			{
-				SetSkill((EQ::skills::SkillType)i, m_MercPP.skills[i], false);
-				m_pp.skills[i] = m_MercPP.skills[i];
-			}
+				TempSetSkill((EQ::skills::SkillType)i, GetSkill((EQ::skills::SkillType)i), false);
 		}
 
 		database.LoadAlternateAdvancement(this, m_MercPP.class_);

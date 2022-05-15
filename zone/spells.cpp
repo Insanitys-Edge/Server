@@ -887,7 +887,7 @@ bool Mob::DoCastingChecksOnTarget(bool check_on_casting, int32 spell_id, Mob *sp
 	return true;
 }
 
-uint16 Mob::GetSpecializeSkillValue(uint16 spell_id) const {
+uint16 Mob::GetSpecializeSkillValue(uint16 spell_id) {
 	switch(spells[spell_id].skill) {
 	case EQ::skills::SkillAbjuration:
 		return(GetSkill(EQ::skills::SkillSpecializeAbjure));

@@ -1177,11 +1177,11 @@ void Merc::CalcRestState() {
 	RestRegenEndurance = 6 * (GetMaxEndurance() / zone->newzone_data.FastRegenEndurance);
 }
 
-bool Merc::HasSkill(EQ::skills::SkillType skill_id) const {
+bool Merc::HasSkill(EQ::skills::SkillType skill_id) {
 	return((GetSkill(skill_id) > 0) && CanHaveSkill(skill_id));
 }
 
-bool Merc::CanHaveSkill(EQ::skills::SkillType skill_id) const {
+bool Merc::CanHaveSkill(EQ::skills::SkillType skill_id) {
 	return(content_db.GetSkillCap(GetClass(), skill_id, RuleI(Character, MaxLevel)) > 0);
 	//if you don't have it by max level, then odds are you never will?
 }
