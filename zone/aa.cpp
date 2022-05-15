@@ -1451,6 +1451,8 @@ bool ZoneDatabase::LoadAlternateAdvancement(Client *c, uint32 class_id) {
 		c->SetAA(31009, 1);
 	if (!c->GetAAByAAID(31010))
 		c->SetAA(31010, 1);
+	if (!c->GetAAByAAID(31011))
+		c->SetAA(31011, 1);
 	if (!c->GetAAByAAID(31012))
 		c->SetAA(31012, 1);
 	if (!c->GetAAByAAID(31013))
