@@ -443,17 +443,6 @@ bool Client::HandleSendLoginInfoPacket(const EQApplicationPacket *app)
 
 	LogClientLogin("[HandleSendLoginInfoPacket] Checking Auth id [{}]", id);
 
-	bool okIP = client_list.CheckCLEIP(GetIP());
-	if (!okIP)
-	{
-		LogInfo("Login needs to be rejected, char already in world");
-		if (eqs)
-		{
-			eqs->Close();
-			return false;
-		}
-	}
-
 	if ((cle = client_list.CheckAuth(id, password))) {
 		LogClientLogin("[HandleSendLoginInfoPacket] Checking Auth id [{}] passed", id);
 		if (!is_player_zoning) {
