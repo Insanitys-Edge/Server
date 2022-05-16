@@ -93,7 +93,9 @@ Mob::Mob(
 	uint8 in_feettexture,
 	uint16 in_usemodel,
 	bool in_always_aggro,
-	int64 in_hp_regen_per_second
+	int64 in_hp_regen_per_second,
+	int64 in_ooc_hp_regen,
+	int64 in_ooc_mana_regen
 ) :
 	attack_timer(2000),
 	attack_dw_timer(2000),
@@ -262,8 +264,10 @@ Mob::Mob(
 	current_mana        = 0;
 	max_mana            = 0;
 	hp_regen            = in_hp_regen;
+	ooc_hp_regen        = in_ooc_hp_regen;
 	hp_regen_per_second = in_hp_regen_per_second;
 	mana_regen          = in_mana_regen;
+	ooc_mana_regen		= in_ooc_mana_regen;
 	ooc_regen           = RuleI(NPC, OOCRegen); //default Out of Combat Regen
 	maxlevel            = in_maxlevel;
 	scalerate           = in_scalerate;

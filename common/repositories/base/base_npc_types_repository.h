@@ -143,6 +143,8 @@ public:
 		int         flymode;
 		int         always_aggro;
 		int         exp_mod;
+		int64		ooc_hp_regen;
+		int64		ooc_mana_regen;
 	};
 
 	static std::string PrimaryKey()
@@ -277,6 +279,8 @@ public:
 			"flymode",
 			"always_aggro",
 			"exp_mod",
+			"ooc_hp_regen",
+			"ooc_mana_regen",
 		};
 	}
 
@@ -407,6 +411,8 @@ public:
 			"flymode",
 			"always_aggro",
 			"exp_mod",
+			"ooc_hp_regen",
+			"ooc_mana_regen",
 		};
 	}
 
@@ -571,7 +577,8 @@ public:
 		entry.flymode                = -1;
 		entry.always_aggro           = 0;
 		entry.exp_mod                = 100;
-
+		entry.ooc_hp_regen			 = 0;
+		entry.ooc_mana_regen		 = 0;
 		return entry;
 	}
 
@@ -730,7 +737,8 @@ public:
 			entry.flymode                = atoi(row[121]);
 			entry.always_aggro           = atoi(row[122]);
 			entry.exp_mod                = atoi(row[123]);
-
+			entry.ooc_hp_regen			 = atoi(row[124]);
+			entry.ooc_mana_regen			 = atoi(row[125]);
 			return entry;
 		}
 
@@ -886,7 +894,8 @@ public:
 		update_values.push_back(columns[121] + " = " + std::to_string(npc_types_entry.flymode));
 		update_values.push_back(columns[122] + " = " + std::to_string(npc_types_entry.always_aggro));
 		update_values.push_back(columns[123] + " = " + std::to_string(npc_types_entry.exp_mod));
-
+		update_values.push_back(columns[124] + " = " + std::to_string(npc_types_entry.ooc_hp_regen));
+		update_values.push_back(columns[125] + " = " + std::to_string(npc_types_entry.ooc_mana_regen));
 		auto results = db.QueryDatabase(
 			fmt::format(
 				"UPDATE {} SET {} WHERE {} = {}",
@@ -1031,6 +1040,8 @@ public:
 		insert_values.push_back(std::to_string(npc_types_entry.flymode));
 		insert_values.push_back(std::to_string(npc_types_entry.always_aggro));
 		insert_values.push_back(std::to_string(npc_types_entry.exp_mod));
+		insert_values.push_back(std::to_string(npc_types_entry.ooc_hp_regen));
+		insert_values.push_back(std::to_string(npc_types_entry.ooc_mana_regen));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1184,6 +1195,8 @@ public:
 			insert_values.push_back(std::to_string(npc_types_entry.flymode));
 			insert_values.push_back(std::to_string(npc_types_entry.always_aggro));
 			insert_values.push_back(std::to_string(npc_types_entry.exp_mod));
+			insert_values.push_back(std::to_string(npc_types_entry.ooc_hp_regen));
+			insert_values.push_back(std::to_string(npc_types_entry.ooc_mana_regen));
 
 			insert_chunks.push_back("(" + implode(",", insert_values) + ")");
 		}
@@ -1341,6 +1354,8 @@ public:
 			entry.flymode                = atoi(row[121]);
 			entry.always_aggro           = atoi(row[122]);
 			entry.exp_mod                = atoi(row[123]);
+			entry.ooc_hp_regen			 = atoi(row[124]);
+			entry.ooc_mana_regen		 = atoi(row[125]);
 
 			all_entries.push_back(entry);
 		}
@@ -1489,7 +1504,8 @@ public:
 			entry.flymode                = atoi(row[121]);
 			entry.always_aggro           = atoi(row[122]);
 			entry.exp_mod                = atoi(row[123]);
-
+			entry.ooc_hp_regen			 = strtoll(row[124], nullptr, 10);
+			entry.ooc_mana_regen		 = strtoll(row[125], nullptr, 10);
 			all_entries.push_back(entry);
 		}
 

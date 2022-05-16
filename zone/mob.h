@@ -161,7 +161,9 @@ public:
 		uint8 in_feettexture,
 		uint16 in_usemodel,
 		bool in_always_aggros_foes,
-		int64 in_hp_regen_per_second = 0
+		int64 in_hp_regen_per_second = 0,
+		int64 in_ooc_hp_regen = 0,
+		int64 in_ooc_mana_regen = 0
 	);
 	virtual ~Mob();
 
@@ -1428,8 +1430,10 @@ protected:
 	int64 current_mana;
 	int64 max_mana;
 	int64 hp_regen;
+	int64 ooc_hp_regen;
 	int64 hp_regen_per_second;
 	int64 mana_regen;
+	int64 ooc_mana_regen;
 	int32 ooc_regen;
 	uint8 maxlevel;
 	uint32 scalerate;

@@ -320,6 +320,7 @@ public:
 	void	CheckSignal();
 	inline bool IsNotTargetableWithHotkey() const { return no_target_hotkey; }
 	int64 GetNPCHPRegen() const { return hp_regen + itembonuses.HPRegen + spellbonuses.HPRegen; }
+	int64 GetOOCNPCHPRegen() const { return ooc_hp_regen + itembonuses.HPRegen + spellbonuses.HPRegen; }
 	inline const char* GetAmmoIDfile() const { return ammo_idfile; }
 
 	void ModifyStatsOnCharm(bool is_charm_removed);

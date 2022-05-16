@@ -2655,6 +2655,8 @@ const NPCType *ZoneDatabase::LoadNPCTypesData(uint32 npc_type_id, bool bulk_load
 		t->flymode                = n.flymode;
 		t->always_aggro           = n.always_aggro != 0;
 		t->exp_mod                = n.exp_mod;
+		t->ooc_hp_regen			  = n.ooc_hp_regen; // EDGE TODO: Revisit HP Regen as Combat Regen
+		t->ooc_mana_regen		  = n.ooc_mana_regen; // EDGE TODO: Revisit HP Regen as Combat Regen
 		t->skip_auto_scale        = false; // hardcoded here for now
 		t->hp_regen_per_second    = 0; // EDGE TODO: Revisit HP Regen as Combat Regen
 

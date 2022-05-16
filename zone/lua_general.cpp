@@ -565,6 +565,11 @@ void lua_spawn_condition(const char *zone, uint32 instance_id, int condition_id,
 	quest_manager.spawn_condition(zone, instance_id, condition_id, value);
 }
 
+void lua_spawn_condition(const char* zone, int condition_id, int value) {
+	quest_manager.spawn_condition(zone, 0, condition_id, value);
+}
+
+
 int lua_get_spawn_condition(const char *zone, uint32 instance_id, int condition_id) {
 	return quest_manager.get_spawn_condition(zone, instance_id, condition_id);
 }
@@ -3683,7 +3688,8 @@ luabind::scope lua_register_general() {
 		luabind::def("enable_proximity_say", &lua_enable_proximity_say),
 		luabind::def("disable_proximity_say", &lua_disable_proximity_say),
 		luabind::def("set_anim", &lua_set_anim),
-		luabind::def("spawn_condition", &lua_spawn_condition),
+		luabind::def("spawn_condition", (void(*)(const char*, int, int value))&lua_spawn_condition),
+		luabind::def("spawn_condition", (void(*)(const char*, uint32, int, int value))&lua_spawn_condition),
 		luabind::def("get_spawn_condition", &lua_get_spawn_condition),
 		luabind::def("toggle_spawn_event", &lua_toggle_spawn_event),
 		luabind::def("summon_buried_player_corpse", &lua_summon_buried_player_corpse),

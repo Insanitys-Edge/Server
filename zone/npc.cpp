@@ -116,7 +116,9 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 	npc_type_data->feettexture,
 	npc_type_data->use_model,
 	npc_type_data->always_aggro,
-	npc_type_data->hp_regen_per_second
+	npc_type_data->hp_regen_per_second,
+	npc_type_data->ooc_hp_regen,
+	npc_type_data->ooc_mana_regen
 ),
 	  attacked_timer(CombatEventTimer_expire),
 	  swarm_timer(100),
@@ -638,6 +640,7 @@ bool NPC::Process()
 		uint32 pet_regen_bonus         = 0;
 		uint64 npc_regen               = 0;
 		int64  npc_hp_regen            = GetNPCHPRegen();
+		int64  npc_ooc_hp_regen = GetOOCNPCHPRegen();
 
 		if (GetAppearance() == eaSitting) {
 			npc_sitting_regen_bonus += 3;
@@ -651,7 +654,7 @@ bool NPC::Process()
 		/**
 		 * Use max value between two values
 		 */
-		npc_regen = std::max(npc_hp_regen, ooc_regen_calc);
+		npc_regen = std::max(npc_hp_regen, npc_ooc_hp_regen);
 
 		if ((GetHP() < GetMaxHP()) && !IsPet()) {
 			if (!IsEngaged()) {
@@ -682,7 +685,7 @@ bool NPC::Process()
 		}
 
 		if (GetMana() < GetMaxMana()) {
-			if (RuleB(NPC, UseMeditateBasedManaRegen)) {
+			/*if (RuleB(NPC, UseMeditateBasedManaRegen)) {
 				int64 npc_idle_mana_regen_bonus = 2;
 				uint16 meditate_skill = GetSkill(EQ::skills::SkillMeditate);
 				if (!IsEngaged() && meditate_skill > 0) {
@@ -692,8 +695,13 @@ bool NPC::Process()
 						(clevel - (clevel / 4))) / 4) + 4;
 				}
 				SetMana(GetMana() + mana_regen + npc_idle_mana_regen_bonus);
+			}*/
+			if(!IsEngaged())
+			{
+				SetMana(GetMana() + ooc_mana_regen + npc_sitting_regen_bonus);
 			}
-			else {
+			else
+			{
 				SetMana(GetMana() + mana_regen + npc_sitting_regen_bonus);
 			}
 		}
@@ -2298,6 +2306,10 @@ void NPC::ModifyNPCStat(const char *identifier, const char *new_value)
 		hp_regen = strtoll(val.c_str(), nullptr, 10);
 		return;
 	}
+	else if (id == "hp_regen") {
+		ooc_hp_regen = strtoll(val.c_str(), nullptr, 10);
+		return;
+	}
 	else if (id == "hp_regen_per_second") {
 		hp_regen_per_second = strtoll(val.c_str(), nullptr, 10);
 		return;
@@ -2448,6 +2460,9 @@ float NPC::GetNPCStat(const char *identifier)
 	}
 	else if (id == "hp_regen") {
 		return hp_regen;
+	}
+	else if (id == "hp_regen") {
+		return ooc_hp_regen;
 	}
 	else if (id == "hp_regen_per_second") {
 		return hp_regen_per_second;

@@ -114,6 +114,8 @@ struct NPCType
 	uint8	sec_melee_type;
 	uint8	ranged_type;
 	int64	hp_regen;
+	int64	ooc_hp_regen;
+	int64	ooc_mana_regen;
 	int64	hp_regen_per_second;
 	int64	mana_regen;
 	int32	aggroradius; // added for AI improvement - neotokyo

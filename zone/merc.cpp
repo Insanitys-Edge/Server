@@ -4939,6 +4939,8 @@ void Merc::UpdateMercStats(Client *c, bool setmax)
 			max_end = npc_type->max_hp;  // Hack since Endurance does not exist for NPCType yet
 			base_end = npc_type->max_hp; // Hack since Endurance does not exist for NPCType yet
 			hp_regen = npc_type->hp_regen;
+			ooc_hp_regen = npc_type->ooc_hp_regen;
+			ooc_mana_regen = npc_type->ooc_mana_regen;
 			hp_regen_per_second = npc_type->hp_regen_per_second;
 			mana_regen = npc_type->mana_regen;
 			max_dmg = npc_type->max_dmg;
