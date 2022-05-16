@@ -2680,17 +2680,12 @@ uint16 Client::GetCurrentSkillValueOrMax(EQ::skills::SkillType skill_id) {
 }
 
 uint16 Client::GetSkill(EQ::skills::SkillType skill_id) { 
-	
-	if (!CanHaveSkill(skill_id))
-	{
-		return 0;
-	}
 
 	if (skill_id <= EQ::skills::HIGHEST_SKILL) 
 	{ 
 		return(itembonuses.skillmod[skill_id] > 0 ? 
 			(itembonuses.skillmodmax[skill_id] > 0	? 
-				std::min(skills[skill_id] + itembonuses.skillmodmax[skill_id], skills[skill_id] * (100 + itembonuses.skillmod[skill_id]) / 100)
+				std::min(GetCurrentSkillValueOrMax(skill_id) + itembonuses.skillmodmax[skill_id], GetCurrentSkillValueOrMax(skill_id) * (100 + itembonuses.skillmod[skill_id]) / 100)
 				: GetCurrentSkillValueOrMax(skill_id) * (100 + itembonuses.skillmod[skill_id]) / 100)
 				: GetCurrentSkillValueOrMax(skill_id));
 	} 
