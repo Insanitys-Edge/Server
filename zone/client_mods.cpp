@@ -259,7 +259,7 @@ int64 Client::CalcHPRegen(bool bCombat)
 	}
 
 	// naked regen
-	int32 hp_regen_amount = LevelRegen(GetLevel(), is_sitting, false, is_feigned, IsStarved(), has_racial_regen_bonus, has_frog_racial_regen_bonus);
+	int32 hp_regen_amount = LevelRegen(GetLevel(), is_sitting, true, is_feigned, IsStarved(), has_racial_regen_bonus, has_frog_racial_regen_bonus);
 
 	// add AA regen - this is here because of the check below needing to negate it so we can bleed out in sync with the client
 	hp_regen_amount += aabonuses.HPRegen;
