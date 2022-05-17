@@ -814,7 +814,7 @@ int64 Client::CalcManaRegen(bool bCombat)
 			regen += 6;
 			break;
 		case RaceCharmIDs::CharmErudite:
-			regen = std::ceilf(regen / 2.0f);
+			regen = std::ceil(regen / 2.0f);
 			break;
 		}
 	}
