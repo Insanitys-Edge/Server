@@ -153,182 +153,158 @@ int32 Client::GetMaxCorrup() const
 	       + spellbonuses.CorrupCapMod
 	       + aabonuses.CorrupCapMod;
 }
-int32 Client::LevelRegen()
+
+int64 Client::LevelRegen(int level, bool is_sitting, bool is_resting, bool is_feigned, bool is_famished, bool has_racial_regen_bonus, bool has_frog_racial_regen_bonus)
 {
-	bool sitting = IsSitting();
-	bool feigned = GetFeigned();
-	int level = GetLevel();
-	bool bonus = false;//GetPlayerRaceBit(GetBaseRace()) & RuleI(Character, BaseHPRegenBonusRaces);
-	int64 multiplier1 = bonus ? 2 : 1;
-	bool bonusIsFrog = false;
+	// base regen is 1
+	int hp_regen_amount = 1;
+
+	// sitting adds 1
+	if (is_sitting)
+	{
+		hp_regen_amount += 1;
+	}
+
+	// feigning at 51+ adds 1 as if sitting
+	if (level > 50 && is_feigned)
+	{
+		hp_regen_amount += 1;
+	}
+
+	// being either hungry or thirsty negates the passive regen from standing/sitting/feigning but can still benefit from level bonuses and resting
+	if (is_famished)	// the client checks to see if either food or water is 0 in pp, not for the advanced sickness that happens later
+	{
+		hp_regen_amount = 0;
+	}
+
+	// additional point of regen is gained at levels 51, 56, 60, 61, 63 and 65
+	if (level >= 51)
+	{
+		hp_regen_amount += 1;
+	}
+	if (level >= 56)
+	{
+		hp_regen_amount += 1;
+	}
+	if (level >= 60)
+	{
+		hp_regen_amount += 1;
+	}
+	if (level >= 61)
+	{
+		hp_regen_amount += 1;
+	}
+	if (level >= 63)
+	{
+		hp_regen_amount += 1;
+	}
+	if (level >= 65)
+	{
+		hp_regen_amount += 1;
+	}
+
+	// resting begins after sitting for 1 minute.
+	// 1 additional point of regen is gained at levels 20 and 50
+	if (is_sitting && is_resting)
+	{
+		if (level >= 20)
+		{
+			hp_regen_amount += 1;
+		}
+		if (level >= 50)
+		{
+			hp_regen_amount += 1;
+		}
+	}
+
+	// racial trait adds to then doubles regen bonuses
+	if (has_racial_regen_bonus)
+	{
+		if (level >= 51)
+		{
+			hp_regen_amount += 1;
+		}
+		if (level >= 56)
+		{
+			hp_regen_amount += 1;
+		}
+
+		hp_regen_amount *= std::ceil(has_frog_racial_regen_bonus ? 1.5 : 2.0);
+	}
+
+	return hp_regen_amount;
+}
+
+int64 Client::CalcHPRegen(bool bCombat)
+{
+	bool is_sitting = true;
+	bool has_racial_regen_bonus = false;
+	bool has_frog_racial_regen_bonus = false;
+	bool is_feigned = GetClass() == MONK && GetFeigned();	// only monks get this bonus
+
 	if (IsClient())
 	{
 		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
 		if (inst && inst->GetID() == RaceCharmIDs::CharmTroll ||
 			inst && inst->GetID() == RaceCharmIDs::CharmIksar)
 		{
-			bonus = true;
+			has_racial_regen_bonus = true;
 		}
 
 		if (inst && inst->GetID() == RaceCharmIDs::CharmFroglok)
 		{
-			bonus = true;
-			bonusIsFrog = true;
+			has_racial_regen_bonus = true;
+			has_frog_racial_regen_bonus = true;
 		}
 	}
-	int64 hp = 0;
-	//these calculations should match up with the info from Monkly Business, which was last updated ~05/2008: http://www.monkly-business.net/index.php?pageid=abilities
-	if (level < 51) {
-		//if (sitting) {
-		if (level < 20) {
-			hp += 2 * multiplier1;
-		}
-		else if (level < 50) {
-			hp += 3 * multiplier1;
-		}
-		else {	//level == 50
-			hp += 4 * multiplier1;
-		}
-		//}
-		//else {	//feigned or standing
-		//	hp += 1 * multiplier1;
-		//}
-	}
-	//there may be an easier way to calculate this next part, but I don't know what it is
-	else {	//level >= 51
-		int32 tmp = 0;
-		float multiplier2 = 1;
-		if (level < 56) {
-			tmp = 2;
-			if (bonus) {
-				multiplier2 = bonusIsFrog ? 1.5 : 3;
-			}
 
-		}
-		else if (level < 60) {
-			tmp = 3;
-			if (bonus) {
-				multiplier2 = bonusIsFrog ? 1.67 : 3.34;
-			}
-		}
-		else if (level < 61) {
-			tmp = 4;
-			if (bonus) {
-				multiplier2 = bonusIsFrog ? 1.5 : 3;
-			}
-		}
-		else if (level < 63) {
-			tmp = 5;
-			if (bonus) {
-				multiplier2 = bonusIsFrog ? 1.4 : 2.8;
-			}
-		}
-		else if (level < 65) {
-			tmp = 6;
-			if (bonus) {
-				multiplier2 = bonusIsFrog ? 1.335 : 2.67;
-			}
-		}
-		else {	//level >= 65
-			tmp = 7;
-			if (bonus) {
-				multiplier2 = bonusIsFrog ? 1.29 : 2.58;
-			}
-		}
-		hp += int32(float(tmp) * multiplier2);
-		//if (sitting) {
-		hp += 3 * multiplier1;
-		//}
-		if (feigned) {
-			hp += 1 * multiplier1;
+	// naked regen
+	int32 hp_regen_amount = LevelRegen(GetLevel(), is_sitting, false, is_feigned, IsStarved(), has_racial_regen_bonus, has_frog_racial_regen_bonus);
+
+	// add AA regen - this is here because of the check below needing to negate it so we can bleed out in sync with the client
+	hp_regen_amount += aabonuses.HPRegen;
+
+	// we're almost dead, our regeneration won't save us now but a heal could
+	if (GetHP() <= 0)
+	{
+		if (hp_regen_amount <= 0 || GetHP() < -5)
+		{
+			// bleed to death slowly
+			hp_regen_amount = -1;
 		}
 	}
-	return hp;
-}
-
-int64 Client::CalcHPRegen(bool bCombat)
-{
-	int64 item_regen = itembonuses.HPRegen; // worn spells and +regen, already capped
-	item_regen += GetHeroicSTA() / 20;
-
-	item_regen += aabonuses.HPRegen;
-
-	int64 base = LevelRegen();
-	auto level = GetLevel();
-	bool skip_innate = false;
-
-	//if (IsSitting()) {
-		if (level >= 50) {
-			base++;
-			if (level >= 65)
-				base++;
-		}
-
-		//if ((Timer::GetCurrentTime() - tmSitting) > 60000) {
-		//	if (!IsAffectedByBuffByGlobalGroup(GlobalGroup::Lich)) {
-		//		auto tic_diff = std::min((Timer::GetCurrentTime() - tmSitting) / 60000, static_cast<uint32>(9));
-		//		if (tic_diff != 1) { // starts at 2 mins
-		//			int tic_bonus = tic_diff * 1.5 * base;
-		//			if (m_pp.InnateSkills[InnateRegen] != InnateDisabled)
-		//				tic_bonus = tic_bonus * 1.2;
-		//			base = tic_bonus;
-		//			skip_innate = true;
-		//		} else if (m_pp.InnateSkills[InnateRegen] == InnateDisabled) { // no innate regen gets first tick
-		//			int tic_bonus = base * 1.5;
-		//			base = tic_bonus;
-		//		}
-		//	}
-		//}
-	//}
-
-	if (!skip_innate && m_pp.InnateSkills[InnateRegen] != InnateDisabled) {
-		if (level >= 50) {
-			++base;
-			if (level >= 55) {
-				++base;
-			}
-		}
-		base *= 2;
-	}
-
-	if (IsStarved())
-		base = 0;
 
 	if (IsBerserk())
 	{
-		if (GetHPRatio() < 15.0f)	
-			base *= 4.0;
+		if (GetHPRatio() < 15.0f)
+			hp_regen_amount *= 4.0;
 		else if (GetHPRatio() < 20.0f)
-			base *= 3.5;
+			hp_regen_amount *= 3.5;
 		else if (GetHPRatio() < 25.0f)
-			base *= 3.0;
+			hp_regen_amount *= 3.0;
 		else if (GetHPRatio() < 30.0f)
-			base *= 2.5;
+			hp_regen_amount *= 2.5;
 		else if (GetHPRatio() < 35.0f)
-			base *= 2.0;
+			hp_regen_amount *= 2.0;
 		else if (GetHPRatio() < 45.0f)
-			base *= 1.5;
+			hp_regen_amount *= 1.5;
 	}
+	// add spell and item regen
+	hp_regen_amount += itembonuses.HPRegen + spellbonuses.HPRegen;
 
-	base += GroupLeadershipAAHealthRegeneration();
-	// some IsKnockedOut that sets to -1
-	base = base * 100.0f * AreaHPRegen * 0.01f + 0.5f;
-	// another check for IsClient && !(base + item_regen) && Cur_HP <= 0 do --base; do later
-
-	//if (!bCombat && CanFastRegen() && (IsSitting() || CanMedOnHorse())) {
-	//	auto max_hp = GetMaxHP();
-	//	int fast_regen = 6 * (max_hp / zone->newzone_data.FastRegenHP);
-	//	if (base < fast_regen) // weird, but what the client is doing
-	//		base = fast_regen;
-	//}
+	// special case, if we're unconscious and our hp isn't changing, make it -1 so the character doesn't end up stuck in that state
+	// this only applies if the character ends up with between -5 and 0 hp, then once they reach -6 they will hit the normal bleeding logic
+	if (GetHP() <= 0 && hp_regen_amount == 0)
+	{
+		hp_regen_amount = -1;
+	}
 
 	if (GetBaseRace() == DRAKKIN)
 	{
 		return (int64)std::min(-5., -GetMaxHP() * 0.03);
 	}
 
-	int64 regen = base + item_regen + spellbonuses.HPRegen; // TODO: client does this in buff tic 
-	return (regen * RuleI(Character, HPRegenMultiplier) / 100);
+	return hp_regen_amount;
 }
 
 int64 Client::CalcHPRegenCap()

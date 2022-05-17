@@ -6786,8 +6786,25 @@ void Client::SendStatsWindow(Client* client, bool use_window)
 			case 0: {
 				regen_row_header = "H: ";
 				regen_row_color = color_red;
+				bool has_racial_regen_bonus = false;
+				bool has_frog_racial_regen_bonus = false;
+				if (IsClient())
+				{
+					EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+					if (inst && inst->GetID() == RaceCharmIDs::CharmTroll ||
+						inst && inst->GetID() == RaceCharmIDs::CharmIksar)
+					{
+						has_racial_regen_bonus = true;
+					}
 
-				base_regen_field = itoa(LevelRegen());
+					if (inst && inst->GetID() == RaceCharmIDs::CharmFroglok)
+					{
+						has_racial_regen_bonus = true;
+						has_frog_racial_regen_bonus = true;
+					}
+				}
+
+				base_regen_field = itoa(LevelRegen(GetLevel(), true, true, GetFeigned(), IsStarved(), has_racial_regen_bonus, has_frog_racial_regen_bonus));
 				item_regen_field = itoa(itembonuses.HPRegen);
 				cap_regen_field = itoa(CalcHPRegenCap());
 				spell_regen_field = itoa(spellbonuses.HPRegen);

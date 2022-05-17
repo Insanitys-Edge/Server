@@ -732,7 +732,7 @@ Json::Value ApiGetClientListDetail(EQ::Net::WebsocketServerConnection *connectio
 		row["last_inv_snapshot_time"]                  = client->GetLastInvSnapshotTime();
 		row["last_name"]                               = client->GetLastName();
 		row["level2"]                                  = client->GetLevel2();
-		row["level_regen"]                             = client->LevelRegen();
+		row["level_regen"]                             = 0;
 		row["ls_account_id"]                           = client->LSAccountID();
 		row["max_endurance"]                           = client->GetMaxEndurance();
 		row["max_x_tars"]                              = client->GetMaxXTargets();

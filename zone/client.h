@@ -399,7 +399,7 @@ public:
 	void Sit();
 
 	virtual void SetMaxHP();
-	int32 LevelRegen();
+	int64 LevelRegen(int level, bool is_sitting, bool is_resting, bool is_feigned, bool is_famished, bool has_racial_regen_bonus, bool has_frog_racial_regen_bonus);
 	void HPTick();
 	void SetGM(bool toggle);
 	void SetPVP(bool toggle, bool message = true);
