@@ -1012,6 +1012,15 @@ int Mob::ACSum(bool skip_caps)
 	if (ac < 0)
 		ac = 0;
 
+	if (IsClient())
+	{
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst && inst->GetID() == RaceCharmIDs::CharmHalfElf)
+		{
+			ac += (int)((float)ac * 0.10f);
+		}
+	}
+
 	if (!skip_caps && (IsClient()
 	)) {
 		auto softcap = GetACSoftcap();
@@ -1023,14 +1032,6 @@ int Mob::ACSum(bool skip_caps)
 		if (ac > softcap) {
 			auto over_cap = ac - softcap;
 			ac = softcap + (over_cap * returns);
-		}
-		if (IsClient())
-		{
-			EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
-			if (inst && inst->GetID() == RaceCharmIDs::CharmHalfElf)
-			{
-				ac += (int)((float)ac * 0.05f);
-			}
 		}
 		LogCombatDetail("ACSum ac [{}] softcap [{}] returns [{}]", ac, softcap, returns);
 	}

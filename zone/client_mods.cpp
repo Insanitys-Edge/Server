@@ -544,6 +544,10 @@ int64 Client::CalcBaseHP()
 		{
 			base_hp *= 1.10;
 		}
+		if (inst->GetID() == RaceCharmIDs::CharmHighElf)
+		{
+			base_hp *= 0.80;
+		}
 	}
 
 	return base_hp;
@@ -732,7 +736,7 @@ int64 Client::CalcBaseMana()
 		switch (inst->GetID())
 		{
 		case RaceCharmIDs::CharmErudite:
-			max_m *= 1.10;
+			max_m *= 2;
 			break;
 		case RaceCharmIDs::CharmWoodElf:
 			max_m *= 1.05;
@@ -807,7 +811,10 @@ int64 Client::CalcManaRegen(bool bCombat)
 		switch (inst->GetID())
 		{
 		case RaceCharmIDs::CharmHighElf:
-			regen += 3;
+			regen += 6;
+			break;
+		case RaceCharmIDs::CharmErudite:
+			regen = std::ceilf(regen / 2.0f);
 			break;
 		}
 	}
