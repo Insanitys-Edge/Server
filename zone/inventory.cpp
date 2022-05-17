@@ -2264,6 +2264,12 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 		return false;
 	}
 
+	if (GetXTargetAutoMgr() && !GetXTargetAutoMgr()->empty() && dst_slot_id == EQ::invslot::slotCharm || GetXTargetAutoMgr() && !GetXTargetAutoMgr()->empty() && src_slot_id == EQ::invslot::slotCharm)
+	{
+		Message(Chat::Red, "You cannot swap a Racial charm while you are in combat.");
+		return false;
+	}
+
 	bool all_to_stack = false;
 	// Step 5: Swap (or stack) items
 	if (move_in->number_in_stack > 0) {
