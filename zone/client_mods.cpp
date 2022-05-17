@@ -159,8 +159,8 @@ int32 Client::LevelRegen()
 	bool feigned = GetFeigned();
 	int level = GetLevel();
 	bool bonus = false;//GetPlayerRaceBit(GetBaseRace()) & RuleI(Character, BaseHPRegenBonusRaces);
-	uint8 multiplier1 = bonus ? 2 : 1;
-
+	int64 multiplier1 = bonus ? 2 : 1;
+	bool bonusIsFrog = false;
 	if (IsClient())
 	{
 		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
@@ -168,6 +168,12 @@ int32 Client::LevelRegen()
 			inst && inst->GetID() == RaceCharmIDs::CharmIksar)
 		{
 			bonus = true;
+		}
+
+		if (inst && inst->GetID() == RaceCharmIDs::CharmFroglok)
+		{
+			bonus = true;
+			bonusIsFrog = true;
 		}
 	}
 	int64 hp = 0;
@@ -195,37 +201,38 @@ int32 Client::LevelRegen()
 		if (level < 56) {
 			tmp = 2;
 			if (bonus) {
-				multiplier2 = 3;
+				multiplier2 = bonusIsFrog ? 1.5 : 3;
 			}
+
 		}
 		else if (level < 60) {
 			tmp = 3;
 			if (bonus) {
-				multiplier2 = 3.34;
+				multiplier2 = bonusIsFrog ? 1.67 : 3.34;
 			}
 		}
 		else if (level < 61) {
 			tmp = 4;
 			if (bonus) {
-				multiplier2 = 3;
+				multiplier2 = bonusIsFrog ? 1.5 : 3;
 			}
 		}
 		else if (level < 63) {
 			tmp = 5;
 			if (bonus) {
-				multiplier2 = 2.8;
+				multiplier2 = bonusIsFrog ? 1.4 : 2.8;
 			}
 		}
 		else if (level < 65) {
 			tmp = 6;
 			if (bonus) {
-				multiplier2 = 2.67;
+				multiplier2 = bonusIsFrog ? 1.335 : 2.67;
 			}
 		}
 		else {	//level >= 65
 			tmp = 7;
 			if (bonus) {
-				multiplier2 = 2.58;
+				multiplier2 = bonusIsFrog ? 1.29 : 2.58;
 			}
 		}
 		hp += int32(float(tmp) * multiplier2);
@@ -246,11 +253,7 @@ int64 Client::CalcHPRegen(bool bCombat)
 
 	item_regen += aabonuses.HPRegen;
 
-	int64 base = 0;
-	auto base_data = database.GetBaseData(GetLevel(), GetClass());
-	if (base_data)
-		base = static_cast<int>(base_data->hp_regen);
-
+	int64 base = LevelRegen();
 	auto level = GetLevel();
 	bool skip_innate = false;
 
@@ -291,8 +294,6 @@ int64 Client::CalcHPRegen(bool bCombat)
 	if (IsStarved())
 		base = 0;
 
-	base *= 1.5;
-
 	if (IsBerserk())
 	{
 		if (GetHPRatio() < 15.0f)	
@@ -307,12 +308,6 @@ int64 Client::CalcHPRegen(bool bCombat)
 			base *= 2.0;
 		else if (GetHPRatio() < 45.0f)
 			base *= 1.5;
-	}
-
-	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
-	if (inst && inst->GetID() == RaceCharmIDs::CharmFroglok)
-	{
-		base /= 2;
 	}
 
 	base += GroupLeadershipAAHealthRegeneration();
@@ -543,11 +538,11 @@ int64 Client::CalcBaseHP()
 	{
 		if (inst->GetID() == RaceCharmIDs::CharmDwarf || inst->GetID() == CharmWoodElf || inst->GetID() == CharmOgre || inst->GetID() == CharmTroll)
 		{
-			base_hp *= 0.02;
+			base_hp *= 1.05;
 		}
 		if (inst->GetID() == RaceCharmIDs::CharmBarbarian)
 		{
-			base_hp *= 0.05;
+			base_hp *= 1.10;
 		}
 	}
 
@@ -737,10 +732,10 @@ int64 Client::CalcBaseMana()
 		switch (inst->GetID())
 		{
 		case RaceCharmIDs::CharmErudite:
-			max_m *= 0.05;
+			max_m *= 1.10;
 			break;
 		case RaceCharmIDs::CharmWoodElf:
-			max_m *= 0.02;
+			max_m *= 1.05;
 			break;
 		}
 	}
@@ -812,7 +807,7 @@ int64 Client::CalcManaRegen(bool bCombat)
 		switch (inst->GetID())
 		{
 		case RaceCharmIDs::CharmHighElf:
-			regen += 6;
+			regen += 3;
 			break;
 		}
 	}
