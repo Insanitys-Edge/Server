@@ -3874,14 +3874,14 @@ bool Mob::SpellOnTarget(uint16 spell_id, Mob *spelltar, int reflect_effectivenes
 
 		if (spelltar && spelltar->IsClient())
 		{
-			EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+			EQ::ItemInstance* inst = spelltar->CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
 			if (inst && inst->GetID() == RaceCharmIDs::CharmGnome)
 			{
 				float resist_check2 = 100;
 				resist_check2 = spelltar->ResistSpell(spells[spell_id].resist_type, spell_id, this, spelltar, use_resist_adjust, resist_adjust);
 				if (resist_check2 < spell_effectiveness)
 				{
-					CastToClient()->Message(Chat::Spells, "Your gnomish ingenuity allows you to shake off the spell!");
+					spelltar->CastToClient()->Message(Chat::Spells, "Your gnomish ingenuity allows you to shake off the spell!");
 					spell_effectiveness = resist_check2;
 				}
 			}
