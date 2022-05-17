@@ -3872,6 +3872,21 @@ bool Mob::SpellOnTarget(uint16 spell_id, Mob *spelltar, int reflect_effectivenes
 		spelltar->BreakInvisibleSpells(); //Any detrimental spell cast on you will drop invisible (can be AOE, non damage ect).
 		spell_effectiveness = spelltar->ResistSpell(spells[spell_id].resist_type, spell_id, this, spelltar, use_resist_adjust, resist_adjust);
 
+		if (spelltar && spelltar->IsClient())
+		{
+			EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+			if (inst && inst->GetID() == RaceCharmIDs::CharmGnome)
+			{
+				float resist_check2 = 100;
+				resist_check2 = spelltar->ResistSpell(spells[spell_id].resist_type, spell_id, this, spelltar, use_resist_adjust, resist_adjust);
+				if (resist_check2 < spell_effectiveness)
+				{
+					CastToClient()->Message(Chat::Spells, "Your gnomish ingenuity allows you to shake off the spell!");
+					spell_effectiveness = resist_check2;
+				}
+			}
+		}
+
 		if(spell_effectiveness < 100)
 		{
 			if(spell_effectiveness == 0 || !IsPartialCapableSpell(spell_id) )
@@ -4983,6 +4998,12 @@ int16 Mob::CalcFearResistChance()
 		resistchance += aabonuses.ResistFearChance;
 		if(aabonuses.Fearless == true)
 			resistchance = 100;
+
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst && inst->GetID() == RaceCharmIDs::CharmDwarf)
+		{
+			resistchance=100;
+		}
 	}
 	if(spellbonuses.Fearless == true || itembonuses.Fearless == true)
 		resistchance = 100;

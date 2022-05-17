@@ -927,25 +927,16 @@ uint32 Client::GetEXPForLevel(uint16 check_level)
 	uint32 finalxp = uint32(base * mod);
 
 	float racemod = 1.0;
-	//if (IsClient())
-	//{
-	//	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
-	//	if (inst)
-	//	{
-	//		if (inst->GetID() == RaceCharmIDs::CharmIksar) {
-	//			racemod = 1.2;
-	//		}
-	//		else if (inst->GetID() == RaceCharmIDs::CharmOgre || inst->GetID() == RaceCharmIDs::CharmTroll) {
-	//			racemod = 1.15;
-	//		}
-	//		else if (inst->GetID() == RaceCharmIDs::CharmBarbarian || inst->GetID() == RaceCharmIDs::CharmVahShir) {
-	//			racemod = 1.05;
-	//		}
-	//		else if (inst->GetID() == RaceCharmIDs::CharmHalfling) {
-	//			racemod = 0.95;
-	//		}
-	//	}
-	//}
+	if (IsClient())
+	{
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst)
+		{
+			if (inst->GetID() == RaceCharmIDs::CharmHalfling) {
+				racemod = 0.95;
+			}
+		}
+	}
 
 	finalxp = uint32(finalxp * racemod);
 

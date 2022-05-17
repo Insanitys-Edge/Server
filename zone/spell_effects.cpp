@@ -1308,7 +1308,24 @@ bool Mob::SpellEffect(Mob* caster, uint16 spell_id, float partial, int level_ove
 
 				if (zone->random.Roll(RuleI(Spells, BlindBreakCheckChance)))
 				{
-					if (ResistSpell(spells[spell_id].resist_difficulty, spell_id, caster, this))
+					int success = ResistSpell(spells[spell_id].resist_difficulty, spell_id, caster, this);
+
+					if (IsClient())
+					{
+						EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+						if (inst && inst->GetID() == RaceCharmIDs::CharmGnome)
+						{
+							float resist_check2 = 100;
+							resist_check2 = ResistSpell(spells[spell_id].resist_type, spell_id, caster, this);
+							if (resist_check2 < success)
+							{
+								CastToClient()->Message(Chat::Spells, "Your gnomish ingenuity allows you to shake off the spell!");
+								success = resist_check2;
+							}
+						}
+					}
+
+					if (success)
 					{
 						BuffFadeBySlot(buffslot);
 						break;
@@ -4461,6 +4478,23 @@ void Mob::DoBuffTic(const Buffs_Struct &buff, int slot, Mob *caster)
 			if (zone->random.Roll(RuleI(Spells, RootBreakCheckChance))) {
 				float resist_check = ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster, this);
 
+
+				if (IsClient())
+				{
+					EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+					if (inst && inst->GetID() == RaceCharmIDs::CharmGnome)
+					{
+						float resist_check2 = 100;
+						resist_check2 = ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster, this);
+						if (resist_check2 < resist_check)
+						{
+							CastToClient()->Message(Chat::Spells, "Your gnomish ingenuity allows you to shake off the spell!");
+							resist_check = resist_check2;
+						}
+					}
+				}
+
+
 				if (resist_check == 100.0f)
 					break;
 				else if (!TryFadeEffect(slot))
@@ -4485,6 +4519,21 @@ void Mob::DoBuffTic(const Buffs_Struct &buff, int slot, Mob *caster)
 		case SE_Fear: {
 			if (zone->random.Roll(RuleI(Spells, FearBreakCheckChance))) {
 				float resist_check = ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster, this);
+
+				if (IsClient())
+				{
+					EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+					if (inst && inst->GetID() == RaceCharmIDs::CharmGnome)
+					{
+						float resist_check2 = 100;
+						resist_check2 = ResistSpell(spells[buff.spellid].resist_type, buff.spellid, caster, this);
+						if (resist_check2 < resist_check)
+						{
+							CastToClient()->Message(Chat::Spells, "Your gnomish ingenuity allows you to shake off the spell!");
+							resist_check = resist_check2;
+						}
+					}
+				}
 
 				if (resist_check == 100)
 					break;

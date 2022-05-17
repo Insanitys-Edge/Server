@@ -797,39 +797,14 @@ int Mob::_GetRunSpeed() const {
 		{
 			switch (inst->GetID())
 			{
-			case RaceCharmIDs::CharmHalfElf:
-			{
-				speed_mod += 3;
-				break;
-			}
-			case RaceCharmIDs::CharmHighElf:
-			{
-				speed_mod += 2;
-				break;
-			}
-			case RaceCharmIDs::CharmWoodElf:
-			{
-				speed_mod += 4;
-				break;
-			}
-			case RaceCharmIDs::CharmGnome:
-			case RaceCharmIDs::CharmDwarf:
-			{
-				speed_mod += 1;
-				break;
-			}
 			case RaceCharmIDs::CharmFroglok:
+			{
+				speed_mod += 7;
+				break;
+			}
 			case RaceCharmIDs::CharmVahShir:
 			{
-				speed_mod += 5;
-				break;
-			}
-			case RaceCharmIDs::CharmErudite:
-			{
-				if (speed_mod > 5)
-				{
-					speed_mod -= 5;
-				}
+				speed_mod += 7;
 				break;
 			}
 

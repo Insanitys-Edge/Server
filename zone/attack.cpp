@@ -890,7 +890,6 @@ int Mob::GetClassRaceACBonus()
 			ac_bonus = 16;
 	}
 
-	//EDGE TODO: Racial AC from Iksar but on a charm.
 	if (IsClient())
 	{
 		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
@@ -1025,6 +1024,14 @@ int Mob::ACSum(bool skip_caps)
 			auto over_cap = ac - softcap;
 			ac = softcap + (over_cap * returns);
 		}
+		if (IsClient())
+		{
+			EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+			if (inst && inst->GetID() == RaceCharmIDs::CharmHalfElf)
+			{
+				ac += (int)((float)ac * 0.05f);
+			}
+		}
 		LogCombatDetail("ACSum ac [{}] softcap [{}] returns [{}]", ac, softcap, returns);
 	}
 	else {
@@ -1136,6 +1143,12 @@ int Mob::offense(EQ::skills::SkillType skill)
 	if (GetClass() == RANGER && GetLevel() > 54)
 	{
 		offense = offense + GetLevel() * 4 - 216;
+	}
+
+	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+	if (inst && inst->GetID() == RaceCharmIDs::CharmDarkElf)
+	{
+		offense = (float)offense * 1.05f;
 	}
 
 	return offense;

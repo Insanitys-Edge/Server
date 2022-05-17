@@ -1444,6 +1444,21 @@ bool Mob::PassCharismaCheck(Mob* caster, uint16 spell_id) {
 	{
 		float resist_check = ResistSpell(spells[spell_id].resist_type, spell_id, caster, this, false, 0, true);
 
+		if (IsClient())
+		{
+			EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+			if (inst && inst->GetID() == RaceCharmIDs::CharmGnome)
+			{
+				float resist_check2 = 100;
+				resist_check2 = ResistSpell(spells[spell_id].resist_type, spell_id, caster, this);
+				if (resist_check2 < resist_check)
+				{
+					CastToClient()->Message(Chat::Spells, "Your gnomish ingenuity allows you to shake off the spell!");
+					resist_check = resist_check2;
+				}
+			}
+		}
+
 		if (resist_check != 100.0f)
 		{
 			if (caster && caster->IsClient())

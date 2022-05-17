@@ -2256,6 +2256,14 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 		}
 	}
 
+	if (src_inst && src_inst->GetID() == RaceCharmIDs::CharmInstaDeath && dst_slot_id == EQ::invslot::slotCharm)
+	{
+		Message(Chat::Red, "<SERVERWIDE_MESAGE> You know, you were warned...");
+		Message(Chat::Yellow, "<SERVERWIDE_MESAGE> You know, you were warned...");
+		Kill();
+		return false;
+	}
+
 	bool all_to_stack = false;
 	// Step 5: Swap (or stack) items
 	if (move_in->number_in_stack > 0) {

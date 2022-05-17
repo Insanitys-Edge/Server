@@ -309,6 +309,12 @@ int64 Client::CalcHPRegen(bool bCombat)
 			base *= 1.5;
 	}
 
+	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+	if (inst && inst->GetID() == RaceCharmIDs::CharmFroglok)
+	{
+		base /= 2;
+	}
+
 	base += GroupLeadershipAAHealthRegeneration();
 	// some IsKnockedOut that sets to -1
 	base = base * 100.0f * AreaHPRegen * 0.01f + 0.5f;
@@ -518,26 +524,30 @@ int64 Client::CalcBaseHP()
 		auto base_data = database.GetBaseData(GetLevel(), GetClass());
 		if (base_data) {
 			base_hp += base_data->base_hp + (base_data->hp_factor * stats);
-			base_hp += (GetHeroicSTA() * 10);
+			base_hp += ((uint64)GetHeroicSTA() * 10.0);
 		}
 	}
 	else {
-		uint32 Post255;
-		uint32 lm = GetClassLevelFactor();
+		uint64 Post255;
+		uint64 lm = GetClassLevelFactor();
 		if ((GetSTA() - 255) / 2 > 0) {
 			Post255 = (GetSTA() - 255) / 2;
 		}
 		else {
 			Post255 = 0;
 		}
-		base_hp = (5) + (GetLevel() * lm / 10) + (((GetSTA() - Post255) * GetLevel() * lm / 3000)) + ((Post255 * GetLevel()) * lm / 6000);
+		base_hp = (5) + (GetLevel() * lm / 10) + (((GetSTA() - Post255) * (double)GetLevel() * lm / 3000)) + ((Post255 * (double)GetLevel()) * lm / 6000);
 	}
 	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
 	if (inst)
 	{
-		if (inst->GetID() == RaceCharmIDs::CharmDwarf)
+		if (inst->GetID() == RaceCharmIDs::CharmDwarf || inst->GetID() == CharmWoodElf || inst->GetID() == CharmOgre || inst->GetID() == CharmTroll)
 		{
-			base_hp += GetLevel() * 10;
+			base_hp *= 0.02;
+		}
+		if (inst->GetID() == RaceCharmIDs::CharmBarbarian)
+		{
+			base_hp *= 0.05;
 		}
 	}
 
@@ -720,6 +730,21 @@ int64 Client::CalcBaseMana()
 				break;
 			}
 	}
+
+	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+	if (inst)
+	{
+		switch (inst->GetID())
+		{
+		case RaceCharmIDs::CharmErudite:
+			max_m *= 0.05;
+			break;
+		case RaceCharmIDs::CharmWoodElf:
+			max_m *= 0.02;
+			break;
+		}
+	}
+
 	#if EQDEBUG >= 11
 	LogDebug("Client::CalcBaseMana() called for [{}] - returning [{}]", GetName(), max_m);
 	#endif
@@ -786,11 +811,8 @@ int64 Client::CalcManaRegen(bool bCombat)
 	{
 		switch (inst->GetID())
 		{
-		case RaceCharmIDs::CharmHuman:
-			regen += 2;
-			break;
-		case RaceCharmIDs::CharmErudite:
-			regen += GetLevel() / 5;
+		case RaceCharmIDs::CharmHighElf:
+			regen += 6;
 			break;
 		}
 	}

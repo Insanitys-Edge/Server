@@ -2486,8 +2486,20 @@ bool Client::CheckIncreaseSkill(EQ::skills::SkillType skillid, Mob *against_who,
 			Chance = (working_chance * RuleI(Character, SkillUpModifier) / 100);
 			Chance = mod_increase_skill_chance(Chance, against_who);
 		}
+		int roll1 = zone->random.Real(0, 99);
+		int roll2 = 100;
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst)
+		{
+			if (inst->GetID() == RaceCharmIDs::CharmHuman)
+			{
+				roll2 = zone->random.Real(0, 99);
+				if (roll1 > roll2)
+					roll1 = roll2;
+			}
+		}
 
-		if(zone->random.Real(0, 99) < Chance)
+		if(roll1 < Chance)
 		{
 			SetSkill(skillid, GetRawSkill(skillid) + 1);
 			std::string export_string = fmt::format(
@@ -4731,6 +4743,13 @@ uint32 Client::GetTotalATK()
 
 		if (AttackRating < 10)
 			AttackRating = 10;
+
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst && inst->GetID() == RaceCharmIDs::CharmDarkElf)
+		{
+			AttackRating = (float)AttackRating * 1.05f;
+		}
+
 	}
 	else
 		AttackRating = GetATK();
@@ -8101,6 +8120,16 @@ void Client::SetFactionLevel(uint32 char_id, uint32 npc_id, uint8 char_class, ui
 		// Get the characters current value with that faction
 		current_value = GetCharacterFactionLevel(faction_id[i]);
 		faction_before_hit = current_value;
+	
+
+		if (IsClient())
+		{
+			EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+			if (inst && inst->GetID() == RaceCharmIDs::CharmHalfling)
+			{
+				npc_value[i] = npc_value[i] * 2;
+			}
+		}
 
 		UpdatePersonalFaction(char_id, npc_value[i], faction_id[i], &current_value, temp[i], this_faction_min, this_faction_max);
 
