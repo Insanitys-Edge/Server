@@ -868,36 +868,6 @@ uint32 Client::CalcCurrentWeight()
 			Total += TempItem->Weight;
 		}
 	}
-	for (x = EQ::invbag::GENERAL_BAGS_BEGIN; x <= EQ::invbag::CURSOR_BAG_END; x++) {
-		int TmpWeight = 0;
-		TempItem = 0;
-		ins = GetInv().GetItem(x);
-		if (ins) {
-			TempItem = ins->GetItem();
-		}
-		if (TempItem) {
-			TmpWeight = TempItem->Weight;
-		}
-		if (TmpWeight > 0) {
-			// this code indicates that weight redux bags can only be in the first general inventory slot to be effective...
-			// is this correct? or can we scan for the highest weight redux and use that? (need client verifications)
-			int bagslot = EQ::invslot::slotGeneral1;
-			int reduction = 0;
-			for (int m = EQ::invbag::GENERAL_BAGS_BEGIN + EQ::invbag::SLOT_COUNT; m <= EQ::invbag::CURSOR_BAG_END; m += EQ::invbag::SLOT_COUNT) {
-				if (x >= m) {
-					bagslot += 1;
-				}
-			}
-			EQ::ItemInstance* baginst = GetInv().GetItem(bagslot);
-			if (baginst && baginst->GetItem() && baginst->IsClassBag()) {
-				reduction = baginst->GetItem()->BagWR;
-			}
-			if (reduction > 0) {
-				TmpWeight -= TmpWeight * reduction / 100;
-			}
-			Total += TmpWeight;
-		}
-	}
 	//TODO: coin weight reduction (from purses, etc), since client already calculates it
 	/*  From the Wiki http://www.eqemulator.net/wiki/wikka.php?wakka=EQEmuDBSchemaitems under bagwr (thanks Trevius):
 	    Interestingly, you can also have bags that reduce coin weight. However, in order to set bags to reduce coin weight, you MUST set the Item ID somewhere between 17201 and 17230. This is hard coded into the client.
