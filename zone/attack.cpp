@@ -2725,8 +2725,11 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 
 		//this generates a lot of 'updates' to the client that the client does not need
 		BuffFadeNonPersistDeath();
-		SpellOnTarget(756, this);
-		SetHP(base_hp / 5);
+		if (GetLevel() >= 10)
+		{
+			SpellOnTarget(756, this);
+			SetHP(base_hp / 5);
+		}
 		if (RuleB(Character, UnmemSpellsOnDeath)) {
 			if ((ClientVersionBit() & EQ::versions::maskSoFAndLater) && RuleB(Character, RespawnFromHover))
 				UnmemSpellAll(true);
