@@ -230,7 +230,7 @@ public:
 	inline int GetMitigationAC() { return mitigation_ac; }
 	void MeleeMitigation(Mob *attacker, DamageHitInfo &hit, ExtraAttackOptions *opts = nullptr);
 	virtual int64 GetBaseDamage(Mob* defender = nullptr, uint16 slot = EQ::invslot::slotPrimary) { return 1; }		// weapon damage for clients; DI*10 for NPCs
-	double RollD20(int offense, int mitigation); // CALL THIS FROM THE DEFENDER
+	int RollD20(double offense, double mitigation); // CALL THIS FROM THE DEFENDER
 	bool CombatRange(Mob* other, float fixed_size_mod = 1.0, bool aeRampage = false);
 	virtual inline bool IsBerserk() { return false; } // only clients
 	void RogueEvade(Mob *other);

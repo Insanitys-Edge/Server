@@ -1530,28 +1530,20 @@ int Mob::offense(EQ::skills::SkillType skill)
 
 // this assumes "this" is the defender
 // this returns between 0.1 to 2.0
-double Mob::RollD20(int offense, int mitigation)
+int Mob::RollD20(double offense, double mitigation)
 {
-	static double mods[] = {
-		0.1, 0.2, 0.3, 0.4, 0.5,
-		0.6, 0.7, 0.8, 0.9, 1.0,
-		1.1, 1.2, 1.3, 1.4, 1.5,
-		1.6, 1.7, 1.8, 1.9, 2.0
-	};
-
-	if (IsClient() && CastToClient()->IsSitting())
-		return mods[19];
-
-	auto atk_roll = zone->random.Roll0(offense + 5);
-	auto def_roll = zone->random.Roll0(mitigation + 5);
+	int atkRoll = zone->random.Roll0(offense + 5);
+	int defRoll = zone->random.Roll0(mitigation + 5);
 
 	int avg = (offense + mitigation + 10) / 2;
-	int index = std::max(0, (atk_roll - def_roll) + (avg / 2));
+	int index = std::max(0, (atkRoll - defRoll) + (avg / 2));
+	index = (index * 20) / avg;
+	index = std::max(0, index);
+	index = std::min(19, index);
 
-	index = EQ::Clamp((index * 20) / avg, 0, 19);
-
-	return mods[index];
+	return index + 1;
 }
+
 //SYNC WITH: tune.cpp, mob.h TuneMeleeMitigation
 void Mob::MeleeMitigation(Mob *attacker, DamageHitInfo &hit, ExtraAttackOptions *opts)
 {
