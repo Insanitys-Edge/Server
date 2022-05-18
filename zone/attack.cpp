@@ -813,15 +813,6 @@ int Mob::GetClassRaceACBonus()
 			ac_bonus = 16;
 	}
 
-	if (IsClient())
-	{
-		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
-		if (inst && inst->GetID() == RaceCharmIDs::CharmIksar)
-		{
-			ac_bonus += EQ::Clamp(static_cast<int>(level), 10, 35);
-		}
-	}
-
 	return ac_bonus;
 }
 
@@ -877,7 +868,7 @@ int Mob::GetMitigation()
 	return mit;
 }
 
-int Client::GetMitigation(bool ignoreCap, int item_ac_sum, int shield_ac, int spell_ac_sum, int classnum, int level, int base_race, int carried_weight, int agi, int defense_skill_value, int combat_stability_percent)
+int Client::GetMitigation(bool ignoreCap, int item_ac_sum, int shield_ac, int spell_ac_sum, int classnum, int level, int base_race, int carried_weight, int agi, int defense_skill_value, int combat_stability_percent, int additional_ac)
 {
 	int32 acSum = item_ac_sum;
 	uint8 playerClass = classnum;
@@ -1055,21 +1046,8 @@ int Client::GetMitigation(bool ignoreCap, int item_ac_sum, int shield_ac, int sp
 			acSum += acBonus;
 		}
 	}
-	if (base_race == IKSAR)
-	{
-		if (level < 10)
-		{
-			acSum += 10;
-		}
-		else if (level > 35)
-		{
-			acSum += 35;
-		}
-		else
-		{
-			acSum += level;
-		}
-	}
+
+	acSum += additional_ac;
 
 	if (acSum < 0)
 		acSum = 0;
@@ -1380,10 +1358,20 @@ int Client::GetMitigation(bool ignoreCap)
 			}
 		}
 	}
+	int additional_ac = 0;
+
+	if (IsClient())
+	{
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst && inst->GetID() == RaceCharmIDs::CharmIksar)
+		{
+			additional_ac += EQ::Clamp(static_cast<int>(level), 10, 35);
+		}
+	}
 
 	int carried_weight = GetWeight() / 10;
 
-	return GetMitigation(ignoreCap, itembonuses.AC, shield_ac, spellbonuses.AC, GetClass(), GetLevel(), GetBaseRace(), carried_weight, GetAGI(), GetSkill(EQ::skills::SkillDefense), aabonuses.CombatStability);
+	return GetMitigation(ignoreCap, itembonuses.AC, shield_ac, spellbonuses.AC, GetClass(), GetLevel(), GetBaseRace(), carried_weight, GetAGI(), GetSkill(EQ::skills::SkillDefense), aabonuses.CombatStability, additional_ac);
 }
 
 //SYNC WITH: tune.cpp, mob.h TuneACSum
@@ -2737,6 +2725,8 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 
 		//this generates a lot of 'updates' to the client that the client does not need
 		BuffFadeNonPersistDeath();
+		SpellOnTarget(756, this);
+		SetHP(base_hp / 5);
 		if (RuleB(Character, UnmemSpellsOnDeath)) {
 			if ((ClientVersionBit() & EQ::versions::maskSoFAndLater) && RuleB(Character, RespawnFromHover))
 				UnmemSpellAll(true);
