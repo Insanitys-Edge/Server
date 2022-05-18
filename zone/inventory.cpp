@@ -3504,7 +3504,7 @@ int64_t Client::GetStatValueEdgeType(eStatEntry eLabel)
 		}
 		case eStatATK:
 		{
-			return GetOffense(EQ::skills::Skill1HBlunt);
+			return GetOffenseByHand(EQ::invslot::slotPrimary);
 		}
 		case eStatMitigation:
 		{

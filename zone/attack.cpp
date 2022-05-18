@@ -164,6 +164,9 @@ EQ::skills::SkillType Mob::AttackAnimation(int Hand, const EQ::ItemInstance* wea
 
 int Mob::GetOffenseByHand(uint16 hand)
 {
+	if (!IsNPC() && !IsClient())
+		return 0;
+
 	const EQ::ItemData* weapon = nullptr;
 
 	if (hand != EQ::invslot::slotSecondary)
@@ -195,19 +198,24 @@ int Mob::GetOffenseByHand(uint16 hand)
 
 int Mob::GetToHitByHand(uint16 hand)
 {
+	if (!IsNPC() && !IsClient())
+		return 0;
+
 	if (IsNPC())
 		return GetToHit(EQ::skills::SkillHandtoHand);
 
 	EQ::ItemInstance* weapon = nullptr;
 
-	if (hand == EQ::invslot::slotSecondary)
-		weapon = CastToClient()->GetInv().GetItem(EQ::invslot::slotSecondary);
-	else
-		weapon = CastToClient()->GetInv().GetItem(EQ::invslot::slotPrimary);
-
+	if (IsClient())
+	{
+		if (hand == EQ::invslot::slotSecondary)
+			weapon = CastToClient()->GetInv().GetItem(EQ::invslot::slotSecondary);
+		else
+			weapon = CastToClient()->GetInv().GetItem(EQ::invslot::slotPrimary);
+	}
 	if (weapon && weapon->IsType(EQ::item::ItemClassCommon))
 	{
-		return GetToHit(static_cast<EQ::skills::SkillType>(GetSkillByItemType(weapon->GetItem()->ItemType)));
+		return GetToHit((GetSkillByItemType(weapon->GetItem()->ItemType)));
 	}
 	else
 	{
@@ -831,6 +839,9 @@ int Mob::GetClassRaceACBonus()
 */
 int Mob::GetMitigation()
 {
+	if (!IsNPC() && !IsClient())
+		return 0;
+
 	int mit;
 
 	if (IsPet())
@@ -1424,6 +1435,9 @@ int Mob::GetBestMeleeSkill()
 
 int Mob::GetOffense(EQ::skills::SkillType skill)
 {
+	if (!IsNPC() && !IsClient())
+		return 0;
+
 	int offense = 0;
 	int baseOffense = level * 55 / 10 - 4;
 	if (baseOffense > 320)
@@ -1510,6 +1524,8 @@ int Client::GetOffense(EQ::skills::SkillType skill)
 //SYNC WITH: tune.cpp, mob.h Tuneoffense
 int Mob::offense(EQ::skills::SkillType skill)
 {
+	if (!IsNPC() && !IsClient())
+		return 0;
 
 	if (IsNPC())
 		return GetOffense(skill);
