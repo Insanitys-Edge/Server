@@ -1204,13 +1204,13 @@ bool ZoneDatabase::LoadCharacterData(uint32 character_id, PlayerProfile_Struct* 
 		m_epp->next_invsnapshot_time = m_epp->last_invsnapshot_time + (RuleI(Character, InvSnapshotMinIntervalM) * 60);
 	}
 
-	pp->STR = 100;
-	pp->STA = 100;
-	pp->CHA = 100;
-	pp->DEX = 100;
-	pp->INT = 100;
-	pp->AGI = 100;
-	pp->WIS = 100;
+	pp->STR = 75;
+	pp->STA = 75;
+	pp->CHA = 75;
+	pp->DEX = 75;
+	pp->INT = 75;
+	pp->AGI = 75;
+	pp->WIS = 75;
 	return true;
 }
 

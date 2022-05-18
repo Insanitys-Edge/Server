@@ -222,7 +222,7 @@ public:
 	virtual int GetOffense(EQ::skills::SkillType skill);
 	void CalcAC() { mitigation_ac = ACSum(); }
 	int64 CalcEleWeaponResist(int weaponDamage, int resistType, Mob* target);
-	int64 CalcMeleeDamage(Mob* defender, int64 baseDamage, EQ::skills::SkillType skill);
+	int64 CalcMeleeDamage(Mob* defender, int64& baseDamage, EQ::skills::SkillType skill);
 	virtual int64 GetDamageBonus() { return 0; }
 	int GetACSoftcap();
 	double GetSoftcapReturns();

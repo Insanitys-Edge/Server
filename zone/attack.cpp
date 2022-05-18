@@ -1372,9 +1372,12 @@ int Client::GetMitigation(bool ignoreCap)
 	int shield_ac = 0;
 	const EQ::ItemInstance* inst = m_inv.GetItem(EQ::invslot::slotSecondary);
 	{
-		if (inst->GetItem()->ItemType == EQ::item::ItemTypeShield)
+		if (inst)
 		{
-			shield_ac = inst->GetItem()->AC;
+			if (inst->GetItem()->ItemType == EQ::item::ItemTypeShield)
+			{
+				shield_ac = inst->GetItem()->AC;
+			}
 		}
 	}
 
@@ -2051,7 +2054,7 @@ int64 NPC::GetBaseDamage(Mob* defender, uint16 slot)
 	return baseDamage;
 }
 
-int64 Mob::CalcMeleeDamage(Mob* defender, int64 baseDamage, EQ::skills::SkillType skill)
+int64 Mob::CalcMeleeDamage(Mob* defender, int64& baseDamage, EQ::skills::SkillType skill)
 {
 	if (!defender || !baseDamage)
 		return 0;
@@ -2268,9 +2271,9 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 	LogCombat("Attacking with [{}] in slot [{}] using skill [{}]", weapon ? weapon->GetItem()->Name : "Fist", Hand, my_hit.skill);
 
 	// Now figure out damage
-	int damage = 1;
+	my_hit.damage_done = 1;
 	uint8 mylevel = GetLevel();
-	int baseDamage = GetBaseDamage(other, Hand);
+	my_hit.base_damage = GetBaseDamage(other, Hand);
 
 	// anti-twink damage caps.  Taken from decompiles
 	if (mylevel < 10)
@@ -2280,19 +2283,19 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 		case DRUID:
 		case CLERIC:
 		case SHAMAN:
-			if (baseDamage > 9)
-				baseDamage = 9;
+			if (my_hit.base_damage > 9)
+				my_hit.base_damage = 9;
 			break;
 		case WIZARD:
 		case MAGICIAN:
 		case NECROMANCER:
 		case ENCHANTER:
-			if (baseDamage > 6)
-				baseDamage = 6;
+			if (my_hit.base_damage > 6)
+				my_hit.base_damage = 6;
 			break;
 		default:
-			if (baseDamage > 10)
-				baseDamage = 10;
+			if (my_hit.base_damage > 10)
+				my_hit.base_damage = 10;
 		}
 	}
 	else if (mylevel < 20)
@@ -2302,19 +2305,19 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 		case DRUID:
 		case CLERIC:
 		case SHAMAN:
-			if (baseDamage > 12)
-				baseDamage = 12;
+			if (my_hit.base_damage > 12)
+				my_hit.base_damage = 12;
 			break;
 		case WIZARD:
 		case MAGICIAN:
 		case NECROMANCER:
 		case ENCHANTER:
-			if (baseDamage > 10)
-				baseDamage = 10;
+			if (my_hit.base_damage > 10)
+				my_hit.base_damage = 10;
 			break;
 		default:
-			if (baseDamage > 14)
-				baseDamage = 14;
+			if (my_hit.base_damage > 14)
+				my_hit.base_damage = 14;
 		}
 	}
 	else if (mylevel < 30)
@@ -2324,19 +2327,19 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 		case DRUID:
 		case CLERIC:
 		case SHAMAN:
-			if (baseDamage > 20)
-				baseDamage = 20;
+			if (my_hit.base_damage > 20)
+				my_hit.base_damage = 20;
 			break;
 		case WIZARD:
 		case MAGICIAN:
 		case NECROMANCER:
 		case ENCHANTER:
-			if (baseDamage > 12)
-				baseDamage = 12;
+			if (my_hit.base_damage > 12)
+				my_hit.base_damage = 12;
 			break;
 		default:
-			if (baseDamage > 30)
-				baseDamage = 30;
+			if (my_hit.base_damage > 30)
+				my_hit.base_damage = 30;
 		}
 	}
 	else if (mylevel < 40)
@@ -2346,26 +2349,27 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 		case DRUID:
 		case CLERIC:
 		case SHAMAN:
-			if (baseDamage > 26)
-				baseDamage = 26;
+			if (my_hit.base_damage > 26)
+				my_hit.base_damage = 26;
 			break;
 		case WIZARD:
 		case MAGICIAN:
 		case NECROMANCER:
 		case ENCHANTER:
-			if (baseDamage > 18)
-				baseDamage = 18;
+			if (my_hit.base_damage > 18)
+				my_hit.base_damage = 18;
 			break;
 		default:
-			if (baseDamage > 60)
-				baseDamage = 60;
+			if (my_hit.base_damage > 60)
+				my_hit.base_damage = 60;
 		}
 	}
 
 	int damageBonus = 0;
 	if (Hand == EQ::invslot::slotPrimary)
 		damageBonus = GetDamageBonus();
-	int hate = baseDamage + damageBonus;
+
+	int hate = my_hit.base_damage + damageBonus;
 
 	//if weapon damage > 0 then we know we can hit the target with this weapon
 	//otherwise we cannot and we set the damage to -5 later on
@@ -2374,12 +2378,6 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 		if (TryFinishingBlow(other, my_hit.base_damage))
 			return (true);
 
-		damage = damageBonus + CalcMeleeDamage(other, my_hit.base_damage, my_hit.skill);
-		TryCriticalHit(other, my_hit);
-		double damagePct = 100;
-		damage = damage * damagePct / 100;
-
-		my_hit.damage_done = damage;
 		CheckIncreaseSkill(my_hit.skill, other, -15);
 		CheckIncreaseSkill(EQ::skills::SkillOffense, other, -15);
 
@@ -2415,6 +2413,13 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 			{
 				my_hit.damage_done = 0;
 			}
+
+			if (my_hit.damage_done > 0)
+			{
+				my_hit.damage_done = damageBonus + CalcMeleeDamage(other, my_hit.base_damage, my_hit.skill);
+				TryCriticalHit(other, my_hit);
+			}
+
 			if (my_hit.damage_done > 0) {
 				CommonOutgoingHitSuccess(other, my_hit, opts);
 			}

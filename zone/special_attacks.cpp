@@ -96,23 +96,9 @@ void Mob::DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int32 bas
 		hate_override = base_damage;
 	}
 
+	if (skill == EQ::skills::SkillBash || skill == skill == EQ::skills::SkillKick)
+		DoBashKickStun(who, EQ::skills::SkillBash);			// put this here so the stun occurs before the damage
 
-	if (min_damage >= 32000)		// so finishing blow doesn't do all this other stuff under this
-	{
-		damage = min_damage;
-	}
-	else if (damage > 0)
-	{
-		damage = damageBonus + CalcMeleeDamage(who, base_damage, skill);
-
-		if (damage < min_damage)
-			damage = min_damage;
-
-		//defender->TryShielderDamage(this, damage, skill);	// warrior /shield
-
-		if (skill == EQ::skills::SkillBash || skill == skill == EQ::skills::SkillKick)
-			DoBashKickStun(who, EQ::skills::SkillBash);			// put this here so the stun occurs before the damage
-	}
 	DamageHitInfo my_hit;
 	my_hit.damage_done = damage; // min 1 dmg
 	my_hit.base_damage = base_damage;
@@ -146,6 +132,28 @@ void Mob::DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int32 bas
 						  // work for most
 	if (skill == EQ::skills::SkillThrowing || skill == EQ::skills::SkillArchery)
 		my_hit.hand = EQ::invslot::slotRange;
+
+
+	who->AvoidDamage(this, my_hit, true);
+
+	if (my_hit.damage_done > 0 && !who->CheckHitChance(this, my_hit)) {
+		Log(Logs::Detail, Logs::Combat, "Ranged attack missed %s.", who->GetName());
+		my_hit.damage_done = 0;
+	}
+
+	if (min_damage >= 32000)		// so finishing blow doesn't do all this other stuff under this
+	{
+		my_hit.damage_done = min_damage;
+	}
+	else if (my_hit.damage_done > 0)
+	{
+		my_hit.damage_done = damageBonus + CalcMeleeDamage(who, my_hit.base_damage, skill);
+
+		if (damage < min_damage)
+			my_hit.damage_done = min_damage;
+
+		//defender->TryShielderDamage(this, damage, skill);	// warrior /shield
+	}
 
 	TryCriticalHit(who, my_hit);
 
@@ -958,20 +966,20 @@ void Mob::DoArcheryAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, co
 	my_hit.hand = EQ::invslot::slotRange;
 	my_hit.tohit = GetToHit(my_hit.skill);
 	my_hit.base_damage = baseDamage;
-
+	my_hit.damage_done = 1;
+	
 	other->AvoidDamage(this, my_hit, true);
 
-	if (damage > 0 && !other->CheckHitChance(this, my_hit)) {
+	if (my_hit.damage_done > 0 && !other->CheckHitChance(this, my_hit)) {
 		Log(Logs::Detail, Logs::Combat, "Ranged attack missed %s.", other->GetName());
-		damage = 0;
+		my_hit.damage_done = 0;
 	}
 
-	if (damage > 0)
+	if (my_hit.damage_done > 0)
 	{
-		damage = damageBonus + CalcMeleeDamage(other, baseDamage, my_hit.skill);
-		damage = static_cast<int>(static_cast<double>(damage) * RuleR(Combat, ArcheryNPCMultiplier));
-		damage += damage * GetSpecialAbilityParam(SPECATK_RANGED_ATK, 3) / 100; //Damage modifier
-		my_hit.damage_done = damage;
+		my_hit.damage_done = damageBonus + CalcMeleeDamage(other, my_hit.base_damage, my_hit.skill);
+		my_hit.damage_done = static_cast<int>(static_cast<double>(my_hit.damage_done) * RuleR(Combat, ArcheryNPCMultiplier));
+		my_hit.damage_done += my_hit.damage_done * GetSpecialAbilityParam(SPECATK_RANGED_ATK, 3) / 100; //Damage modifier
 	}
 
 	if (LaunchProjectile) { // 1: Shoot the Projectile once we calculate weapon damage.
@@ -1366,15 +1374,15 @@ void NPC::DoRangedAttackDmg(Mob* other, bool Launch, int16 damage_mod, int16 cha
 
 	other->AvoidDamage(this, my_hit, true);
 
-	if (damage > 0 && !other->CheckHitChance(this, my_hit))
+	if (my_hit.damage_done > 0 && !other->CheckHitChance(this, my_hit))
 	{
 		damage = 0;
 		Log(Logs::Detail, Logs::Combat, "Ranged attack missed %s.", other->GetName());
 	}
-	if (damage > 0)
+	if (my_hit.damage_done > 0)
 	{
 		Log(Logs::Detail, Logs::Combat, "Ranged attack hit %s.", other->GetName());
-		damage = damageBonus + CalcMeleeDamage(other, baseDamage, EQ::skills::SkillArchery);
+		damage = damageBonus + CalcMeleeDamage(other, my_hit.base_damage, EQ::skills::SkillArchery);
 		damage = static_cast<int>(static_cast<double>(damage) * RuleR(Combat, ArcheryNPCMultiplier));
 		damage += damage * GetSpecialAbilityParam(SPECATK_RANGED_ATK, 3) / 100; //Damage modifier
 		my_hit.damage_done = damage;
@@ -1556,16 +1564,16 @@ void Mob::DoThrowingAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, c
 	my_hit.hand = EQ::invslot::slotRange;
 	my_hit.tohit = GetToHit(my_hit.skill);
 	my_hit.base_damage = baseDamage;
-
+	my_hit.damage_done = 1;
 	other->AvoidDamage(this, my_hit, true);
 
-	if (damage > 0 && !other->CheckHitChance(this, my_hit)) {
+	if (my_hit.damage_done > 0 && !other->CheckHitChance(this, my_hit)) {
 		Log(Logs::Detail, Logs::Combat, "Throwing attack missed %s.", other->GetName());
-		damage = 0;
+		my_hit.damage_done = 0;
 	}
 
-	if(damage > 0)
-		damage = damageBonus + CalcMeleeDamage(other, baseDamage, my_hit.skill);
+	if(my_hit.damage_done > 0)
+		my_hit.damage_done = damageBonus + CalcMeleeDamage(other, my_hit.base_damage, my_hit.skill);
 
 	if (LaunchProjectile) {
 		TryProjectileAttack(other, AmmoItem, EQ::skills::SkillThrowing, my_hit.damage_done, RangeWeapon,

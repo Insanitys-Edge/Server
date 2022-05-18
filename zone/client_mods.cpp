@@ -1002,32 +1002,32 @@ int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
 			}
 			break;
 		}
-		case 3: // AGI
+		case 3: // DEX
 		{
 			switch (GetClass())
 			{
 			case WARRIOR:
-				return 10;
+				return 0;
 			case CLERIC:
-				return 5;
+				return 0;
 			case PALADIN:
-				return 10;
+				return 0;
 			case RANGER:
-				return 5;
+				return 0;
 			case SHADOWKNIGHT:
-				return 10;
+				return 0;
 			case DRUID:
 				return 0;
 			case MONK:
-				return 5;
+				return 10;
 			case BARD:
-				return 5;
+				return 10;
 			case ROGUE:
-				return 0;
+				return 10;
 			case SHAMAN:
 				return 0;
 			case NECROMANCER:
-				return 0;
+				return 10;
 			case WIZARD:
 				return 0;
 			case MAGICIAN:
@@ -1041,30 +1041,30 @@ int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
 			}
 			break;
 		}
-		case 4: // INT
+		case 4: // WIS
 		{
 			switch (GetClass())
 			{
 			case WARRIOR:
-				return 10;
+				return 0;
 			case CLERIC:
-				return 5;
-			case PALADIN:
 				return 10;
+			case PALADIN:
+				return 5;
 			case RANGER:
 				return 5;
 			case SHADOWKNIGHT:
-				return 10;
-			case DRUID:
 				return 0;
+			case DRUID:
+				return 10;
 			case MONK:
-				return 5;
+				return 0;
 			case BARD:
-				return 5;
+				return 0;
 			case ROGUE:
 				return 0;
 			case SHAMAN:
-				return 0;
+				return 10;
 			case NECROMANCER:
 				return 0;
 			case WIZARD:
@@ -1074,7 +1074,7 @@ int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
 			case ENCHANTER:
 				return 0;
 			case BEASTLORD:
-				return 0;
+				return 10;
 			default:
 				return 0;
 			}
