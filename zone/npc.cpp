@@ -619,7 +619,7 @@ int64 NPC::GetManaRegen()
 		// In Combat
 		}
 		else
-			return(GetManaRegen()); // combat_regen + spell/item regen
+			return(GetNPCManaRegen()); // combat_regen + spell/item regen
 	}
 	// Pet
 	else if (GetMana() < GetMaxMana() && GetOwnerID() != 0)
@@ -627,7 +627,7 @@ int64 NPC::GetManaRegen()
 		if (!IsEngaged())
 			return(GetOOCNPCManaRegen() + bonus + (GetLevel() / 5));
 		else
-			return(GetManaRegen());
+			return(GetNPCManaRegen());
 	}
 	else
 		return 0;
