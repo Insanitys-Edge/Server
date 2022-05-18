@@ -199,12 +199,11 @@ public:
 	void DoAttack(Mob *other, DamageHitInfo &hit, ExtraAttackOptions *opts = nullptr, bool FromRiposte = false);
 	int MonkSpecialAttack(Mob* other, uint8 skill_used);
 	virtual void TryBackstab(Mob *other,int ReuseTime = 10);
-	bool AvoidDamage(Mob *attacker, DamageHitInfo &hit);
-	int compute_tohit(EQ::skills::SkillType skillinuse);
-	int GetTotalToHit(EQ::skills::SkillType skill, int chance_mod); // compute_tohit + spell bonuses
-	int compute_defense();
-	int GetNPCAvoidance();
-	int GetTotalDefense(); // compute_defense + spell bonuses
+	bool AvoidDamage(Mob* attacker, DamageHitInfo& hit, bool bAvoidRiposte = false);
+	void DoBashKickStun(Mob* defender, uint16 skill);
+
+	int GetToHit(EQ::skills::SkillType skill); // compute_tohit + spell bonuses
+	virtual int GetAvoidance();
 	bool CheckHitChance(Mob* attacker, DamageHitInfo &hit);
 	void TryCriticalHit(Mob *defender, DamageHitInfo &hit, ExtraAttackOptions *opts = nullptr);
 	void TryPetCriticalHit(Mob *defender, DamageHitInfo &hit);
@@ -212,19 +211,25 @@ public:
 	int TryHeadShot(Mob* defender, EQ::skills::SkillType skillInUse);
 	int TryAssassinate(Mob* defender, EQ::skills::SkillType skillInUse);
 	virtual void DoRiposte(Mob* defender);
-	int GetMitigation();
+	virtual int GetMitigation();
 	void ApplyMeleeDamageMods(uint16 skill, int64 &damage, Mob * defender = nullptr, ExtraAttackOptions *opts = nullptr);
-	int ACSum(bool skip_caps = false);
-	inline int GetDisplayAC() { return 1000 * (ACSum(true) + compute_defense()) / 847; }
+	virtual int ACSum(bool skip_caps = false);
+	virtual int GetToHitByHand(uint16 hand = EQ::invslot::slotPrimary);
+	virtual int GetOffenseByHand(uint16 hand = EQ::invslot::slotPrimary);
+	inline int32 GetDisplayATK() { return (GetToHitByHand() + GetOffenseByHand()) * 1000 / 744; }		// this is the value displayed in the client; not used in server calcs
 	int offense(EQ::skills::SkillType skill);
 	int GetBestMeleeSkill();
 	virtual int GetOffense(EQ::skills::SkillType skill);
 	void CalcAC() { mitigation_ac = ACSum(); }
+	int64 CalcEleWeaponResist(int weaponDamage, int resistType, Mob* target);
+	int64 CalcMeleeDamage(Mob* defender, int64 baseDamage, EQ::skills::SkillType skill);
+	virtual int64 GetDamageBonus() { return 0; }
 	int GetACSoftcap();
 	double GetSoftcapReturns();
 	int GetClassRaceACBonus();
 	inline int GetMitigationAC() { return mitigation_ac; }
 	void MeleeMitigation(Mob *attacker, DamageHitInfo &hit, ExtraAttackOptions *opts = nullptr);
+	virtual int64 GetBaseDamage(Mob* defender = nullptr, uint16 slot = EQ::invslot::slotPrimary) { return 1; }		// weapon damage for clients; DI*10 for NPCs
 	double RollD20(int offense, int mitigation); // CALL THIS FROM THE DEFENDER
 	bool CombatRange(Mob* other, float fixed_size_mod = 1.0, bool aeRampage = false);
 	virtual inline bool IsBerserk() { return false; } // only clients
@@ -1041,6 +1046,8 @@ public:
 	int64 AffectMagicalDamage(int64 damage, uint16 spell_id, const bool iBuffTic, Mob* attacker);
 	int64 ReduceAllDamage(int64 damage);
 
+	int64 GetSkillBaseDamage(EQ::skills::SkillType skill, int skillLevel);
+
 	void DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int base_damage, int min_damage = 0, int32 hate_override = -1, int ReuseTime = 10);
 	virtual void DoThrowingAttackDmg(Mob* other, const EQ::ItemInstance* RangeWeapon = nullptr, const EQ::ItemData* AmmoItem = nullptr, uint16 weapon_damage = 0, int16 chance_mod = 0, int16 focus = 0, int ReuseTime = 0, uint32 range_id = 0, int AmmoSlot = 0, float speed = 4.0f, bool DisableProcs = false);
 	void DoMeleeSkillAttackDmg(Mob* other, uint16 weapon_damage, EQ::skills::SkillType skillinuse, int16 chance_mod = 0, int16 focus = 0, bool CanRiposte = false, int ReuseTime = 0);
@@ -1509,6 +1516,10 @@ protected:
 	virtual float GetSkillProcChances(uint16 ReuseTime, uint16 hand = 0); // hand = MainCharm?
 	uint16 GetWeaponSpeedbyHand(uint16 hand);
 	int GetBaseSkillDamage(EQ::skills::SkillType skill, Mob *target = nullptr);
+	virtual void DoBash(Mob* defender = nullptr);
+	virtual void DoKick(Mob* defender = nullptr);
+	virtual void DoBackstab(Mob* defender = nullptr) {}
+	int DoMonkSpecialAttack(Mob* other, uint8 skill_used, bool fromWus = false);
 	virtual int64 GetFocusEffect(focusType type, uint16 spell_id, Mob *caster = nullptr, bool from_buff_tic = false) { return 0; }
 	void CalculateNewFearpoint();
 	float FindGroundZ(float new_x, float new_y, float z_offset=0.0);

@@ -975,7 +975,7 @@ void Mob::TuneDoAttack(Mob *other, DamageHitInfo &hit, ExtraAttackOptions *opts,
 		other->GetName(), hit.base_damage, hit.min_damage, hit.offense, hit.tohit, hit.skill);
 
 	// check to see if we hit..
-	if (no_avoid || (!no_avoid && other->AvoidDamage(this, hit))) {
+	if (no_avoid || (!no_avoid && other->AvoidDamage(this, hit, false))) {
 		int strike_through = itembonuses.StrikeThrough + spellbonuses.StrikeThrough + aabonuses.StrikeThrough;
 		if (strike_through && zone->random.Roll(strike_through)) {
 			MessageString(Chat::StrikeThrough,

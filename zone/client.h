@@ -488,6 +488,7 @@ public:
 	inline virtual int32 GetCR() const { return CR; }
 	inline virtual int32 GetCorrup() const { return Corrup; }
 	inline virtual int32 GetPhR() const { return PhR; }
+	int32 GetClassSpecificStats(uint32 class_id, uint32 statIndex);
 
 	int32 GetMaxStat() const;
 	int32 GetMaxResist() const;
@@ -1045,6 +1046,7 @@ public:
 	virtual void RangedAttack(Mob* other, bool CanDoubleAttack = false);
 	virtual void ThrowingAttack(Mob* other, bool CanDoubleAttack = false);
 	void DoClassAttacks(Mob *ca_target, uint16 skill = -1, bool IsRiposte=false);
+	void DoBackstab(Mob* defender = nullptr);
 
 	void ClearZoneFlag(uint32 zone_id);
 	bool HasZoneFlag(uint32 zone_id) const;
@@ -1693,6 +1695,27 @@ public:
 	 WaterRegionType GetLastRegion() { return last_region_type; }
 
 	int32 CalcATK();
+
+	int32 GetDipslayAC()
+	{
+		// this is the value displayed in clients (it ignores the softcap) and is not used in combat calculations
+		AC = (GetAvoidance(true) + GetMitigation(true)) * 1000 / 847;
+		return AC;
+	}
+
+	int GetAvoidance(bool ignoreCombatAgility);
+	virtual int GetAvoidance() { return GetAvoidance(false); }
+	static int GetAvoidance(int16 defense_skill_value, int16 agi, uint8 level, uint8 intoxication, int combat_agility_percent);
+
+	int64 GetDamageBonus();
+
+	int GetOffense(EQ::skills::SkillType skill);
+	int64 RollDamageMultiplier(uint32 offense, int64& damage);
+	int64 GetBaseDamage(Mob* defender = nullptr, uint16 slot = EQ::invslot::slotPrimary);
+
+	int GetMitigation(bool ignoreCap);
+	virtual int GetMitigation() { return GetMitigation(false); }
+	static int GetMitigation(bool ignoreCap, int item_ac_sum, int shield_ac, int spell_ac_sum, int classnum, int level, int base_race, int carried_weight, int agi, int defense_skill_value, int combat_stability_percent);
 
 	uint32 trapid; //ID of trap player has triggered. This is cleared when the player leaves the trap's radius, or it despawns.
 

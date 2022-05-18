@@ -2559,6 +2559,9 @@ bool Client::CanHaveSkill(EQ::skills::SkillType skill_id) {
 	if (ClientVersion() < EQ::versions::ClientVersion::RoF2 && class_ == BERSERKER && skill_id == EQ::skills::Skill1HPiercing)
 		skill_id = EQ::skills::Skill2HPiercing;
 
+	if (skill_id == EQ::skills::SkillSenseHeading)
+		return true;
+
 	return(content_db.GetSkillCap(GetClass(), skill_id, RuleI(Character, MaxLevel)) > 0);
 	//if you don't have it by max level, then odds are you never will?
 }
@@ -7163,10 +7166,10 @@ void Client::SendStatsWindow(Client* client, bool use_window)
 	/*	Runes	*/	indP << "Rune: " << rune_number << indL << indS << "Spell Rune: " << magic_rune_number << "<br>" <<
 	/*	HP/M/E	*/	HME_row <<
 	/*	DS		*/	indP << "DS: " << (itembonuses.DamageShield + spellbonuses.DamageShield*-1) << " (Spell: " << (spellbonuses.DamageShield*-1) << " + Item: " << itembonuses.DamageShield << " / " << RuleI(Character, ItemDamageShieldCap) << ")<br>" <<
-	/*	Atk		*/	indP << "<c \"#CCFF00\">tohit: " << compute_tohit(skill) << " / " << GetTotalToHit(skill, 0) << "</c><br>" <<
-	/*	Atk2	*/	indP << "- Offense: " << offense(skill) << " | Item: " << itembonuses.ATK << " (" << RuleI(Character, ItemATKCap) << ")~Used: " << (itembonuses.ATK * 1.342) << " | Spell: " << spellbonuses.ATK << "<br>" <<
+	/*	Atk		*/	indP << "<c \"#CCFF00\">tohit: " << GetToHit(skill) << " / " << GetToHit(skill) << "</c><br>" <<
+	/*	Atk2	*/	indP << "- Offense: " << GetOffense(skill) << " | Item: " << itembonuses.ATK << " (" << RuleI(Character, ItemATKCap) << ")~Used: " << (itembonuses.ATK * 1.342) << " | Spell: " << spellbonuses.ATK << "<br>" <<
 	/*	AC		*/	indP << "<c \"#CCFF00\">mitigation AC: " << GetMitigationAC() << "</c><br>" <<
-	/*	AC2		*/	indP << "- defense: " << compute_defense() << " / " << GetTotalDefense() << " | Spell: " << spellbonuses.AC << " | Shield: " << shield_ac << "<br>" <<
+	/*	AC2		*/	indP << "- defense: " << GetMitigation() << " | Spell: " << spellbonuses.AC << " | Shield: " << shield_ac << "<br>" <<
 	/*	Haste	*/	indP << "<c \"#CCFF00\">Haste: " << GetHaste() << "</c><br>" <<
 	/*	Haste2	*/	indP << " - Item: " << itembonuses.haste << " + Spell: " << (spellbonuses.haste + spellbonuses.hastetype2) << " (Cap: " << RuleI(Character, HasteCap) << ") | Over: " << (spellbonuses.hastetype3 + ExtraHaste) << "<br>" <<
 	/*	RunSpeed*/	indP << "<c \"#CCFF00\">Runspeed: " << GetRunspeed() << "</c><br>" <<
@@ -7204,8 +7207,8 @@ void Client::SendStatsWindow(Client* client, bool use_window)
 	client->Message(Chat::Yellow, "~~~~~ %s %s ~~~~~", GetCleanName(), GetLastName());
 	client->Message(Chat::White, " Level: %i Class: %i Race: %i DS: %i/%i Size: %1.1f  Weight: %.1f/%d  ", GetLevel(), GetClass(), GetRace(), GetDS(), RuleI(Character, ItemDamageShieldCap), GetSize(), (float)CalcCurrentWeight() / 10.0f, GetSTR());
 	client->Message(Chat::White, " HP: %i/%i  HP Regen: %i/%i",GetHP(), GetMaxHP(), CalcHPRegen(), CalcHPRegenCap());
-	client->Message(Chat::White, " compute_tohit: %i TotalToHit: %i", compute_tohit(skill), GetTotalToHit(skill, 0));
-	client->Message(Chat::White, " compute_defense: %i TotalDefense: %i", compute_defense(), GetTotalDefense());
+	client->Message(Chat::White, " compute_tohit: %i", GetToHit(skill));
+	client->Message(Chat::White, " compute_defense: %i", GetMitigation());
 	client->Message(Chat::White, " offense: %i mitigation ac: %i", offense(skill), GetMitigationAC());
 	if(CalcMaxMana() > 0)
 		client->Message(Chat::White, " Mana: %i/%i  Mana Regen: %i/%i", GetMana(), GetMaxMana(), CalcManaRegen(), CalcManaRegenCap());

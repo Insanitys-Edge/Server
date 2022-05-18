@@ -232,6 +232,22 @@ int64 Client::LevelRegen(int level, bool is_sitting, bool is_resting, bool is_fe
 		hp_regen_amount *= std::ceil(has_frog_racial_regen_bonus ? 1.5 : 2.0);
 	}
 
+	if (IsBerserk())
+	{
+		if (GetHPRatio() < 15.0f)
+			hp_regen_amount *= 4.0;
+		else if (GetHPRatio() < 20.0f)
+			hp_regen_amount *= 3.5;
+		else if (GetHPRatio() < 25.0f)
+			hp_regen_amount *= 3.0;
+		else if (GetHPRatio() < 30.0f)
+			hp_regen_amount *= 2.5;
+		else if (GetHPRatio() < 35.0f)
+			hp_regen_amount *= 2.0;
+		else if (GetHPRatio() < 45.0f)
+			hp_regen_amount *= 1.5;
+	}
+
 	return hp_regen_amount;
 }
 
@@ -274,21 +290,6 @@ int64 Client::CalcHPRegen(bool bCombat)
 		}
 	}
 
-	if (IsBerserk())
-	{
-		if (GetHPRatio() < 15.0f)
-			hp_regen_amount *= 4.0;
-		else if (GetHPRatio() < 20.0f)
-			hp_regen_amount *= 3.5;
-		else if (GetHPRatio() < 25.0f)
-			hp_regen_amount *= 3.0;
-		else if (GetHPRatio() < 30.0f)
-			hp_regen_amount *= 2.5;
-		else if (GetHPRatio() < 35.0f)
-			hp_regen_amount *= 2.0;
-		else if (GetHPRatio() < 45.0f)
-			hp_regen_amount *= 1.5;
-	}
 	// add spell and item regen
 	hp_regen_amount += itembonuses.HPRegen + spellbonuses.HPRegen;
 
@@ -301,7 +302,7 @@ int64 Client::CalcHPRegen(bool bCombat)
 
 	if (GetBaseRace() == DRAKKIN)
 	{
-		return (int64)std::min(-5., -GetMaxHP() * 0.03);
+		return -3;
 	}
 
 	return hp_regen_amount;
@@ -877,6 +878,287 @@ int32 Client::CalcAlcoholPhysicalEffect()
 		return 0;
 	}
 	return (m_pp.intoxication - 40) / 16;
+}
+
+int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
+{
+	switch(statIndex)
+	{
+		case 0: // STR
+		{
+			switch (GetClass())
+			{
+				case WARRIOR:
+					return 10;
+				case CLERIC:
+					return 5;
+				case PALADIN:
+					return 10;
+				case RANGER:
+					return 5;
+				case SHADOWKNIGHT:
+					return 10;
+				case DRUID:
+					return 0;
+				case MONK:
+					return 5;
+				case BARD:
+					return 5;
+				case ROGUE:
+					return 0;
+				case SHAMAN:
+					return 0;
+				case NECROMANCER:
+					return 0;
+				case WIZARD:
+					return 0;
+				case MAGICIAN:
+					return 0;
+				case ENCHANTER:
+					return 0;
+				case BEASTLORD:
+					return 0;
+				default:
+					return 0;
+
+			}
+			break;
+		}
+		case 1: // STA
+		{
+			switch (GetClass())
+			{
+			case WARRIOR:
+				return 10;
+			case CLERIC:
+				return 5;
+			case PALADIN:
+				return 5;
+			case RANGER:
+				return 10;
+			case SHADOWKNIGHT:
+				return 5;
+			case DRUID:
+				return 10;
+			case MONK:
+				return 5;
+			case BARD:
+				return 0;
+			case ROGUE:
+				return 0;
+			case SHAMAN:
+				return 5;
+			case NECROMANCER:
+				return 0;
+			case WIZARD:
+				return 10;
+			case MAGICIAN:
+				return 10;
+			case ENCHANTER:
+				return 0;
+			case BEASTLORD:
+				return 10;
+			default:
+				return 0;
+			}
+			break;
+		}
+		case 2: // AGI
+		{
+			switch (GetClass())
+			{
+			case WARRIOR:
+				return 5;
+			case CLERIC:
+				return 0;
+			case PALADIN:
+				return 0;
+			case RANGER:
+				return 10;
+			case SHADOWKNIGHT:
+				return 0;
+			case DRUID:
+				return 0;
+			case MONK:
+				return 10;
+			case BARD:
+				return 0;
+			case ROGUE:
+				return 10;
+			case SHAMAN:
+				return 0;
+			case NECROMANCER:
+				return 0;
+			case WIZARD:
+				return 0;
+			case MAGICIAN:
+				return 0;
+			case ENCHANTER:
+				return 0;
+			case BEASTLORD:
+				return 5;
+			default:
+				return 0;
+			}
+			break;
+		}
+		case 3: // AGI
+		{
+			switch (GetClass())
+			{
+			case WARRIOR:
+				return 10;
+			case CLERIC:
+				return 5;
+			case PALADIN:
+				return 10;
+			case RANGER:
+				return 5;
+			case SHADOWKNIGHT:
+				return 10;
+			case DRUID:
+				return 0;
+			case MONK:
+				return 5;
+			case BARD:
+				return 5;
+			case ROGUE:
+				return 0;
+			case SHAMAN:
+				return 0;
+			case NECROMANCER:
+				return 0;
+			case WIZARD:
+				return 0;
+			case MAGICIAN:
+				return 0;
+			case ENCHANTER:
+				return 0;
+			case BEASTLORD:
+				return 0;
+			default:
+				return 0;
+			}
+			break;
+		}
+		case 4: // INT
+		{
+			switch (GetClass())
+			{
+			case WARRIOR:
+				return 10;
+			case CLERIC:
+				return 5;
+			case PALADIN:
+				return 10;
+			case RANGER:
+				return 5;
+			case SHADOWKNIGHT:
+				return 10;
+			case DRUID:
+				return 0;
+			case MONK:
+				return 5;
+			case BARD:
+				return 5;
+			case ROGUE:
+				return 0;
+			case SHAMAN:
+				return 0;
+			case NECROMANCER:
+				return 0;
+			case WIZARD:
+				return 0;
+			case MAGICIAN:
+				return 0;
+			case ENCHANTER:
+				return 0;
+			case BEASTLORD:
+				return 0;
+			default:
+				return 0;
+			}
+			break;
+		}
+		case 5: // WIS
+		{
+			switch (GetClass())
+			{
+			case WARRIOR:
+				return 10;
+			case CLERIC:
+				return 5;
+			case PALADIN:
+				return 10;
+			case RANGER:
+				return 5;
+			case SHADOWKNIGHT:
+				return 10;
+			case DRUID:
+				return 0;
+			case MONK:
+				return 5;
+			case BARD:
+				return 5;
+			case ROGUE:
+				return 0;
+			case SHAMAN:
+				return 0;
+			case NECROMANCER:
+				return 0;
+			case WIZARD:
+				return 0;
+			case MAGICIAN:
+				return 0;
+			case ENCHANTER:
+				return 0;
+			case BEASTLORD:
+				return 0;
+			default:
+				return 0;
+			}
+			break;
+		}
+		case 6: // CHA
+		{
+			switch (GetClass())
+			{
+			case WARRIOR:
+				return 10;
+			case CLERIC:
+				return 5;
+			case PALADIN:
+				return 10;
+			case RANGER:
+				return 5;
+			case SHADOWKNIGHT:
+				return 10;
+			case DRUID:
+				return 0;
+			case MONK:
+				return 5;
+			case BARD:
+				return 5;
+			case ROGUE:
+				return 0;
+			case SHAMAN:
+				return 0;
+			case NECROMANCER:
+				return 0;
+			case WIZARD:
+				return 0;
+			case MAGICIAN:
+				return 0;
+			case ENCHANTER:
+				return 0;
+			case BEASTLORD:
+				return 0;
+			default:
+				return 0;
+			}
+			break;
+		}
+	}
 }
 
 int32 Client::CalcSTR()

@@ -300,8 +300,10 @@ public:
 
 	uint32	GetMaxDMG() const {return max_dmg;}
 	uint32	GetMinDMG() const {return min_dmg;}
-	int GetBaseDamage() const { return base_damage; }
+	int64 GetBaseDamage(Mob* defender = nullptr, uint16 slot = EQ::invslot::slotPrimary);
+	int   GetDBBaseDamage() const{ return base_damage; }
 	int GetMinDamage() const { return min_damage; }
+	int64 GetDamageBonus();
 	float GetSlowMitigation() const { return slow_mitigation; }
 	float	GetAttackSpeed() const {return attack_speed;}
 	int		GetAttackDelay() const {return attack_delay;}
@@ -317,10 +319,17 @@ public:
 	void	DisableSwarmTimer() { swarm_timer.Disable(); }
 	void	AddLootDrop(const EQ::ItemData* dbitem, ItemList* itemlistconst, int16 charges, uint8 minlevel, uint8 maxlevel, bool equipit, bool wearchange = false, bool quest = false, bool pet = false, bool force_equip = false, uint32 aug1 = 0, uint32 aug2 = 0, uint32 aug3 = 0, uint32 aug4 = 0, uint32 aug5 = 0, uint32 aug6 = 0);
 	virtual void DoClassAttacks(Mob* target);
+	void	DoBackstab(Mob* defender = nullptr);
 	void	CheckSignal();
 	inline bool IsNotTargetableWithHotkey() const { return no_target_hotkey; }
+	virtual int64 GetHPRegen();
+	virtual int64 GetManaRegen();
+
 	int64 GetNPCHPRegen() const { return hp_regen + itembonuses.HPRegen + spellbonuses.HPRegen; }
 	int64 GetOOCNPCHPRegen() const { return ooc_hp_regen + itembonuses.HPRegen + spellbonuses.HPRegen; }
+
+	int64 GetNPCManaRegen() const { return mana_regen + itembonuses.ManaRegen + spellbonuses.ManaRegen; }
+	int64 GetOOCNPCManaRegen() const { return ooc_mana_regen + itembonuses.ManaRegen + spellbonuses.ManaRegen; }
 	inline const char* GetAmmoIDfile() const { return ammo_idfile; }
 
 	void ModifyStatsOnCharm(bool is_charm_removed);

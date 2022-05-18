@@ -444,14 +444,14 @@ void Client::CalculateExp(uint32 in_add_exp, uint32 &add_exp, uint32 &add_aaxp, 
 			zemmod *= zone->newzone_data.zone_exp_multiplier;
 		}
 
-		if (RuleB(Character, UseRaceClassExpBonuses))
+		if (IsClient())
 		{
-			if (GetBaseRace() == HALFLING) {
-				totalmod *= 1.05;
-			}
-
-			if (GetClass() == ROGUE || GetClass() == WARRIOR) {
-				totalmod *= 1.05;
+			EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+			if (inst)
+			{
+				if (inst->GetID() == RaceCharmIDs::CharmHalfling) {
+						totalmod *= 1.05;
+				}
 			}
 		}
 
@@ -927,17 +927,6 @@ uint32 Client::GetEXPForLevel(uint16 check_level)
 	uint32 finalxp = uint32(base * mod);
 
 	float racemod = 1.0;
-	if (IsClient())
-	{
-		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
-		if (inst)
-		{
-			if (inst->GetID() == RaceCharmIDs::CharmHalfling) {
-				racemod = 0.95;
-			}
-		}
-	}
-
 	finalxp = uint32(finalxp * racemod);
 
 	float classmod = 1.0;

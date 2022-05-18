@@ -194,7 +194,7 @@ Json::Value ApiGetNpcListDetail(EQ::Net::WebsocketServerConnection *connection, 
 		row["attack_delay"]                  = npc->GetAttackDelay();
 		row["attack_speed"]                  = npc->GetAttackSpeed();
 		row["avoidance_rating"]              = npc->GetAvoidanceRating();
-		row["base_damage"]                   = npc->GetBaseDamage();
+		row["base_damage"]                   = npc->GetDBBaseDamage();
 		row["combat_event"]                  = npc->GetCombatEvent();
 		row["copper"]                        = npc->GetCopper();
 		row["count_loot"]                    = npc->CountLoot();
@@ -429,7 +429,7 @@ Json::Value ApiGetMobListDetail(EQ::Net::WebsocketServerConnection *connection, 
 		row["class"]                      = mob->GetClass();
 		row["class_level_factor"]         = mob->GetClassLevelFactor();
 		row["class_race_ac_bonus"]        = mob->GetClassRaceACBonus();
-		row["compute_defense"]            = mob->compute_defense();
+		row["compute_defense"]            = 0;
 		row["count_dispellable_buffs"]    = mob->CountDispellableBuffs();
 		row["cripp_blow_chance"]          = mob->GetCrippBlowChance();
 		row["cur_wp"]                     = mob->GetCurWp();

@@ -1802,7 +1802,7 @@ XS(XS_Mob_GetDisplayAC) {
 		uint32 RETVAL;
 		dXSTARG;
 		VALIDATE_THIS_IS_MOB;
-		RETVAL = THIS->GetDisplayAC();
+		RETVAL = 0;
 		XSprePUSH;
 		PUSHu((UV) RETVAL);
 	}

@@ -541,7 +541,7 @@ int Lua_Mob::GetAC() {
 
 int Lua_Mob::GetDisplayAC() {
 	Lua_Safe_Call_Int();
-	return self->GetDisplayAC();
+	return 0;
 }
 
 int Lua_Mob::GetATK() {

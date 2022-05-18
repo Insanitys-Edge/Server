@@ -1671,7 +1671,6 @@ bool Client::OPCharCreate(char *name, CharCreate_Struct *cc)
 	SetClassLanguages(&pp);
 
 	pp.skills[EQ::skills::SkillSwimming] = RuleI(Skills, SwimmingStartValue);
-	pp.skills[EQ::skills::SkillSenseHeading] = RuleI(Skills, SenseHeadingStartValue);
 
 //	strcpy(pp.servername, WorldConfig::get()->ShortName.c_str());
 

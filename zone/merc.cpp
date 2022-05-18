@@ -4446,7 +4446,7 @@ void Merc::DoClassAttacks(Mob *target) {
 			case MELEEDPS:
 				if(level >= 10) {
 					reuse = BackstabReuseTime * 1000;
-					TryBackstab(target, reuse);
+					DoBackstab(target);
 					did_attack = true;
 				}
 				break;
@@ -4455,7 +4455,7 @@ void Merc::DoClassAttacks(Mob *target) {
 					if(zone->random.Int(0, 100) > 25) //tested on live, warrior mobs both kick and bash, kick about 75% of the time, casting doesn't seem to make a difference.
 					{
 						DoAnim(animKick, 0, false);
-						int64 dmg = GetBaseSkillDamage(EQ::skills::SkillKick);
+						int64 dmg = GetSkillBaseDamage(EQ::skills::SkillKick, GetSkill(EQ::skills::SkillKick));
 
 						if (GetWeaponDamage(target, (const EQ::ItemData*)nullptr) <= 0)
 							dmg = DMG_INVULNERABLE;
@@ -4467,7 +4467,7 @@ void Merc::DoClassAttacks(Mob *target) {
 					else
 					{
 						DoAnim(animTailRake, 0, false);
-						int64 dmg = GetBaseSkillDamage(EQ::skills::SkillBash);
+						int64 dmg = GetSkillBaseDamage(EQ::skills::SkillBash, GetSkill(EQ::skills::SkillBash));
 
 						if (GetWeaponDamage(target, (const EQ::ItemData*)nullptr) <= 0)
 							dmg = DMG_INVULNERABLE;

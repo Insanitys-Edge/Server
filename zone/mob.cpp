@@ -2108,8 +2108,8 @@ void Mob::ShowStats(Client* client)
 			Chat::White,
 			fmt::format(
 				"Combat Stats | To Hit: {} Total To Hit: {}",
-				compute_tohit(EQ::skills::SkillHandtoHand),
-				GetTotalToHit(EQ::skills::SkillHandtoHand, 0)
+				GetToHit(EQ::skills::SkillHandtoHand),
+				GetToHit(EQ::skills::SkillHandtoHand)
 			).c_str()
 		);
 
@@ -2117,8 +2117,8 @@ void Mob::ShowStats(Client* client)
 			Chat::White,
 			fmt::format(
 				"Combat Stats | Defense: {} Total Defense: {}",
-				compute_defense(),
-				GetTotalDefense()
+				GetAvoidance(),
+				GetAvoidance()
 			).c_str()
 		);
 
@@ -2126,8 +2126,8 @@ void Mob::ShowStats(Client* client)
 			Chat::White,
 			fmt::format(
 				"Combat Stats | Offense: {} Mitigation Armor Class: {}",
-				offense(EQ::skills::SkillHandtoHand),
-				GetMitigationAC()
+				GetOffense(EQ::skills::SkillHandtoHand),
+				GetMitigation()
 			).c_str()
 		);
 
@@ -2416,6 +2416,109 @@ void Mob::ShowBuffList(Client* client) {
 				client->Message(Chat::White, "  %i: %s: Permanent", i, spells[buffs[i].spellid].name);
 			else
 				client->Message(Chat::White, "  %i: %s: %i tics left", i, spells[buffs[i].spellid].name, buffs[i].ticsremaining);
+		}
+	}
+}
+
+void Mob::DoBashKickStun(Mob* defender, uint16 skill)
+{
+	// bash and kick stuns.  Stuns hit even through runes
+	// both PC and NPC kicks stun starting at 55
+	if (!defender || (skill != EQ::skills::SkillBash
+		&& (skill != EQ::skills::SkillKick && (GetClass() != WARRIOR && GetClass() != WARRIORGM) && GetLevel() >= 55)
+		&& (skill != EQ::skills::SkillDragonPunch || !IsClient()))
+		|| defender->GetSpecialAbility(UNSTUNABLE) || defender->DivineAura() || defender->GetInvul())
+	{
+		return;
+	}
+
+	// this is precise for the vast majority of NPCs
+	// at some point around level 61, base stun chance goes from 45 to 40.  not sure why
+	int stun_chance = 45;
+	int defenderLevel = defender->GetLevel();
+	int levelDiff = GetLevel() - defenderLevel;
+
+	if (GetLevel() > 60)
+		stun_chance = 40;
+
+	if (levelDiff < 0)
+	{
+		stun_chance -= levelDiff * levelDiff / 2;
+	}
+	else
+	{
+		stun_chance += levelDiff * levelDiff / 2;
+	}
+	if (stun_chance < 2)
+		stun_chance = 2;
+
+	if (defender->IsNPC() && defenderLevel > RuleI(Spells, BaseImmunityLevel))
+		stun_chance = 0;
+
+	if (stun_chance && zone->random.Roll(stun_chance))
+	{
+		Log(Logs::Detail, Logs::Combat, "Stun passed, checking resists. Was %d chance.", stun_chance);
+
+		int stun_resist = 0;
+
+		if (defender->IsClient())
+		{
+			stun_resist = defender->aabonuses.StunResist;						// Stalwart Endurance AA
+		}
+
+		if (defender->GetBaseRace() == OGRE && !BehindMob(defender, GetX(), GetY()))		// should this work if the ogre is illusioned?
+		{
+			Log(Logs::Detail, Logs::Combat, "Frontal stun resisted because, Ogre.");
+		}
+		else
+		{
+			if (stun_resist && zone->random.Roll(stun_resist))
+			{
+				defender->MessageString(Chat::Default, SHAKE_OFF_STUN);
+				Log(Logs::Detail, Logs::Combat, "Stun Resisted. %d chance.", stun_resist);
+			}
+			else
+			{
+				Log(Logs::Detail, Logs::Combat, "Stunned. %d resist chance.", stun_resist);
+				defender->Stun(2000);	// bash/kick stun is always 2 seconds
+			}
+		}
+	}
+	else
+	{
+		Log(Logs::Detail, Logs::Combat, "Stun failed. %d chance.", stun_chance);
+
+		// This is a crude approximation of interrupt chance based on old EQ log parses
+		int interruptChance = 100;
+
+		if (IsNPC() && !IsPet())
+		{
+			if (GetLevel() < defenderLevel)
+				interruptChance = 80;		// Daybreak recently confirmed this 80% chance
+		}
+		else if (defender->IsNPC())
+		{
+			int levelDiff = GetLevel() - defenderLevel;
+
+			interruptChance += levelDiff * 10;
+
+			if (defenderLevel > 65 && interruptChance > 0)
+				interruptChance = 2;
+			else if (defenderLevel > 55)
+				interruptChance /= 2;
+			else if (defenderLevel > 50)
+				interruptChance = 3 * interruptChance / 4;
+		}
+
+		Log(Logs::Detail, Logs::Combat, "Non-stunning bash/kick interrupt roll: chance = %i", interruptChance);
+
+		if (zone->random.Roll(interruptChance))
+		{
+			if (IsValidSpell(defender->casting_spell_id) && !spells[defender->casting_spell_id].uninterruptable)
+			{
+				Log(Logs::Detail, Logs::Combat, "Non-stunning bash/kick successfully interrupted spell");
+				defender->InterruptSpell(SPELL_UNKNOWN, true);
+			}
 		}
 	}
 }
