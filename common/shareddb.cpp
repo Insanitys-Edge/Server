@@ -224,11 +224,6 @@ bool SharedDatabase::VerifyInventory(uint32 account_id, int16 slot_id, const EQ:
 }
 
 bool SharedDatabase::SaveInventory(uint32 char_id, uint32 account_id, uint32 class_id, EQ::ItemInstance* inst, int16 slot_id) {
-
-	if (inst && (slot_id >= EQ::invslot::POSSESSIONS_BEGIN && slot_id <= EQ::invslot::slotAmmo))
-	{
-		inst->SetAttuned(true);
-	}
 	//never save tribute slots:
 	if (slot_id >= EQ::invslot::TRIBUTE_BEGIN && slot_id <= EQ::invslot::TRIBUTE_END)
 		return true;
