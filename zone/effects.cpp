@@ -136,9 +136,6 @@ int64 Mob::GetActSpellDamage(uint16 spell_id, int64 value, Mob* target) {
 	//Non Crtical Hit Calculation pathway
 	value = base_value;
 
-	value += base_value*GetFocusEffect(focusImprovedDamage, spell_id)/100;
-	value += base_value*GetFocusEffect(focusImprovedDamage2, spell_id)/100;
-
 	if (IsClient())
 	{
 		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
@@ -146,10 +143,14 @@ int64 Mob::GetActSpellDamage(uint16 spell_id, int64 value, Mob* target) {
 		{
 			if (inst->GetID() == RaceCharmIDs::CharmDarkElf)
 			{
-				base_hp *= 0.02;
+				value *= 1.05;
 			}
 		}
 	}
+
+	value += base_value*GetFocusEffect(focusImprovedDamage, spell_id)/100;
+	value += base_value*GetFocusEffect(focusImprovedDamage2, spell_id)/100;
+
 
 	value += base_value*GetFocusEffect(focusFcDamagePctCrit, spell_id)/100;
 	value += base_value*GetFocusEffect(focusFcAmplifyMod, spell_id)/100;

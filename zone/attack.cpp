@@ -1395,15 +1395,6 @@ int Mob::ACSum(bool skip_caps)
 
 	int ac_sum = GetMitigation();
 
-	if (IsClient())
-	{
-		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
-		if (inst && inst->GetID() == RaceCharmIDs::CharmHalfElf)
-		{
-			ac_sum += (int)((float)ac_sum * 0.10f);
-		}
-	}
-
 
 	return ac_sum;
 }
@@ -1510,12 +1501,6 @@ int Client::GetOffense(EQ::skills::SkillType skill)
 	if (GetClass() == RANGER && GetLevel() > 54)
 	{
 		offense = offense + GetLevel() * 4 - 216;
-	}
-
-	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
-	if (inst && inst->GetID() == RaceCharmIDs::CharmDarkElf)
-	{
-		offense = (float)offense * 1.05f;
 	}
 
 	return offense;
@@ -2414,6 +2399,13 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 			{
 				my_hit.damage_done = damageBonus + CalcMeleeDamage(other, my_hit.base_damage, my_hit.skill);
 				TryCriticalHit(other, my_hit);
+
+				EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+				if (inst && inst->GetID() == RaceCharmIDs::CharmDarkElf)
+				{
+					if(my_hit.damage_done)
+						my_hit.damage_done = my_hit.damage_done * 1.05;
+				}
 			}
 
 			if (my_hit.damage_done > 0) {
@@ -2515,6 +2507,15 @@ void Client::Damage(Mob* other, int64 damage, uint16 spell_id, EQ::skills::Skill
 		else
 			PvPMitigation = 67;
 		damage = std::max<int64_t>((damage * PvPMitigation) / 100, 1);
+	}
+
+	if (IsClient())
+	{
+		EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+		if (inst && inst->GetID() == RaceCharmIDs::CharmHalfElf)
+		{
+			damage = std::max<int64_t>((damage * 95) / 100, 1);
+		}
 	}
 
 	if (!ClientFinishedLoading())
