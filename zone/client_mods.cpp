@@ -880,8 +880,9 @@ int32 Client::CalcAlcoholPhysicalEffect()
 	return (m_pp.intoxication - 40) / 16;
 }
 
-int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
+int32 Client::GetClassSpecificStats(uint32 class_id, int32 statIndex)
 {
+
 	switch(statIndex)
 	{
 		case 0: // STR
@@ -1080,38 +1081,38 @@ int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
 			}
 			break;
 		}
-		case 5: // WIS
+		case 5: // INT
 		{
 			switch (GetClass())
 			{
 			case WARRIOR:
-				return 10;
+				return 0;
 			case CLERIC:
-				return 5;
+				return 0;
 			case PALADIN:
-				return 10;
+				return 0;
 			case RANGER:
-				return 5;
+				return 0;
 			case SHADOWKNIGHT:
 				return 10;
 			case DRUID:
 				return 0;
 			case MONK:
-				return 5;
+				return 0;
 			case BARD:
-				return 5;
+				return 0;
 			case ROGUE:
 				return 0;
 			case SHAMAN:
 				return 0;
 			case NECROMANCER:
-				return 0;
+				return 10;
 			case WIZARD:
-				return 0;
+				return 10;
 			case MAGICIAN:
-				return 0;
+				return 10;
 			case ENCHANTER:
-				return 0;
+				return 10;
 			case BEASTLORD:
 				return 0;
 			default:
@@ -1124,25 +1125,25 @@ int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
 			switch (GetClass())
 			{
 			case WARRIOR:
-				return 10;
+				return 0;
 			case CLERIC:
-				return 5;
+				return 0;
 			case PALADIN:
 				return 10;
 			case RANGER:
-				return 5;
+				return 0;
 			case SHADOWKNIGHT:
-				return 10;
+				return 5;
 			case DRUID:
 				return 0;
 			case MONK:
-				return 5;
+				return 0;
 			case BARD:
-				return 5;
+				return 10;
 			case ROGUE:
 				return 0;
 			case SHAMAN:
-				return 0;
+				return 5;
 			case NECROMANCER:
 				return 0;
 			case WIZARD:
@@ -1150,22 +1151,587 @@ int32 Client::GetClassSpecificStats(uint32 class_id, uint32 statIndex)
 			case MAGICIAN:
 				return 0;
 			case ENCHANTER:
-				return 0;
+				return 10;
 			case BEASTLORD:
-				return 0;
+				return 5;
 			default:
 				return 0;
 			}
 			break;
 		}
 	}
+	return 0;
+}
+
+int32 Client::GetRaceSpecificStats(int32 statIndex)
+{
+	EQ::ItemInstance* inst = CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm);
+
+	if (inst)
+	{
+
+		switch (statIndex)
+		{
+		case 0: // STR
+		{
+			switch (inst->GetID())
+			{
+			case CharmHuman:
+				return 75;
+			case CharmBarbarian:
+				return 103;
+			case CharmErudite:
+				return 60;
+			case CharmWoodElf:
+				return 65;
+			case CharmHighElf:
+				return 55;
+			case CharmDarkElf:
+				return 60;
+			case CharmHalfElf:
+				return 70;
+			case CharmDwarf:
+				return 90;
+			case CharmTroll:
+				return 108;
+			case CharmOgre:
+				return 130;
+			case CharmHalfling:
+				return 70;
+			case CharmGnome:
+				return 60;
+			case CharmIksar:
+				return 60;
+			case CharmVahShir:
+				return 0;
+			case CharmFroglok:
+				return 70;
+			default:
+				return 75;
+			}
+			break;
+		}
+		case 1: // STA
+		{
+			switch (inst->GetID())
+			{
+			case CharmHuman:
+				return 75;
+			case CharmBarbarian:
+				return 95;
+			case CharmErudite:
+				return 70;
+			case CharmWoodElf:
+				return 65;
+			case CharmHighElf:
+				return 65;
+			case CharmDarkElf:
+				return 65;
+			case CharmHalfElf:
+				return 70;
+			case CharmDwarf:
+				return 90;
+			case CharmTroll:
+				return 114;
+			case CharmOgre:
+				return 127;
+			case CharmHalfling:
+				return 75;
+			case CharmGnome:
+				return 70;
+			case CharmIksar:
+				return 70;
+			case CharmVahShir:
+				return 0;
+			case CharmFroglok:
+				return 80;
+			default:
+				return 75;
+			}
+		}
+		case 2: // AGI
+		{
+			switch (inst->GetID())
+			{
+			case CharmHuman:
+				return 75;
+			case CharmBarbarian:
+				return 82;
+			case CharmErudite:
+				return 70;
+			case CharmWoodElf:
+				return 95;
+			case CharmHighElf:
+				return 85;
+			case CharmDarkElf:
+				return 90;
+			case CharmHalfElf:
+				return 90;
+			case CharmDwarf:
+				return 70;
+			case CharmTroll:
+				return 83;
+			case CharmOgre:
+				return 70;
+			case CharmHalfling:
+				return 95;
+			case CharmGnome:
+				return 85;
+			case CharmIksar:
+				return 90;
+			case CharmVahShir:
+				return 0;
+			case CharmFroglok:
+				return 100;
+			default:
+				return 75;
+			}
+			break;
+		}
+		case 3: // DEX
+		{
+			switch (inst->GetID())
+			{
+			case CharmHuman:
+				return 75;
+			case CharmBarbarian:
+				return 70;
+			case CharmErudite:
+				return 70;
+			case CharmWoodElf:
+				return 80;
+			case CharmHighElf:
+				return 70;
+			case CharmDarkElf:
+				return 75;
+			case CharmHalfElf:
+				return 85;
+			case CharmDwarf:
+				return 90;
+			case CharmTroll:
+				return 75;
+			case CharmOgre:
+				return 70;
+			case CharmHalfling:
+				return 90;
+			case CharmGnome:
+				return 85;
+			case CharmIksar:
+				return 85;
+			case CharmVahShir:
+				return 0;
+			case CharmFroglok:
+				return 100;
+			default:
+				return 75;
+			}
+			break;
+		}
+		case 4: // WIS
+		{
+			switch (inst->GetID())
+			{
+			case CharmHuman:
+				return 75;
+			case CharmBarbarian:
+				return 70;
+			case CharmErudite:
+				return 83;
+			case CharmWoodElf:
+				return 80;
+			case CharmHighElf:
+				return 95;
+			case CharmDarkElf:
+				return 83;
+			case CharmHalfElf:
+				return 60;
+			case CharmDwarf:
+				return 83;
+			case CharmTroll:
+				return 60;
+			case CharmOgre:
+				return 67;
+			case CharmHalfling:
+				return 80;
+			case CharmGnome:
+				return 67;
+			case CharmIksar:
+				return 80;
+			case CharmVahShir:
+				return 0;
+			case CharmFroglok:
+				return 75;
+			default:
+				return 75;
+			}
+		}
+		case 5: // INT
+		{
+			switch (inst->GetID())
+			{
+			case CharmHuman:
+				return 75;
+			case CharmBarbarian:
+				return 60;
+			case CharmErudite:
+				return 107;
+			case CharmWoodElf:
+				return 75;
+			case CharmHighElf:
+				return 92;
+			case CharmDarkElf:
+				return 99;
+			case CharmHalfElf:
+				return 75;
+			case CharmDwarf:
+				return 60;
+			case CharmTroll:
+				return 52;
+			case CharmOgre:
+				return 60;
+			case CharmHalfling:
+				return 67;
+			case CharmGnome:
+				return 98;
+			case CharmIksar:
+				return 75;
+			case CharmVahShir:
+				return 0;
+			case CharmFroglok:
+				return 75;
+			default:
+				return 75;
+			}
+			break;
+		}
+		case 6: // CHA
+		{
+			switch (inst->GetID())
+			{
+			case CharmHuman:
+				return 75;
+			case CharmBarbarian:
+				return 55;
+			case CharmErudite:
+				return 70;
+			case CharmWoodElf:
+				return 75;
+			case CharmHighElf:
+				return 80;
+			case CharmDarkElf:
+				return 60;
+			case CharmHalfElf:
+				return 75;
+			case CharmDwarf:
+				return 45;
+			case CharmTroll:
+				return 40;
+			case CharmOgre:
+				return 37;
+			case CharmHalfling:
+				return 50;
+			case CharmGnome:
+				return 60;
+			case CharmIksar:
+				return 55;
+			case CharmVahShir:
+				return 0;
+			case CharmFroglok:
+				return 50;
+			default:
+				return 75;
+			}
+			break;
+		}
+		}
+	}
+	return 75;
+}
+
+int32 Client::GetPrimaryPreferredStatAllocationIndex()
+{
+	switch (GetClass())
+	{
+	case WARRIOR:
+		return 1;
+	case CLERIC:
+		return 4;
+	case PALADIN:
+		return 1;
+	case RANGER:
+		return 3;
+	case SHADOWKNIGHT:
+		return 1;
+	case DRUID:
+		return 4;
+	case MONK:
+		return 0;
+	case BARD:
+		return 10;
+	case ROGUE:
+		return 0;
+	case SHAMAN:
+		return 1;
+	case NECROMANCER:
+		return 1;
+	case WIZARD:
+		return 5;
+	case MAGICIAN:
+		return 5;
+	case ENCHANTER:
+		return 6;
+	case BEASTLORD:
+		return 2;
+	default:
+		return -1;
+	}
+}
+
+int32 Client::GetSecondaryPreferredStatAllocationIndex()
+{
+	switch (GetClass())
+	{
+	case WARRIOR:
+		return -1;
+	case CLERIC:
+		return 0;
+	case PALADIN:
+		return -1;
+	case RANGER:
+		return -1;
+	case SHADOWKNIGHT:
+		return -1;
+	case DRUID:
+		return 1;
+	case MONK:
+		return -1;
+	case BARD:
+		return -1;
+	case ROGUE:
+		return 1;
+	case SHAMAN:
+		return 4;
+	case NECROMANCER:
+		return 5;
+	case WIZARD:
+		return 1;
+	case MAGICIAN:
+		return 1;
+	case ENCHANTER:
+		return 5;
+	case BEASTLORD:
+		return -1;
+	default:
+		return -1;
+	}
+}
+
+int32 Client::GetBaseAllocationPointsByClass()
+{
+	switch (GetClass())
+	{
+	case WARRIOR:
+		return 25;
+	case CLERIC:
+		return 30;
+	case PALADIN:
+		return 20;
+	case RANGER:
+		return 20;
+	case SHADOWKNIGHT:
+		return 20;
+	case DRUID:
+		return 30;
+	case MONK:
+		return 20;
+	case BARD:
+		return 25;
+	case ROGUE:
+		return 30;
+	case SHAMAN:
+		return 30;
+	case NECROMANCER:
+		return 30;
+	case WIZARD:
+		return 30;
+	case MAGICIAN:
+		return 30;
+	case ENCHANTER:
+		return 30;
+	case BEASTLORD:
+		return 20;
+	default:
+		return 30;
+	}
+}
+
+
+void Client::CalcBaseStatAllocations()
+{
+
+	int allocPoints = GetBaseAllocationPointsByClass();
+
+	int32 primaryAllocationIndex = GetPrimaryPreferredStatAllocationIndex();
+	int32 secondaryAllocationIndex = GetSecondaryPreferredStatAllocationIndex();
+
+
+	STR = 0;
+	STA = 0;
+	AGI = 0;
+	DEX = 0;
+	INT = 0;
+	WIS = 0;
+	CHA = 0;
+
+	if (GetRaceSpecificStats(2) + GetClassSpecificStats(GetClass(), 2) < 75)
+	{
+		allocPoints -= 75 - GetRaceSpecificStats(2) + GetClassSpecificStats(GetClass(), 2);
+	}
+
+	if (secondaryAllocationIndex == -1)
+	{
+		switch (primaryAllocationIndex)
+		{
+		case 0:
+		{
+			STR += allocPoints;
+			break;
+		}
+		case 1:
+		{
+			STA += allocPoints;
+			break;
+		}
+		case 2:
+		{
+			AGI += allocPoints;
+			break;
+		}
+		case 3:
+		{
+			DEX += allocPoints;
+			break;
+		}
+		case 4:
+		{
+			WIS += allocPoints;
+			break;
+		}
+		case 5:
+		{
+			INT += allocPoints;
+			break;
+		}
+		case 6:
+		{
+			CHA += allocPoints;
+			break;
+		}
+		default:
+		{
+
+			break;
+		}
+		}
+	}
+	else
+	{
+		switch (primaryAllocationIndex)
+		{
+		case 0:
+		{
+			STR += 25;
+			break;
+		}
+		case 1:
+		{
+			STA += 25;
+			break;
+		}
+		case 2:
+		{
+			AGI += 25;
+			break;
+		}
+		case 3:
+		{
+			DEX += 25;
+			break;
+		}
+		case 4:
+		{
+			WIS += 25;
+			break;
+		}
+		case 5:
+		{
+			INT += 25;
+			break;
+		}
+		case 6:
+		{
+			CHA += 25;
+			break;
+		}
+		default:
+		{
+			break;
+		}
+		}
+		if (allocPoints > 25)
+		{
+			switch (secondaryAllocationIndex)
+			{
+			case 0:
+			{
+				STR += allocPoints - 25;
+				break;
+			}
+			case 1:
+			{
+				STA += allocPoints - 25;
+				break;
+			}
+			case 2:
+			{
+				AGI += allocPoints - 25;
+				break;
+			}
+			case 3:
+			{
+				DEX += allocPoints - 25;
+				break;
+			}
+			case 4:
+			{
+				WIS += allocPoints - 25;
+				break;
+			}
+			case 5:
+			{
+				INT += allocPoints - 25;
+				break;
+			}
+			case 6:
+			{
+				CHA += allocPoints - 25;
+				break;
+			}
+			default:
+			{
+
+				break;
+			}
+			}
+		}
+	}
 }
 
 int32 Client::CalcSTR()
 {
-	int32 val = m_pp.STR + itembonuses.STR + spellbonuses.STR + CalcAlcoholPhysicalEffect();
+	int32 val = GetRaceSpecificStats(0) + GetClassSpecificStats(GetClass(), 0) + itembonuses.STR + spellbonuses.STR + CalcAlcoholPhysicalEffect();
 	int32 mod = aabonuses.STR;
-	STR = val + mod;
+	STR += val + mod;
 	if (STR < 1) {
 		STR = 1;
 	}
@@ -1178,9 +1744,9 @@ int32 Client::CalcSTR()
 
 int32 Client::CalcSTA()
 {
-	int32 val = m_pp.STA + itembonuses.STA + spellbonuses.STA + CalcAlcoholPhysicalEffect();;
+	int32 val = GetRaceSpecificStats(1) + GetClassSpecificStats(GetClass(), 1) + itembonuses.STA + spellbonuses.STA + CalcAlcoholPhysicalEffect();
 	int32 mod = aabonuses.STA;
-	STA = val + mod;
+	STA += val + mod;
 	if (STA < 1) {
 		STA = 1;
 	}
@@ -1193,7 +1759,10 @@ int32 Client::CalcSTA()
 
 int32 Client::CalcAGI()
 {
-	int32 val = m_pp.AGI + itembonuses.AGI + spellbonuses.AGI - CalcAlcoholPhysicalEffect();;
+	int32 val = GetRaceSpecificStats(2) + GetClassSpecificStats(GetClass(), 2);
+	if (val < 75) // we'll always be /at least/ 75 base. we smert.
+		val = 75;
+	val += itembonuses.AGI + spellbonuses.AGI + CalcAlcoholPhysicalEffect();
 	int32 mod = aabonuses.AGI;
 	int32 str = GetSTR();
 	//Encumbered penalty
@@ -1201,10 +1770,10 @@ int32 Client::CalcAGI()
 		//AGI is halved when we double our weight, zeroed (defaults to 1) when we triple it. this includes AGI from AAs
 		float total_agi = float(val + mod);
 		float str_float = float(str);
-		AGI = (int32)(((-total_agi) / (str_float * 2)) * (((float)weight / 10) - str_float) + total_agi);	//casting to an int assumes this will be floor'd. without using floats & casting to int16, the calculation doesn't work right
+		AGI += (int32)(((-total_agi) / (str_float * 2)) * (((float)weight / 10) - str_float) + total_agi);	//casting to an int assumes this will be floor'd. without using floats & casting to int16, the calculation doesn't work right
 	}
 	else {
-		AGI = val + mod;
+		AGI += val + mod;
 	}
 	if (AGI < 1) {
 		AGI = 1;
@@ -1218,9 +1787,9 @@ int32 Client::CalcAGI()
 
 int32 Client::CalcDEX()
 {
-	int32 val = m_pp.DEX + itembonuses.DEX + spellbonuses.DEX - CalcAlcoholPhysicalEffect();;
+	int32 val = GetRaceSpecificStats(3) + GetClassSpecificStats(GetClass(), 3) + itembonuses.DEX + spellbonuses.DEX - CalcAlcoholPhysicalEffect();
 	int32 mod = aabonuses.DEX;
-	DEX = val + mod;
+	DEX += val + mod;
 	if (DEX < 1) {
 		DEX = 1;
 	}
@@ -1233,9 +1802,9 @@ int32 Client::CalcDEX()
 
 int32 Client::CalcINT()
 {
-	int32 val = m_pp.INT + itembonuses.INT + spellbonuses.INT;
+	int32 val = GetRaceSpecificStats(5) + GetClassSpecificStats(GetClass(), 5) + itembonuses.INT + spellbonuses.INT;
 	int32 mod = aabonuses.INT;
-	INT = val + mod;
+	INT += val + mod;
 	if (m_pp.intoxication) {
 		int32 AlcINT = INT - (int32)((float)m_pp.intoxication / 200.0f * (float)INT) - 1;
 		if ((AlcINT < (int)(0.2 * INT))) {
@@ -1257,9 +1826,9 @@ int32 Client::CalcINT()
 
 int32 Client::CalcWIS()
 {
-	int32 val = m_pp.WIS + itembonuses.WIS + spellbonuses.WIS;
+	int32 val = GetRaceSpecificStats(4) + GetClassSpecificStats(GetClass(), 4) + itembonuses.WIS + spellbonuses.WIS;
 	int32 mod = aabonuses.WIS;
-	WIS = val + mod;
+	WIS += val + mod;
 	if (m_pp.intoxication) {
 		int32 AlcWIS = WIS - (int32)((float)m_pp.intoxication / 200.0f * (float)WIS) - 1;
 		if ((AlcWIS < (int)(0.2 * WIS))) {
@@ -1281,9 +1850,9 @@ int32 Client::CalcWIS()
 
 int32 Client::CalcCHA()
 {
-	int32 val = m_pp.CHA + itembonuses.CHA + spellbonuses.CHA;
+	int32 val = GetRaceSpecificStats(6) + GetClassSpecificStats(GetClass(), 6) + itembonuses.CHA + spellbonuses.CHA;
 	int32 mod = aabonuses.CHA;
-	CHA = val + mod;
+	CHA += val + mod;
 	if (CHA < 1) {
 		CHA = 1;
 	}

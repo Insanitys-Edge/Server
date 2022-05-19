@@ -488,7 +488,12 @@ public:
 	inline virtual int32 GetCR() const { return CR; }
 	inline virtual int32 GetCorrup() const { return Corrup; }
 	inline virtual int32 GetPhR() const { return PhR; }
-	int32 GetClassSpecificStats(uint32 class_id, uint32 statIndex);
+	void CalcBaseStatAllocations();
+	int32 GetRaceSpecificStats(int32 statIndex);
+	int32 GetClassSpecificStats(uint32 class_id, int32 statIndex);
+	int32 GetPrimaryPreferredStatAllocationIndex();
+	int32 GetBaseAllocationPointsByClass();
+	int32 GetSecondaryPreferredStatAllocationIndex();
 
 	int32 GetMaxStat() const;
 	int32 GetMaxResist() const;

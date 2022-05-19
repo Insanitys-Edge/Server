@@ -90,6 +90,7 @@ void Client::CalcBonuses()
 	CalcATK();
 	CalcHaste();
 
+	CalcBaseStatAllocations();
 	CalcSTR();
 	CalcSTA();
 	CalcDEX();
