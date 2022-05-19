@@ -1111,17 +1111,17 @@ int Lua_Client::GetCharacterFactionLevel(int faction_id) {
 	return self->GetCharacterFactionLevel(faction_id);
 }
 
-void Lua_Client::SetZoneFlag(uint32 zone_id) {
+void Lua_Client::SetZoneFlag(const char* zone_id) {
 	Lua_Safe_Call_Void();
 	self->SetZoneFlag(zone_id);
 }
 
-void Lua_Client::ClearZoneFlag(uint32 zone_id) {
+void Lua_Client::ClearZoneFlag(const char* zone_id) {
 	Lua_Safe_Call_Void();
 	self->ClearZoneFlag(zone_id);
 }
 
-bool Lua_Client::HasZoneFlag(uint32 zone_id) {
+bool Lua_Client::HasZoneFlag(const char* zone_id) {
 	Lua_Safe_Call_Bool();
 	return self->HasZoneFlag(zone_id);
 }

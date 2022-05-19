@@ -1053,11 +1053,11 @@ public:
 	void DoClassAttacks(Mob *ca_target, uint16 skill = -1, bool IsRiposte=false);
 	void DoBackstab(Mob* defender = nullptr);
 
-	void ClearZoneFlag(uint32 zone_id);
-	bool HasZoneFlag(uint32 zone_id) const;
+	void ClearZoneFlag(const char* flag_name);
+	bool HasZoneFlag(const char* flag_name) const;
 	void LoadZoneFlags();
 	void SendZoneFlagInfo(Client *to) const;
-	void SetZoneFlag(uint32 zone_id);
+	void SetZoneFlag(const char* flag_name);
 
 	void ClearPEQZoneFlag(uint32 zone_id);
 	bool HasPEQZoneFlag(uint32 zone_id) const;
@@ -2015,7 +2015,7 @@ private:
 	float AreaManaRegen;
 	float AreaEndRegen;
 
-	std::set<uint32> zone_flags;
+	std::set<std::string> zone_flags;
 	std::set<uint32> peqzone_flags;
 
 	ClientTaskState *task_state;

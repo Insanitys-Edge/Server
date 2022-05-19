@@ -185,9 +185,9 @@ public:
 	void spawn_condition(const char *zone_short, uint32 instance_id, uint16 condition_id, short new_value);
 	short get_spawn_condition(const char *zone_short, uint32 instance_id, uint16 condition_id);
 	void toggle_spawn_event(int event_id, bool enable, bool strict, bool reset_base);
-	bool has_zone_flag(int zone_id);
-	void set_zone_flag(int zone_id);
-	void clear_zone_flag(int zone_id);
+	bool has_zone_flag(const char* zone_name);
+	void set_zone_flag(const char* zone_name);
+	void clear_zone_flag(const char* zone_name);
 	void sethp(int64 hpperc);
 	bool summonburiedplayercorpse(uint32 char_id, const glm::vec4& position);
 	bool summonallplayercorpses(uint32 char_id, const glm::vec4& position);

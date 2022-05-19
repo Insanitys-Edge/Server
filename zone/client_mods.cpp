@@ -1203,7 +1203,7 @@ int32 Client::GetRaceSpecificStats(int32 statIndex)
 			case CharmIksar:
 				return 60;
 			case CharmVahShir:
-				return 0;
+				return 90;
 			case CharmFroglok:
 				return 70;
 			default:
@@ -1242,7 +1242,7 @@ int32 Client::GetRaceSpecificStats(int32 statIndex)
 			case CharmIksar:
 				return 70;
 			case CharmVahShir:
-				return 0;
+				return 75;
 			case CharmFroglok:
 				return 80;
 			default:
@@ -1280,7 +1280,7 @@ int32 Client::GetRaceSpecificStats(int32 statIndex)
 			case CharmIksar:
 				return 90;
 			case CharmVahShir:
-				return 0;
+				return 90;
 			case CharmFroglok:
 				return 100;
 			default:
@@ -1319,7 +1319,7 @@ int32 Client::GetRaceSpecificStats(int32 statIndex)
 			case CharmIksar:
 				return 85;
 			case CharmVahShir:
-				return 0;
+				return 70;
 			case CharmFroglok:
 				return 100;
 			default:
@@ -1358,7 +1358,7 @@ int32 Client::GetRaceSpecificStats(int32 statIndex)
 			case CharmIksar:
 				return 80;
 			case CharmVahShir:
-				return 0;
+				return 70;
 			case CharmFroglok:
 				return 75;
 			default:
@@ -1396,7 +1396,7 @@ int32 Client::GetRaceSpecificStats(int32 statIndex)
 			case CharmIksar:
 				return 75;
 			case CharmVahShir:
-				return 0;
+				return 65;
 			case CharmFroglok:
 				return 75;
 			default:
@@ -1435,7 +1435,7 @@ int32 Client::GetRaceSpecificStats(int32 statIndex)
 			case CharmIksar:
 				return 55;
 			case CharmVahShir:
-				return 0;
+				return 65;
 			case CharmFroglok:
 				return 50;
 			default:

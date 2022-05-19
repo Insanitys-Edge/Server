@@ -325,7 +325,7 @@ void Client::Handle_OP_ZoneChange(const EQApplicationPacket *app) {
 
 	if(!ignore_restrictions && flag_needed[0] != '\0') {
 		//the flag needed string is not empty, meaning a flag is required.
-		if(Admin() < minStatusToIgnoreZoneFlags && !HasZoneFlag(target_zone_id))
+		if(Admin() < minStatusToIgnoreZoneFlags && !HasZoneFlag(flag_needed))
 		{
 			Message(Chat::Red, "You do not have the flag to enter %s.", target_zone_name);
 			myerror = ZONE_ERROR_NOEXPERIENCE;
@@ -980,7 +980,7 @@ void Client::GoToDeath() {
 	MovePC(m_pp.binds[0].zone_id, m_pp.binds[0].instance_id, 0.0f, 0.0f, 0.0f, 0.0f, 1, ZoneToBindPoint);
 }
 
-void Client::ClearZoneFlag(uint32 zone_id) {
+void Client::ClearZoneFlag(const char* zone_id) {
 	if (!HasZoneFlag(zone_id)) {
 		return;
 	}
@@ -999,8 +999,8 @@ void Client::ClearZoneFlag(uint32 zone_id) {
 	}
 }
 
-bool Client::HasZoneFlag(uint32 zone_id) const {
-	return zone_flags.find(zone_id) != zone_flags.end();
+bool Client::HasZoneFlag(const char* key_name) const {
+	return zone_flags.find(key_name) != zone_flags.end();
 }
 
 void Client::LoadZoneFlags() {
@@ -1018,11 +1018,11 @@ void Client::LoadZoneFlags() {
 	zone_flags.clear();
 
 	for (auto row : results) {
-		zone_flags.insert(std::stoul(row[0]));
+		zone_flags.insert(row[0]);
 	}
 }
 
-void Client::SendZoneFlagInfo(Client *to) const {
+void Client::SendZoneFlagInfo(Client* to) const {
 	if (zone_flags.empty()) {
 		to->Message(
 			Chat::White,
@@ -1045,50 +1045,16 @@ void Client::SendZoneFlagInfo(Client *to) const {
 	);
 
 	int flag_count = 0;
-	for (const auto& zone_id : zone_flags) {
-		int flag_number = (flag_count + 1);
-		const char* zone_short_name = ZoneName(zone_id, true);
-		if (zone_short_name != "UNKNOWN") {
-			std::string zone_long_name = ZoneLongName(zone_id);
-			float safe_x, safe_y, safe_z, safe_heading;
-			int16 min_status = AccountStatus::Player;
-			uint8 min_level = 0;
-			char flag_name[128];
-			if (!content_db.GetSafePoints(
-				zone_short_name,
-				0,
-				&safe_x,
-				&safe_y,
-				&safe_z,
-				&safe_heading,
-				&min_status,
-				&min_level,
-				flag_name
-			)) {
-				strcpy(flag_name, "ERROR");
-			}
+	for (const auto& zone_name : zone_flags)
 
-			to->Message(
-				Chat::White,
-				fmt::format(
-					"Flag {} | Zone ID: {} Zone Name: {} ({}){}",
-					flag_number,
-					zone_id,
-					zone_long_name,
-					zone_short_name,
-					(
-						flag_name != "" ?
-						fmt::format(
-							" Flag Required: {}",
-							flag_name
-						) :
-						""
-					)
-				).c_str()
-			);
-			flag_count++;
-		}
-	}
+		to->Message(
+			Chat::White,
+			fmt::format(
+				"Flag: {} ",
+				zone_flags
+			).c_str()
+		);
+	flag_count++;
 
 	to->Message(
 		Chat::White,
@@ -1101,17 +1067,17 @@ void Client::SendZoneFlagInfo(Client *to) const {
 	);
 }
 
-void Client::SetZoneFlag(uint32 zone_id) {
-	if (HasZoneFlag(zone_id)) {
+void Client::SetZoneFlag(const char* zone_name) {
+	if (HasZoneFlag(zone_name)) {
 		return;
 	}
 
-	zone_flags.insert(zone_id);
+	zone_flags.insert(zone_name);
 
 	std::string query = fmt::format(
 		"INSERT INTO zone_flags (charID, zoneID) VALUES ({}, {})",
 		CharacterID(),
-		zone_id
+		zone_name
 	);
 	auto results = database.QueryDatabase(query);
 
@@ -1273,7 +1239,7 @@ bool Client::CanBeInZone() {
 
 	if(flag_needed[0] != '\0') {
 		//the flag needed string is not empty, meaning a flag is required.
-		if(Admin() < minStatusToIgnoreZoneFlags && !HasZoneFlag(zone->GetZoneID())) {
+		if(Admin() < minStatusToIgnoreZoneFlags && !HasZoneFlag(flag_needed) {
 			LogDebug("[CLIENT] Character does not have the flag to be in this zone ([{}])!", flag_needed);
 			return(false);
 		}

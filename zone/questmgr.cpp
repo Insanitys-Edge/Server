@@ -1938,17 +1938,17 @@ void QuestManager::toggle_spawn_event(int event_id, bool enable, bool strict, bo
 	zone->spawn_conditions.ToggleEvent(event_id, enable, strict, reset_base);
 }
 
-bool QuestManager::has_zone_flag(int zone_id) {
+bool QuestManager::has_zone_flag(const char* zone_id) {
 	QuestManagerCurrentQuestVars();
 	return initiator ? initiator->HasZoneFlag(zone_id) : false;
 }
 
-void QuestManager::set_zone_flag(int zone_id) {
+void QuestManager::set_zone_flag(const char* zone_id) {
 	QuestManagerCurrentQuestVars();
 	initiator->SetZoneFlag(zone_id);
 }
 
-void QuestManager::clear_zone_flag(int zone_id) {
+void QuestManager::clear_zone_flag(const char* zone_id) {
 	QuestManagerCurrentQuestVars();
 	initiator->ClearZoneFlag(zone_id);
 }

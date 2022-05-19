@@ -257,11 +257,11 @@ public:
 	bool UseDiscipline(int spell_id, int target_id);
 	bool HasDisciplineLearned(uint16 spell_id);
 	int GetCharacterFactionLevel(int faction_id);
-	void ClearZoneFlag(uint32 zone_id);
-	bool HasZoneFlag(uint32 zone_id);
+	void ClearZoneFlag(const char* zone_id);
+	bool HasZoneFlag(const char* zone_id);
 	void LoadZoneFlags();
 	void SendZoneFlagInfo(Lua_Client to);
-	void SetZoneFlag(uint32 zone_id);
+	void SetZoneFlag(const char* zone_id);
 	void ClearPEQZoneFlag(uint32 zone_id);
 	bool HasPEQZoneFlag(uint32 zone_id);
 	void LoadPEQZoneFlags();
