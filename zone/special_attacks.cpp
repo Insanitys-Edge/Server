@@ -96,9 +96,6 @@ void Mob::DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int32 bas
 		hate_override = base_damage;
 	}
 
-	if (skill == EQ::skills::SkillBash || skill == skill == EQ::skills::SkillKick)
-		DoBashKickStun(who, EQ::skills::SkillBash);			// put this here so the stun occurs before the damage
-
 	DamageHitInfo my_hit;
 	my_hit.damage_done = damage; // min 1 dmg
 	my_hit.base_damage = base_damage;
@@ -147,10 +144,14 @@ void Mob::DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int32 bas
 	}
 	else if (my_hit.damage_done > 0)
 	{
+		if (skill == EQ::skills::SkillBash || skill == skill == EQ::skills::SkillKick)
+			DoBashKickStun(who, EQ::skills::SkillBash);			// put this here so the stun occurs before the damage
+
 		my_hit.damage_done = damageBonus + CalcMeleeDamage(who, my_hit.base_damage, skill);
 
 		if (damage < min_damage)
 			my_hit.damage_done = min_damage;
+
 
 		//defender->TryShielderDamage(this, damage, skill);	// warrior /shield
 	}

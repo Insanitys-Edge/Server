@@ -2517,7 +2517,7 @@ void Mob::DoBashKickStun(Mob* defender, uint16 skill)
 			if (IsValidSpell(defender->casting_spell_id) && !spells[defender->casting_spell_id].uninterruptable)
 			{
 				Log(Logs::Detail, Logs::Combat, "Non-stunning bash/kick successfully interrupted spell");
-				defender->InterruptSpell(SPELL_UNKNOWN, true);
+				defender->InterruptSpell(0, Chat::SpellFailure, defender->casting_spell_id);
 			}
 		}
 	}
