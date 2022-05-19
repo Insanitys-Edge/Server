@@ -80,15 +80,8 @@ void command_flagedit(Client *c, const Seperator *sep)
 	}
 
 	if (is_give) {
-		uint32 zone_id = (
-			sep->IsNumber(2) ?
-			std::stoul(sep->arg[2]) :
-			ZoneID(sep->arg[2])
-		);
-		std::string zone_short_name = str_tolower(ZoneName(zone_id, true));
-		bool is_unknown_zone = zone_short_name.find("unknown") != std::string::npos;
-		if (zone_id && !is_unknown_zone) {
-			std::string zone_long_name = ZoneLongName(zone_id);
+		const char* zone_id = (sep->arg[2]);
+		if (zone_id[0]) {
 			auto target = c;
 			if (c->GetTarget() && c->GetTarget()->IsClient()) {
 				target = c->GetTarget()->CastToClient();
@@ -98,10 +91,9 @@ void command_flagedit(Client *c, const Seperator *sep)
 			c->Message(
 				Chat::White,
 				fmt::format(
-					"{} now {} the flag for {} ({}).",
+					"{} now {} the flag for ({}).",
 					c->GetTargetDescription(target, TargetDescriptionType::UCYou),
 					c == target ? "have" : "has",
-					zone_long_name,
 					zone_id
 				).c_str()
 			);
@@ -149,14 +141,8 @@ void command_flagedit(Client *c, const Seperator *sep)
 
 		return;
 	} else if (is_lock) {
-		uint32 zone_id = (
-			sep->IsNumber(2) ?
-			std::stoul(sep->arg[2]) :
-			ZoneID(sep->arg[2])
-		);
-		std::string zone_short_name = str_tolower(ZoneName(zone_id, true));
-		bool is_unknown_zone = zone_short_name.find("unknown") != std::string::npos;
-		if (zone_id && !is_unknown_zone) {
+		const char* zone_id = (sep->arg[2]);
+		if (zone_id[0]) {
 			if (arguments < 3) {
 				c->Message(
 					Chat::White,
@@ -166,7 +152,7 @@ void command_flagedit(Client *c, const Seperator *sep)
 			}
 			
 			std::string flag_name = EscapeString(sep->argplus[3]);
-			std::string zone_long_name = ZoneLongName(zone_id);
+			std::string zone_long_name = zone_id;
 
 			auto query = fmt::format(
 				SQL(
@@ -204,15 +190,8 @@ void command_flagedit(Client *c, const Seperator *sep)
 			return;
 		}
 	} else if (is_take) {
-		uint32 zone_id = (
-			sep->IsNumber(2) ?
-			std::stoul(sep->arg[2]) :
-			ZoneID(sep->arg[2])
-		);
-		std::string zone_short_name = str_tolower(ZoneName(zone_id, true));
-		bool is_unknown_zone = zone_short_name.find("unknown") != std::string::npos;
-		if (zone_id && !is_unknown_zone) {
-			std::string zone_long_name = ZoneLongName(zone_id);
+		const char* zone_id = (sep->arg[2]);
+		if (zone_id[0]) {
 			auto target = c;
 			if (c->GetTarget() && c->GetTarget()->IsClient()) {
 				target = c->GetTarget()->CastToClient();
@@ -222,25 +201,17 @@ void command_flagedit(Client *c, const Seperator *sep)
 			c->Message(
 				Chat::White,
 				fmt::format(
-					"{} no longer {} the flag for {} ({}).",
+					"{} no longer {} the flag for ({}).",
 					c->GetTargetDescription(target, TargetDescriptionType::UCYou),
 					c == target ? "have" : "has",
-					zone_long_name,
 					zone_id
 				).c_str()
 			);
 			return;
 		}
 	} else if (is_unlock) {
-		uint32 zone_id = (
-			sep->IsNumber(2) ?
-			std::stoul(sep->arg[2]) :
-			ZoneID(sep->arg[2])
-		);
-		std::string zone_short_name = str_tolower(ZoneName(zone_id, true));
-		bool is_unknown_zone = zone_short_name.find("unknown") != std::string::npos;
-		if (zone_id && !is_unknown_zone) {
-			std::string zone_long_name = ZoneLongName(zone_id);
+		const char* zone_id = (sep->arg[2]);
+		if (zone_id[0]) {
 			auto query = fmt::format(
 				SQL(
 					UPDATE zone
@@ -255,8 +226,7 @@ void command_flagedit(Client *c, const Seperator *sep)
 				c->Message(
 					Chat::White,
 					fmt::format(
-						"Error updating zone flag for {} ({}).",
-						zone_long_name,
+						"Error updating zone flag for {}.",
 						zone_id
 					).c_str()
 				);
@@ -267,7 +237,6 @@ void command_flagedit(Client *c, const Seperator *sep)
 				Chat::White,
 				fmt::format(
 					"{} ({}) no longer requires a flag.",
-					zone_long_name,
 					zone_id
 				).c_str()
 			);

@@ -2849,9 +2849,9 @@ XS(XS_Client_SetZoneFlag) {
 		Perl_croak(aTHX_ "Usage: Client::SetZoneFlag(THIS, uint32 zone_id)"); // @categories Account and Character, Zones
 	{
 		Client *THIS;
-		uint32 zone_id = (uint32) SvUV(ST(1));
+		char* zone_short = (char*)SvPV_nolen(ST(1));
 		VALIDATE_THIS_IS_CLIENT;
-		THIS->SetZoneFlag(zone_id);
+		THIS->SetZoneFlag(zone_short);
 	}
 	XSRETURN_EMPTY;
 }
@@ -2863,9 +2863,9 @@ XS(XS_Client_ClearZoneFlag) {
 		Perl_croak(aTHX_ "Usage: Client::ClearZoneFlag(THIS, uint32 zone_id)"); // @categories Script Utility
 	{
 		Client *THIS;
-		uint32 zone_id = (uint32) SvUV(ST(1));
+		char* zone_short = (char*)SvPV_nolen(ST(1));
 		VALIDATE_THIS_IS_CLIENT;
-		THIS->ClearZoneFlag(zone_id);
+		THIS->ClearZoneFlag(zone_short);
 	}
 	XSRETURN_EMPTY;
 }
@@ -2878,9 +2878,9 @@ XS(XS_Client_HasZoneFlag) {
 	{
 		Client *THIS;
 		bool   RETVAL;
-		uint32 zone_id = (uint32) SvUV(ST(1));
+		char* zone_short = (char*)SvPV_nolen(ST(1));
 		VALIDATE_THIS_IS_CLIENT;
-		RETVAL = THIS->HasZoneFlag(zone_id);
+		RETVAL = THIS->HasZoneFlag(zone_short);
 		ST(0)          = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}

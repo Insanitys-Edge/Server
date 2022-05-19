@@ -1205,14 +1205,14 @@ bool Client::CanBeInZone() {
 	//only enforce rules here which are serious enough to warrant being kicked from
 	//the zone
 
-	if(Admin() >= RuleI(GM, MinStatusToZoneAnywhere))
+	if (Admin() >= RuleI(GM, MinStatusToZoneAnywhere))
 		return(true);
 
 	float safe_x, safe_y, safe_z, safe_heading;
 	int16 min_status = AccountStatus::Player;
 	uint8 min_level = 0;
 	char flag_needed[128];
-	if(!content_db.GetSafePoints(
+	if (!content_db.GetSafePoints(
 		zone->GetShortName(),
 		zone->GetInstanceVersion(),
 		&safe_x,
@@ -1228,21 +1228,22 @@ bool Client::CanBeInZone() {
 		return(false);
 	}
 
-	if(GetLevel() < min_level) {
+	if (GetLevel() < min_level) {
 		LogDebug("[CLIENT] Character does not meet min level requirement ([{}] < [{}])!", GetLevel(), min_level);
 		return(false);
 	}
-	if(Admin() < min_status) {
+	if (Admin() < min_status) {
 		LogDebug("[CLIENT] Character does not meet min status requirement ([{}] < [{}])!", Admin(), min_status);
 		return(false);
 	}
 
-	if(flag_needed[0] != '\0') {
+	if (flag_needed[0] != '\0') {
 		//the flag needed string is not empty, meaning a flag is required.
-		if(Admin() < minStatusToIgnoreZoneFlags && !HasZoneFlag(flag_needed) {
+		if (Admin() < minStatusToIgnoreZoneFlags && !HasZoneFlag(flag_needed)) {
 			LogDebug("[CLIENT] Character does not have the flag to be in this zone ([{}])!", flag_needed);
-			return(false);
+				return(false);
 		}
+
 	}
 
 	return(true);

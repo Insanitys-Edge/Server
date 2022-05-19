@@ -1930,9 +1930,9 @@ XS(XS__has_zone_flag) {
 	int16 RETVAL;
 	dXSTARG;
 
-	uint32 zone_id = (int) SvIV(ST(0));
+	char* zone_short = (char*)SvPV_nolen(ST(0));
 
-	RETVAL = quest_manager.has_zone_flag(zone_id);
+	RETVAL = quest_manager.has_zone_flag(zone_short);
 	XSprePUSH;
 	PUSHu((IV) RETVAL);
 
@@ -1946,9 +1946,9 @@ XS(XS__set_zone_flag) {
 	if (items != 1)
 		Perl_croak(aTHX_ "Usage: quest::set_zone_flag(uint32 zone_id)");
 
-	uint32 zone_id = (int) SvIV(ST(0));
+	char* zone_short = (char*)SvPV_nolen(ST(0));
 
-	quest_manager.set_zone_flag(zone_id);
+	quest_manager.set_zone_flag(zone_short);
 
 	XSRETURN_EMPTY;
 }
@@ -1959,9 +1959,9 @@ XS(XS__clear_zone_flag) {
 	if (items != 1)
 		Perl_croak(aTHX_ "Usage: quest::clear_zone_flag(uint32 zone_id)");
 
-	uint32 zone_id = (int) SvIV(ST(0));
+	char* zone_short = (char*)SvPV_nolen(ST(0));
 
-	quest_manager.clear_zone_flag(zone_id);
+	quest_manager.clear_zone_flag(zone_short);
 
 	XSRETURN_EMPTY;
 }
