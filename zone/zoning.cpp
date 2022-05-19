@@ -1051,7 +1051,7 @@ void Client::SendZoneFlagInfo(Client* to) const {
 			Chat::White,
 			fmt::format(
 				"Flag: {} ",
-				zone_flags
+				zone_name
 			).c_str()
 		);
 	flag_count++;
