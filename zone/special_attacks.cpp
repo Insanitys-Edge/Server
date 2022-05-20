@@ -954,7 +954,7 @@ void Mob::DoArcheryAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, co
 	DamageHitInfo my_hit;
 	// calculate attack_skill and skillinuse depending on hand and weapon
 	// also send Packet to near clients
-	my_hit.skill = AttackAnimation(EQ::invslot::slotRange, RangeWeapon);
+	my_hit.skill = EQ::skills::SkillArchery;
 
 	// Now figure out damage
 	int damage = 1;
@@ -1552,7 +1552,7 @@ void Mob::DoThrowingAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, c
 	DamageHitInfo my_hit;
 	// calculate attack_skill and skillinuse depending on hand and weapon
 	// also send Packet to near clients
-	my_hit.skill = AttackAnimation(EQ::invslot::slotRange, RangeWeapon);
+	my_hit.skill = EQ::skills::SkillThrowing;
 
 	// Now figure out damage
 	int damage = 1;
