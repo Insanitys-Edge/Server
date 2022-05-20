@@ -383,9 +383,6 @@ void Mob::SendArmorAppearance(Client *one_client)
 				if (item != nullptr) {
 					SendWearChange(i, one_client);
 				}
-				else {
-					SendWearChange(i, one_client);
-				}
 			}
 		}
 	}
@@ -396,7 +393,8 @@ void Mob::SendArmorAppearance(Client *one_client)
 		}
 		else
 		{
-			SendWearChange(i, one_client);
+			if(IsClient())
+				SendWearChange(i, one_client);
 		}
 	}
 }
