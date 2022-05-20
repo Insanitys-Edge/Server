@@ -2466,7 +2466,8 @@ void Mob::DoBashKickStun(Mob* defender, uint16 skill)
 			stun_resist = defender->aabonuses.StunResist;						// Stalwart Endurance AA
 		}
 
-		if (defender->GetBaseRace() == OGRE && !BehindMob(defender, GetX(), GetY()))		// should this work if the ogre is illusioned?
+		EQ::ItemInstance* inst = defender->IsClient() ? CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm) : nullptr;
+		if (inst && inst->GetID() == RaceCharmIDs::CharmOgre)
 		{
 			Log(Logs::Detail, Logs::Combat, "Frontal stun resisted because, Ogre.");
 		}
