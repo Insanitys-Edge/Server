@@ -118,13 +118,14 @@ void Lua_Corpse::SetDecayTimer(uint32 decaytime) {
 }
 
 bool Lua_Corpse::CanMobLoot(int charid) {
-	Lua_Safe_Call_Bool();
-	return self->CanPlayerLoot(charid);
+	//Lua_Safe_Call_Bool();
+	//return self->CanPlayerLoot(charid);
+	return false;
 }
 
 void Lua_Corpse::AllowMobLoot(Lua_Mob them, uint8 slot) {
-	Lua_Safe_Call_Void();
-	self->AllowPlayerLoot(them, slot);
+	//Lua_Safe_Call_Void();
+	//self->AllowPlayerLoot(them, slot);
 }
 
 bool Lua_Corpse::Summon(Lua_Client client, bool spell, bool checkdistance) {

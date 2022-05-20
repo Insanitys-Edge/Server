@@ -332,6 +332,8 @@ public:
 	int64 GetOOCNPCManaRegen() const { return ooc_mana_regen + itembonuses.ManaRegen + spellbonuses.ManaRegen; }
 	inline const char* GetAmmoIDfile() const { return ammo_idfile; }
 
+	std::string GetFlagGranted() const { return flag_granted; }
+
 	void ModifyStatsOnCharm(bool is_charm_removed);
 
 	//waypoint crap
@@ -661,6 +663,9 @@ protected:
 	//this is an item Material value
 	uint16	d_melee_texture2;			//this is an item Material value (offhand)
 	const char*	ammo_idfile;			//this determines projectile graphic "IT###" (see item field 'idfile')
+	std::string flag_granted;			//flag to check for event killed merit members on death
+	uint32 flag_item;					//flag item to grant on corpse for personal loot of merit members on npc death
+	uint32 loot_lockout_timer;			//timer in seconds to lock players out of subsequent NPC loot drops, excluding the flag / AA
 	uint8	prim_melee_type;			//Sets the Primary Weapon attack message and animation
 	uint8	sec_melee_type;				//Sets the Secondary Weapon attack message and animation
 	uint8   ranged_type;				//Sets the Ranged Weapon attack message and animation

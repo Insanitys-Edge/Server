@@ -464,7 +464,7 @@ Corpse* Corpse::LoadCharacterCorpseEntity(uint32 in_dbid, uint32 in_charid, std:
 	return pc;
 }
 
-Corpse::Corpse(NPC* in_npc, /*ItemList* in_itemlist,*/ uint32 in_npctypeid, const NPCType** in_npctypedata, Client* give_exp_client, uint32 in_decaytime)
+Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata, Client* give_exp_client, uint32 in_decaytime)
 // vesuvias - appearence fix
 : Mob("Unnamed_Corpse","",0,0,in_npc->GetGender(),in_npc->GetRace(),in_npc->GetClass(),BT_Humanoid,//bodytype added
 	in_npc->GetDeity(),in_npc->GetLevel(),in_npc->GetNPCTypeID(),in_npc->GetSize(),0,
@@ -487,6 +487,7 @@ Corpse::Corpse(NPC* in_npc, /*ItemList* in_itemlist,*/ uint32 in_npctypeid, cons
 
 	if (in_npc) {
 		auto cur_time = time(nullptr);
+		auto records = in_npc->GetEngagementRecords();
 		if (give_exp_client)
 		{
 
@@ -494,46 +495,90 @@ Corpse::Corpse(NPC* in_npc, /*ItemList* in_itemlist,*/ uint32 in_npctypeid, cons
 			{
 				Group* kg = give_exp_client->GetGroup();
 				for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
-					if (kg->members[i] != nullptr && kg->members[i]->IsClient()) { // If Group Member is Client
-						Client *c = kg->members[i]->CastToClient();
+
+					Mob* mclient = kg->members[i];
+					Client* c = mclient && mclient->IsClient() ? mclient->CastToClient() : nullptr;
+					if (kg->membername[i][0]) { // If Group Member is Client
 
 						auto tables = zone->GetGlobalLootTables(in_npc);
 						std::list<ServerLootItem_Struct*> itemlist;
 
-						bool noLockouts = /*c && !c->HasLootLockouts(in_npctypeid);*/ true;
+						auto playerItr = records.find(kg->membername[i]);
+
+						if (playerItr == records.end())
+							continue;
+
+						bool noLockouts = !playerItr->second.HasLockout(cur_time);
+						for (auto q : in_npc->quest_itemlist)
+						{
+							ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
+							itemlist.push_back(addItem);
+						}
 
 						if (noLockouts)
 						{
 							bool mine =/* in_npc->QuestSpawned && (in_npc->QuestLootEntity == c->CharacterID() || in_npc->QuestLootEntity == 0);*/ true;
-							if (mine)
-							{
-								for (auto q : in_npc->quest_itemlist)
-								{
-									ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
-									itemlist.push_back(addItem);
-								}
-							}
 
 							for (auto gTables : tables)
 							{
-								database.GenerateLootTableList(gTables, itemlist, c->GetGM());
+								database.GenerateLootTableList(gTables, itemlist, mclient && mclient->IsClient() ? mclient->CastToClient()->GetGM() : false);
 							}
 							for (auto gTables : in_npc->GetLoottableID())
 							{
-								database.GenerateLootTableList(gTables, itemlist, c->GetGM());
+								database.GenerateLootTableList(gTables, itemlist, mclient && mclient->IsClient() ? mclient->CastToClient()->GetGM() : false);
 							}
 
-							//if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->loot_lockout && (*in_npctypedata)->loot_lockout_timer > 0)
-							//{
-							//	database.SaveCharacterLootLockout(c->loot_lockouts, c->AccountID(), c->GetIP(), (uint32)cur_time + (*in_npctypedata)->loot_lockout_timer * 3600, in_npctypeid);
-							//}
+							if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->loot_lockout_timer > 0)
+							{
+								LootLockout lootLockout;
+								memset(&lootLockout, 0, sizeof(LootLockout));
+
+								lootLockout.account_id = playerItr->second.account_id;
+								lootLockout.expirydate = cur_time + (*in_npctypedata)->loot_lockout_timer;
+								lootLockout.npctype_id = in_npc->GetNPCTypeID();
+
+								if (mclient && mclient->IsClient())
+								{
+									auto clientLootLockoutItr = mclient->CastToClient()->loot_lockouts.find(in_npctypeid);
+									if (clientLootLockoutItr != mclient->CastToClient()->loot_lockouts.end())
+									{
+										clientLootLockoutItr->second = lootLockout;
+									}
+									else
+									{
+										mclient->CastToClient()->loot_lockouts.emplace(in_npctypeid, lootLockout);
+									}
+								}
+
+								//if they're not in zone, this will be loaded once they are.
+								database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid);
+							}
 						}
 						else
 						{
-							c->Message(Chat::System, "You were locked out of %s and receive no standard loot.", in_npc->GetCleanName());
+							if(mclient && mclient->IsClient())
+								mclient->CastToClient()->Message(Chat::System, "You were locked out of %s and receive no loot.", in_npc->GetCleanName());
+							else
+							{
+								std::string message = "You were locked out of ";
+								message += in_npc->GetCleanName();
+								message += " and receive no loot.";
+
+								uint32_t pack_size = sizeof(CZMessage_Struct);
+								auto pack = std::make_unique<ServerPacket>(ServerOP_CZMessage, pack_size);
+								auto buf = reinterpret_cast<CZMessage_Struct*>(pack->pBuffer);
+								uint8 update_type = CZUpdateType_Character;
+								int update_identifier = 0;
+								buf->update_type = update_type;
+								buf->update_identifier = update_identifier;
+								buf->type = Chat::System;
+								strn0cpy(buf->message, message.c_str(), sizeof(buf->message));
+								strn0cpy(buf->client_name, kg->membername[i], sizeof(buf->client_name));
+								worldserver.SendPacket(pack.get());
+							}
 						}
 						DoProceduralLoot(in_npc, itemlist, c);
-						corpseAccessList[c] = itemlist;
+						corpseAccessList[kg->membername[i]] = itemlist;
 					}
 				}
 			}
@@ -542,46 +587,91 @@ Corpse::Corpse(NPC* in_npc, /*ItemList* in_itemlist,*/ uint32 in_npctypeid, cons
 				Raid* kr = give_exp_client->GetRaid();
 				for (uint32 i = 0; i < MAX_RAID_MEMBERS; i++)
 				{
-					if (kr->members[i].member)
+					Client* mclient = kr->members[i].member;
+
+					if (kr->members[i].membername[0])
 					{
 						auto tables = zone->GetGlobalLootTables(in_npc);
 						std::list<ServerLootItem_Struct*> itemlist;
 
-						bool noLockouts = /*!kr->members[i].member->HasLootLockouts(in_npctypeid);*/ true;
+
+						auto playerItr = records.find(kr->members[i].membername);
+
+						if (playerItr == records.end())
+							continue;
+
+						bool noLockouts = !playerItr->second.HasLockout(cur_time);
+						for (auto q : in_npc->quest_itemlist)
+						{
+							ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
+							itemlist.push_back(addItem);
+						}
 
 						if (noLockouts)
 						{
-							bool mine = /*in_npc->QuestSpawned && (in_npc->QuestLootEntity == !kr->members[i].member->CharacterID() || in_npc->QuestLootEntity == 0);*/ true;
-							if (mine)
-							{
-								for (auto q : in_npc->quest_itemlist)
-								{
-									ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
-									itemlist.push_back(addItem);
-								}
-							}
+							bool mine =/* in_npc->QuestSpawned && (in_npc->QuestLootEntity == c->CharacterID() || in_npc->QuestLootEntity == 0);*/ true;
 
 							for (auto gTables : tables)
 							{
-								database.GenerateLootTableList(gTables, itemlist, kr->members[i].member->GetGM());
+								database.GenerateLootTableList(gTables, itemlist, mclient && mclient->IsClient() ? mclient->CastToClient()->GetGM() : false);
 							}
 							for (auto gTables : in_npc->GetLoottableID())
 							{
-								database.GenerateLootTableList(gTables, itemlist, kr->members[i].member->GetGM());
+								database.GenerateLootTableList(gTables, itemlist, mclient && mclient->IsClient() ? mclient->CastToClient()->GetGM() : false);
 							}
 
-							//if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->loot_lockout && (*in_npctypedata)->loot_lockout_timer > 0)
-							//{
-							//	database.SaveCharacterLootLockout(kr->members[i].member->loot_lockouts, kr->members[i].member->AccountID(), kr->members[i].member->GetIP(), (uint32)cur_time + (*in_npctypedata)->loot_lockout_timer * 3600, in_npctypeid);
-							//}
+							if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->loot_lockout_timer > 0)
+							{
+								LootLockout lootLockout;
+								memset(&lootLockout, 0, sizeof(LootLockout));
+
+								lootLockout.account_id = playerItr->second.account_id;
+								lootLockout.expirydate = cur_time + (*in_npctypedata)->loot_lockout_timer;
+								lootLockout.npctype_id = in_npc->GetNPCTypeID();
+
+								if (mclient && mclient->IsClient())
+								{
+									auto clientLootLockoutItr = mclient->CastToClient()->loot_lockouts.find(in_npctypeid);
+									if (clientLootLockoutItr != mclient->CastToClient()->loot_lockouts.end())
+									{
+										clientLootLockoutItr->second = lootLockout;
+									}
+									else
+									{
+										mclient->CastToClient()->loot_lockouts.emplace(in_npctypeid, lootLockout);
+									}
+								}
+
+								//if they're not in zone, this will be loaded once they are.
+								database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid);
+							}
 						}
 						else
 						{
-							kr->members[i].member->Message(Chat::System, "You were locked out of %s and receive no standard loot.", in_npc->GetCleanName());
+							if (mclient && mclient->IsClient())
+								mclient->CastToClient()->Message(Chat::System, "You were locked out of %s and receive no loot.", in_npc->GetCleanName());
+							else
+							{
+								std::string message = "You were locked out of ";
+								message += in_npc->GetCleanName();
+								message += " and receive no loot.";
+
+								uint32_t pack_size = sizeof(CZMessage_Struct);
+								auto pack = std::make_unique<ServerPacket>(ServerOP_CZMessage, pack_size);
+								auto buf = reinterpret_cast<CZMessage_Struct*>(pack->pBuffer);
+								uint8 update_type = CZUpdateType_Character;
+								int update_identifier = 0;
+								buf->update_type = update_type;
+								buf->update_identifier = update_identifier;
+								buf->type = Chat::System;
+								strn0cpy(buf->message, message.c_str(), sizeof(buf->message));
+								strn0cpy(buf->client_name, kr->members[i].membername, sizeof(buf->client_name));
+								worldserver.SendPacket(pack.get());
+							}
 						}
 
 						DoProceduralLoot(in_npc, itemlist, kr->members[i].member);
-						corpseAccessList[kr->members[i].member] = itemlist;
+						corpseAccessList[kr->members[i].membername] = itemlist;
 					}
 				}
 			}
@@ -589,43 +679,54 @@ Corpse::Corpse(NPC* in_npc, /*ItemList* in_itemlist,*/ uint32 in_npctypeid, cons
 			{
 				auto tables = zone->GetGlobalLootTables(in_npc);
 				std::list<ServerLootItem_Struct*> itemlist;
+				auto playerItr = records.find(give_exp_client->GetCleanName());
 
-				bool noLockouts = /*!give_exp_client->HasLootLockouts(in_npctypeid);*/ true;
-
-				if (noLockouts)
+				if (playerItr != records.end())
 				{
 
-					bool mine = /* in_npc->QuestSpawned && (in_npc->QuestLootEntity == give_exp_client->CharacterID() || in_npc->QuestLootEntity == 0);*/ true;
-					if (mine)
+					bool noLockouts = !playerItr->second.HasLockout(cur_time);
+					for (auto q : in_npc->quest_itemlist)
 					{
-						for (auto q : in_npc->quest_itemlist)
+						ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
+						itemlist.push_back(addItem);
+					}
+
+					if (noLockouts)
+					{
+						if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->loot_lockout_timer > 0)
 						{
-							ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
-							itemlist.push_back(addItem);
+							LootLockout lootLockout;
+							memset(&lootLockout, 0, sizeof(LootLockout));
+
+							lootLockout.account_id = playerItr->second.account_id;
+							lootLockout.expirydate = cur_time + (*in_npctypedata)->loot_lockout_timer;
+							lootLockout.npctype_id = in_npc->GetNPCTypeID();
+
+							if (give_exp_client && give_exp_client->IsClient())
+							{
+								auto clientLootLockoutItr = give_exp_client->CastToClient()->loot_lockouts.find(in_npctypeid);
+								if (clientLootLockoutItr != give_exp_client->CastToClient()->loot_lockouts.end())
+								{
+									clientLootLockoutItr->second = lootLockout;
+								}
+								else
+								{
+									give_exp_client->CastToClient()->loot_lockouts.emplace(in_npctypeid, lootLockout);
+								}
+							}
+
+							//if they're not in zone, this will be loaded once they are.
+							database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid);
 						}
-	}
-
-					for (auto gTables : tables)
-					{
-						database.GenerateLootTableList(gTables, itemlist, give_exp_client->GetGM());
 					}
-					for (auto gTables : in_npc->GetLoottableID())
+					else
 					{
-						database.GenerateLootTableList(gTables, itemlist, give_exp_client->GetGM());
+						give_exp_client->Message(Chat::System, "You were locked out of %s and receive no standard loot.", in_npc->GetCleanName());
 					}
 
-					//if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->loot_lockout && (*in_npctypedata)->loot_lockout_timer > 0)
-					//{
-					//	database.SaveCharacterLootLockout(give_exp_client->loot_lockouts, give_exp_client->AccountID(), give_exp_client->GetIP(), (uint32)cur_time + (*in_npctypedata)->loot_lockout_timer * 3600, in_npctypeid);
-					//}
+					DoProceduralLoot(in_npc, itemlist, give_exp_client);
+					corpseAccessList[give_exp_client->GetCleanName()] = itemlist;
 				}
-				else
-				{
-					give_exp_client->Message(Chat::System, "You were locked out of %s and receive no standard loot.", in_npc->GetCleanName());
-				}
-
-				DoProceduralLoot(in_npc, itemlist, give_exp_client);
-				corpseAccessList[give_exp_client] = itemlist;
 			}
 		}
 	}
@@ -728,7 +829,7 @@ Corpse::Corpse(NPC* in_npc, /*ItemList* in_itemlist,*/ uint32 in_npctypeid, cons
 	}
 	else
 	{
-		std::list<Client*> entriesToRemove;
+		std::list<std::string> entriesToRemove;
 		bool hasEntries = false;
 		for (auto clientEntry : corpseAccessList)
 		{
@@ -773,10 +874,7 @@ Corpse::Corpse(NPC* in_npc, /*ItemList* in_itemlist,*/ uint32 in_npctypeid, cons
 	//if(in_npc->HasPrivateCorpse()) {
 	//	corpse_delay_timer.SetTimer(corpse_decay_timer.GetRemainingTime() + 1000);
 	//}
-
-	for (int i = 0; i < MAX_LOOTERS; i++){
-		allowed_looters[i] = 0;
-	}
+	allowed_looters.clear();
 	rez_experience = 0;
 
 	UpdateEquipmentLight();
@@ -859,9 +957,7 @@ Corpse::Corpse(Client* client, int32 in_rezexp) : Mob (
 		corpse_graveyard_timer.Disable();
 	}
 
-	for (i = 0; i < MAX_LOOTERS; i++){
-		allowed_looters[i] = 0;
-	}
+	allowed_looters.clear();
 
 	if (client->AutoConsentGroupEnabled()) {
 		Group* grp = client->GetGroup();
@@ -1072,9 +1168,8 @@ false),
 
 	rez_experience = in_rezexp;
 
-	for (int i = 0; i < MAX_LOOTERS; i++){
-		allowed_looters[i] = 0;
-	}
+	allowed_looters.clear();
+
 	SetPlayerKillItemID(0);
 
 	UpdateEquipmentLight();
@@ -1223,12 +1318,12 @@ void Corpse::AddItem(uint32 itemnum, uint16 charges, int16 slot, uint32 aug1, ui
 ServerLootItem_Struct* Corpse::GetItem(Client* requester, uint16 lootslot) {
 	ServerLootItem_Struct* sitem = nullptr;
 
-	if (corpseAccessList.find(requester) == corpseAccessList.end())
+	if (corpseAccessList.find(requester->GetCleanName()) == corpseAccessList.end())
 	{
 		return sitem;
 	}
 
-	std::list<ServerLootItem_Struct*> itemlist = corpseAccessList[requester];
+	std::list<ServerLootItem_Struct*> itemlist = corpseAccessList[requester->GetCleanName()];
 	std::list<ServerLootItem_Struct*>::iterator cur,end;
 
 
@@ -1248,27 +1343,27 @@ void Corpse::RemoveItem(Client* c, uint16 lootslot) {
 	if (lootslot == 0xFFFF)
 		return;
 
-	if (corpseAccessList.find(c) == corpseAccessList.end())
+	if (corpseAccessList.find(c->GetCleanName()) == corpseAccessList.end())
 {
 		return;
 	}
 
 	std::list<ServerLootItem_Struct*>::iterator cur, end;
 
-	cur = corpseAccessList[c].begin();
-	end = corpseAccessList[c].end();
+	cur = corpseAccessList[c->GetCleanName()].begin();
+	end = corpseAccessList[c->GetCleanName()].end();
 	for (; cur != end; ++cur) {
 		ServerLootItem_Struct* sitem = *cur;
 		if (sitem->lootslot == lootslot) {
-			corpseAccessList[c].erase(cur);
+			corpseAccessList[c->GetCleanName()].erase(cur);
 			safe_delete(sitem);
 			break;
 		}
 		}
 
-	if (corpseAccessList[c].empty())
+	if (corpseAccessList[c->GetCleanName()].empty())
 	{
-		corpseAccessList.erase(c);
+		corpseAccessList.erase(c->GetCleanName());
 		auto app = new EQApplicationPacket;
 		CreateDespawnPacket(app, !IsCorpse());
 		c->QueuePacket(app);
@@ -1293,16 +1388,16 @@ void Corpse::RemoveCash() {
 }
 
 bool Corpse::IsEmpty(Client* clientFor) {
-	if (corpseAccessList.find(clientFor) == corpseAccessList.end())
+	if (corpseAccessList.find(clientFor->GetCleanName()) == corpseAccessList.end())
 	{
 		return true;
 	}
 
-	return corpseAccessList[clientFor].empty();
+	return corpseAccessList[clientFor->GetCleanName()].empty();
 }
 
 bool Corpse::IsInvolvedInKill(Client* clientFor) {
-	if (corpseAccessList.find(clientFor) == corpseAccessList.end())
+	if (corpseAccessList.find(clientFor->GetCleanName()) == corpseAccessList.end())
 	{
 		return false;
 	}
@@ -1406,27 +1501,18 @@ void Corpse::SetDecayTimer(uint32 decaytime) {
 		corpse_decay_timer.Start(decaytime);
 }
 
-bool Corpse::CanPlayerLoot(int charid) {
+bool Corpse::CanPlayerLoot(const char* playername) {
 	uint8 looters = 0;
-	for (int i = 0; i < MAX_LOOTERS; i++) {
-		if (allowed_looters[i] != 0){
-			looters++;
-		}
 
-		if (allowed_looters[i] == charid)
-			return true;
-	}
+	if (allowed_looters.find(playername) != allowed_looters.end())
+		return true;
 	/* If we have no looters, obviously client can loot */
-	return looters == 0;
+	return allowed_looters.empty();
 }
 
-void Corpse::AllowPlayerLoot(Mob *them, uint8 slot) {
-	if(slot >= MAX_LOOTERS)
-		return;
-	if(them == nullptr || !them->IsClient())
-		return;
+void Corpse::AllowPlayerLoot(const char* membername) {
 
-	allowed_looters[slot] = them->CastToClient()->CharacterID();
+	allowed_looters.insert(membername);
 }
 
 void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* app) {
@@ -1475,7 +1561,7 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 			if (char_id == client->CharacterID()) {
 				loot_request_type = LootRequestType::Self;
 			}
-			else if (CanPlayerLoot(client->CharacterID())) {
+			else if (CanPlayerLoot(client->GetCleanName())) {
 				if (GetPlayerKillItem() == -1)
 					loot_request_type = LootRequestType::AllowedPVPAll;
 				else if (GetPlayerKillItem() == 1)
@@ -1484,7 +1570,7 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 					loot_request_type = LootRequestType::AllowedPVPDefined;
 			}
 		}
-		else if ((IsNPCCorpse() || become_npc) && CanPlayerLoot(client->CharacterID())) {
+		else if ((IsNPCCorpse() || become_npc) && CanPlayerLoot(client->GetCleanName())) {
 			loot_request_type = LootRequestType::AllowedPVE;
 		}
 
@@ -1592,9 +1678,9 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 	auto loot_slot = EQ::invslot::CORPSE_BEGIN;
 	auto corpse_mask = client->GetInv().GetLookup()->CorpseBitmask;
 
-	if (corpseAccessList.find(client) != corpseAccessList.end())
+	if (corpseAccessList.find(client->GetCleanName()) != corpseAccessList.end())
 	{
-		for (auto item_data : corpseAccessList[client]) {
+		for (auto item_data : corpseAccessList[client->GetCleanName()]) {
 		// every loot session must either set all items' lootslots to 'invslot::SLOT_INVALID'
 		// or to a valid enumerated client-versioned corpse slot (lootslot is not equip_slot)
 		item_data->lootslot = 0xFFFF;
@@ -1678,7 +1764,7 @@ void Corpse::LootItem(Client *client, const EQApplicationPacket *app)
 		return;
 	}
 
-	if (IsPlayerCorpse() && !CanPlayerLoot(client->CharacterID()) && !become_npc &&
+	if (IsPlayerCorpse() && !CanPlayerLoot(client->GetCleanName()) && !become_npc &&
 		(char_id != client->CharacterID() && client->Admin() < AccountStatus::GMLeadAdmin)) {
 		client->Message(Chat::Red, "Error: This is a player corpse and you dont own it.");
 		client->QueuePacket(app);
@@ -1693,7 +1779,7 @@ void Corpse::LootItem(Client *client, const EQApplicationPacket *app)
 		return;
 	}
 
-	if (!CanPlayerLoot(client->CharacterID())) {
+	if (!CanPlayerLoot(client->GetCleanName())) {
 		client->QueuePacket(app);
 		SendEndLootErrorPacket(client);
 		return;
@@ -2009,10 +2095,13 @@ void Corpse::UpdateEquipmentLight()
 }
 
 void Corpse::AddLooter(Mob* who) {
-	for (int i = 0; i < MAX_LOOTERS; i++) {
-		if (allowed_looters[i] == 0) {
-			allowed_looters[i] = who->CastToClient()->CharacterID();
-			break;
+	if (who && who->IsClient())
+	{
+		for (int i = 0; i < MAX_LOOTERS; i++) {
+			if (allowed_looters.find(who->CastToClient()->GetCleanName()) == allowed_looters.end()) {
+				allowed_looters.insert(who->CastToClient()->GetCleanName());
+				break;
+			}
 		}
 	}
 }

@@ -145,6 +145,9 @@ public:
 		int         exp_mod;
 		int64		ooc_hp_regen;
 		int64		ooc_mana_regen;
+		std::string flag_granted;
+		uint32 flag_item;
+		uint32 loot_lockout_timer;
 	};
 
 	static std::string PrimaryKey()
@@ -281,6 +284,9 @@ public:
 			"exp_mod",
 			"ooc_hp_regen",
 			"ooc_mana_regen",
+			"flag_granted",
+			"flag_item",
+			"loot_lockout_timer",
 		};
 	}
 
@@ -413,6 +419,9 @@ public:
 			"exp_mod",
 			"ooc_hp_regen",
 			"ooc_mana_regen",
+			"flag_granted",
+			"flag_item",
+			"loot_lockout_timer",
 		};
 	}
 
@@ -579,6 +588,9 @@ public:
 		entry.exp_mod                = 100;
 		entry.ooc_hp_regen			 = 0;
 		entry.ooc_mana_regen		 = 0;
+		entry.flag_granted = "";
+		entry.flag_item = 0;
+		entry.loot_lockout_timer = 0;
 		return entry;
 	}
 
@@ -738,7 +750,10 @@ public:
 			entry.always_aggro           = atoi(row[122]);
 			entry.exp_mod                = atoi(row[123]);
 			entry.ooc_hp_regen			 = atoi(row[124]);
-			entry.ooc_mana_regen			 = atoi(row[125]);
+			entry.ooc_mana_regen		 = atoi(row[125]);
+			entry.flag_granted			 = row[126] ? row[126] : "";
+			entry.flag_item				 = atoi(row[127]);
+			entry.loot_lockout_timer	 = atoi(row[128]);
 			return entry;
 		}
 
@@ -896,6 +911,9 @@ public:
 		update_values.push_back(columns[123] + " = " + std::to_string(npc_types_entry.exp_mod));
 		update_values.push_back(columns[124] + " = " + std::to_string(npc_types_entry.ooc_hp_regen));
 		update_values.push_back(columns[125] + " = " + std::to_string(npc_types_entry.ooc_mana_regen));
+		update_values.push_back(columns[126] + " = '" + EscapeString(npc_types_entry.flag_granted) + "'");
+		update_values.push_back(columns[127] + " = " + std::to_string(npc_types_entry.flag_item));
+		update_values.push_back(columns[128] + " = " + std::to_string(npc_types_entry.loot_lockout_timer));
 		auto results = db.QueryDatabase(
 			fmt::format(
 				"UPDATE {} SET {} WHERE {} = {}",
@@ -1042,6 +1060,9 @@ public:
 		insert_values.push_back(std::to_string(npc_types_entry.exp_mod));
 		insert_values.push_back(std::to_string(npc_types_entry.ooc_hp_regen));
 		insert_values.push_back(std::to_string(npc_types_entry.ooc_mana_regen));
+		insert_values.push_back("'" + EscapeString(npc_types_entry.flag_granted) + "'");
+		insert_values.push_back(std::to_string(npc_types_entry.flag_item));
+		insert_values.push_back(std::to_string(npc_types_entry.loot_lockout_timer));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -1197,7 +1218,9 @@ public:
 			insert_values.push_back(std::to_string(npc_types_entry.exp_mod));
 			insert_values.push_back(std::to_string(npc_types_entry.ooc_hp_regen));
 			insert_values.push_back(std::to_string(npc_types_entry.ooc_mana_regen));
-
+			insert_values.push_back("'" + EscapeString(npc_types_entry.flag_granted) + "'");
+			insert_values.push_back(std::to_string(npc_types_entry.flag_item));
+			insert_values.push_back(std::to_string(npc_types_entry.loot_lockout_timer));
 			insert_chunks.push_back("(" + implode(",", insert_values) + ")");
 		}
 
@@ -1356,7 +1379,9 @@ public:
 			entry.exp_mod                = atoi(row[123]);
 			entry.ooc_hp_regen			 = atoi(row[124]);
 			entry.ooc_mana_regen		 = atoi(row[125]);
-
+		    entry.flag_granted			 = row[126] ? row[126] : "";
+			entry.flag_item				 = atoi(row[127]);
+			entry.loot_lockout_timer	 = atoi(row[128]);
 			all_entries.push_back(entry);
 		}
 
@@ -1506,6 +1531,9 @@ public:
 			entry.exp_mod                = atoi(row[123]);
 			entry.ooc_hp_regen			 = strtoll(row[124], nullptr, 10);
 			entry.ooc_mana_regen		 = strtoll(row[125], nullptr, 10);
+			entry.flag_granted			 = row[126] ? row[126] : "";
+			entry.flag_item				 = atoi(row[127]);
+			entry.loot_lockout_timer	 = atoi(row[128]);
 			all_entries.push_back(entry);
 		}
 

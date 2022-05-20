@@ -1980,6 +1980,7 @@ void Mob::AI_Event_NoLongerEngaged() {
 				if (emoteid != 0) {
 					CastToNPC()->DoNPCEmote(LEAVECOMBAT, emoteid, this);
 				}
+				m_EngagedClientNames.clear();
 				combat_record.Stop();
 				CastToNPC()->SetCombatEvent(false);
 			}

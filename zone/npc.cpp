@@ -201,6 +201,16 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 		LevelScale();
 	}
 
+	flag_granted = "";
+
+	if (npc_type_data->flag_granted[0])
+	{
+		flag_granted = npc_type_data->flag_granted;
+	}
+
+	flag_item = npc_type_data->flag_item;
+	loot_lockout_timer = npc_type_data->loot_lockout_timer;
+
 	base_damage      = round((max_dmg - min_dmg) / 1.9);
 	min_damage       = min_dmg - round(base_damage / 10.0);
 	accuracy_rating  = npc_type_data->accuracy_rating;

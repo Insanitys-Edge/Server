@@ -2782,9 +2782,9 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 					{
 						for (int i = 0; i<6; i++)
 						{
-							if (group->members[i] != nullptr)
+							if (group->membername[i][0])
 							{
-								new_corpse->AllowPlayerLoot(group->members[i], i);
+								new_corpse->AllowPlayerLoot(group->membername[i]);
 							}
 						}
 					}
@@ -3282,7 +3282,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 	}
 
 	int PlayerCount = 0; // QueryServ Player Counting
-
+	time_t curTime = time(nullptr);
 	Client *give_exp_client = nullptr;
 	if (give_exp && give_exp->IsClient())
 		give_exp_client = give_exp->CastToClient();
@@ -3292,6 +3292,8 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		hate_list.DoFactionHits(GetNPCFactionID());
 
 	bool IsLdonTreasure = (GetClass() == LDON_TREASURE);
+
+	bool awardAA = false;
 
 	if (give_exp_client && !IsCorpse()) {
 		Group *kg = entity_list.GetGroupByClient(give_exp_client);
@@ -3320,15 +3322,19 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 			/* Send the EVENT_KILLED_MERIT event for all raid members */
 			for (int i = 0; i < MAX_RAID_MEMBERS; i++) {
 				if (kr->members[i].member != nullptr && kr->members[i].member->IsClient()) { // If Group Member is Client
-					Client *c = kr->members[i].member;
+					Client* c = kr->members[i].member;
 					parse->EventNPC(EVENT_KILLED_MERIT, this, c, "killed", 0);
 
 					if (RuleB(NPC, EnableMeritBasedFaction))
 						c->SetFactionLevel(c->CharacterID(), GetNPCFactionID(), c->GetBaseClass(), c->GetBaseRace(), c->GetDeity());
-
 					mod_npc_killed_merit(kr->members[i].member);
+				}
 
-					PlayerCount++;
+				if (!awardAA && !flag_granted.empty())
+				{
+					auto nameItr = m_EngagedClientNames.find(kr->members[i].membername);
+					if(nameItr != m_EngagedClientNames.end() && nameItr->second.isFlagged == 0 && !nameItr->second.HasLockout(curTime))
+						awardAA = true;
 				}
 			}
 
@@ -3367,15 +3373,20 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 			* for all group members */
 			for (int i = 0; i < MAX_GROUP_MEMBERS; i++) {
 				if (kg->members[i] != nullptr && kg->members[i]->IsClient()) { // If Group Member is Client
-					Client *c = kg->members[i]->CastToClient();
+					Client* c = kg->members[i]->CastToClient();
 					parse->EventNPC(EVENT_KILLED_MERIT, this, c, "killed", 0);
 
 					if (RuleB(NPC, EnableMeritBasedFaction))
 						c->SetFactionLevel(c->CharacterID(), GetNPCFactionID(), c->GetBaseClass(), c->GetBaseRace(), c->GetDeity());
 
 					mod_npc_killed_merit(c);
+				}
 
-					PlayerCount++;
+				if (!awardAA && !flag_granted.empty())
+				{
+					auto nameItr = m_EngagedClientNames.find(kg->membername[i]);
+					if (nameItr != m_EngagedClientNames.end() && nameItr->second.isFlagged == 0 && !nameItr->second.HasLockout(curTime))
+						awardAA = true;
 				}
 			}
 
@@ -3423,6 +3434,13 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 
 			mod_npc_killed_merit(give_exp_client);
 
+			if (!awardAA && !flag_granted.empty())
+			{
+				auto nameItr = m_EngagedClientNames.find(give_exp_client->GetCleanName());
+				if (nameItr != m_EngagedClientNames.end() && nameItr->second.isFlagged == 0 && !nameItr->second.HasLockout(curTime))
+					awardAA = true;
+			}
+
 			// QueryServ Logging - Solo
 			if (RuleB(QueryServ, PlayerLogNPCKills)) {
 				auto pack = new ServerPacket(ServerOP_QSPlayerLogNPCKills,
@@ -3457,6 +3475,57 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 
 		entity_list.RemoveFromAutoXTargets(this);
 
+		const EQ::ItemData* aaTokenItem = database.GetItem(999);
+		if (aaTokenItem && awardAA)
+		{
+
+			ServerLootItem_Struct qitem;
+			qitem.item_id = 999;
+			qitem.charges = 1;
+			qitem.quest = true;
+			qitem.pet = false;
+			qitem.forced = false;
+			qitem.aug_1 = 0;
+			qitem.aug_2 = 0;
+			qitem.aug_3 = 0;
+			qitem.aug_4 = 0;
+			qitem.aug_5 = 0;
+			qitem.aug_6 = 0;
+
+			qitem.attuned = 0;
+			qitem.min_level = 0;
+			qitem.max_level = 255;
+			qitem.equip_slot = EQ::invslot::SLOT_INVALID;
+
+			quest_itemlist.push_back(qitem);
+		}
+
+
+		const EQ::ItemData* progressionFlagToken = NPCTypedata && NPCTypedata->flag_item > 0 ? database.GetItem(NPCTypedata->flag_item) : nullptr;
+		if (aaTokenItem && awardAA)
+		{
+
+			ServerLootItem_Struct qitem;
+			qitem.item_id = 999;
+			qitem.charges = 1;
+			qitem.quest = true;
+			qitem.pet = false;
+			qitem.forced = false;
+			qitem.aug_1 = 0;
+			qitem.aug_2 = 0;
+			qitem.aug_3 = 0;
+			qitem.aug_4 = 0;
+			qitem.aug_5 = 0;
+			qitem.aug_6 = 0;
+
+			qitem.attuned = 0;
+			qitem.min_level = 0;
+			qitem.max_level = 255;
+			qitem.equip_slot = EQ::invslot::SLOT_INVALID;
+
+			quest_itemlist.push_back(qitem);
+		}
+
 		uint16 emoteid = GetEmoteID();
 		auto corpse = new Corpse(this, GetNPCTypeID(), &NPCTypedata, give_exp_client,
 
@@ -3476,13 +3545,14 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		if (killer != 0 && emoteid != 0)
 			corpse->CastToNPC()->DoNPCEmote(AFTERDEATH, emoteid, killer);
 		if (killer != 0 && killer->IsClient()) {
-			corpse->AllowPlayerLoot(killer, 0);
+			corpse->AllowPlayerLoot(killer->GetCleanName());
 			if (killer->IsGrouped()) {
 				Group* group = entity_list.GetGroupByClient(killer->CastToClient());
 				if (group != 0) {
 					for (int i = 0; i<6; i++) { // Doesnt work right, needs work
-						if (group->members[i] != nullptr) {
-							corpse->AllowPlayerLoot(group->members[i], i);
+						if (group->membername[i][0]) {
+							if(m_EngagedClientNames.find(group->membername[i]) != m_EngagedClientNames.end())
+								corpse->AllowPlayerLoot(group->membername[i]);
 						}
 					}
 				}
@@ -3495,30 +3565,30 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 						switch (r->GetLootType()) {
 						case 0:
 						case 1:
-							if (r->members[x].member && r->members[x].IsRaidLeader) {
-								corpse->AllowPlayerLoot(r->members[x].member, i);
+							if (r->members[x].membername[0] && r->members[x].IsRaidLeader) {
+								corpse->AllowPlayerLoot(r->members[x].membername);
 								i++;
 							}
 							break;
 						case 2:
-							if (r->members[x].member && r->members[x].IsRaidLeader) {
-								corpse->AllowPlayerLoot(r->members[x].member, i);
+							if (r->members[x].membername[0] && r->members[x].IsRaidLeader) {
+								corpse->AllowPlayerLoot(r->members[x].membername);
 								i++;
 							}
-							else if (r->members[x].member && r->members[x].IsGroupLeader) {
-								corpse->AllowPlayerLoot(r->members[x].member, i);
+							if (r->members[x].membername[0] && r->members[x].IsGroupLeader) {
+								corpse->AllowPlayerLoot(r->members[x].membername);
 								i++;
 							}
 							break;
 						case 3:
-							if (r->members[x].member && r->members[x].IsLooter) {
-								corpse->AllowPlayerLoot(r->members[x].member, i);
+							if (r->members[x].membername[0] && r->members[x].IsLooter) {
+								corpse->AllowPlayerLoot(r->members[x].membername);
 								i++;
 							}
 							break;
 						case 4:
-							if (r->members[x].member) {
-								corpse->AllowPlayerLoot(r->members[x].member, i);
+							if (r->members[x].membername[0]) {
+								corpse->AllowPlayerLoot(r->members[x].membername);
 								i++;
 							}
 							break;
@@ -3530,7 +3600,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		else if (killer_mob && IsLdonTreasure) {
 			auto u_owner = killer_mob->GetUltimateOwner();
 			if (u_owner->IsClient())
-				corpse->AllowPlayerLoot(u_owner, 0);
+				corpse->AllowPlayerLoot(u_owner->GetCleanName());
 		}
 
 		if (zone && zone->adv_data) {
@@ -3788,6 +3858,25 @@ void Mob::AddToHateList(Mob* other, int64 hate /*= 0*/, int64 damage /*= 0*/, bo
 	if (!wasengaged) {
 		if (IsNPC() && other->IsClient() && other->CastToClient())
 			parse->EventNPC(EVENT_AGGRO, CastToNPC(), other, "", 0);
+
+		if (IsNPC() && other->IsClient())
+		{
+			if (m_EngagedClientNames.find(other->GetCleanName()) == m_EngagedClientNames.end())
+			{
+				PlayerEngagementRecord record = PlayerEngagementRecord();
+				record.isFlagged = other->CastToClient()->HasZoneFlag(CastToNPC()->GetFlagGranted().c_str());
+				record.lockout = LootLockout();
+				record.account_id = other->CastToClient()->AccountID();
+				record.character_id = other->CastToClient()->CharacterID();
+
+				auto lootLockoutItr = other->CastToClient()->loot_lockouts.find(npctype_id);
+				if (lootLockoutItr != other->CastToClient()->loot_lockouts.end())
+				{
+					memcpy(&record.lockout, &lootLockoutItr->second, sizeof(LootLockout));
+				}
+				m_EngagedClientNames.emplace(other->GetCleanName(), record);
+			}
+		}
 		AI_Event_Engaged(other, iYellForHelp);
 	}
 }

@@ -1241,6 +1241,7 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	database.LoadCharacterLanguages(cid, &m_pp); /* Load Character Languages */
 	database.LoadCharacterLeadershipAA(cid, &m_pp); /* Load Character Leadership AA's */
 	database.LoadCharacterTribute(cid, &m_pp); /* Load CharacterTribute */
+	database.LoadCharacterLootLockouts(loot_lockouts, AccountID()); /* Load CharacterTribute */
 
 	if (RuleB(Mercs, UseAltAsMercSystem))
 	{

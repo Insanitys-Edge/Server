@@ -32,15 +32,6 @@ spawn2 mediumblob, npcs mediumblob, npc_loot mediumblob, gmspawntype mediumblob,
 
 #pragma pack(1)
 
-struct LootLockout
-{
-	uint32 character_id;
-	uint32 npctype_id;
-	uint32 ip_addr;
-	uint32 expirydate;
-	uint32 zone_id;
-};
-
 struct NPCType
 {
 	char	name[64];
@@ -161,6 +152,9 @@ struct NPCType
 	int8	flymode;
 	bool	always_aggro;
 	int     exp_mod;
+	char	flag_granted[64];
+	uint32	flag_item;
+	uint32	loot_lockout_timer;
 };
 
 namespace player_lootitem {

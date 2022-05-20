@@ -1085,6 +1085,8 @@ public:
 	void AI_Event_Engaged(Mob* attacker, bool yell_for_help = true);
 	void AI_Event_NoLongerEngaged();
 
+	std::map<std::string, PlayerEngagementRecord> GetEngagementRecords() { return m_EngagedClientNames; };
+
 	int8 ElixirCastSpellCheck(uint16 spellID, Mob** outMob);
 
 	FACTION_VALUE GetSpecialFactionCon(Mob* iOther);
@@ -1391,6 +1393,8 @@ protected:
 
 	std::vector<uint16> RampageArray;
 	std::map<std::string, std::string> m_EntityVariables;
+
+	std::map<std::string, PlayerEngagementRecord> m_EngagedClientNames;
 
 	int16 SkillDmgTaken_Mod[EQ::skills::HIGHEST_SKILL + 2];
 	int16 Vulnerability_Mod[HIGHEST_RESIST+2];

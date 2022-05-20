@@ -1752,7 +1752,7 @@ void EntityList::QueueCorpseClients(
 	auto it = client_list.begin();
 	while (it != client_list.end()) {
 		Client* ent = it->second;
-		if (sender->IsPlayerCorpse() || clientsRemaining.find(ent) != clientsRemaining.end())
+		if (sender->IsPlayerCorpse() || clientsRemaining.find(ent->GetCleanName()) != clientsRemaining.end())
 		{
 			ent->QueuePacket(app, ackreq, Client::CLIENT_CONNECTED);
 		}

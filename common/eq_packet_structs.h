@@ -5761,6 +5761,38 @@ struct UnderWorld {
 	/* 16 */
 };
 
+struct LootLockout
+{
+	uint32 account_id;
+	uint32 npctype_id;
+	uint32 expirydate;
+	LootLockout()
+	{
+		account_id = 0;
+		npctype_id = 0;
+		expirydate = 0;
+	}
+};
+
+struct PlayerEngagementRecord
+{
+	bool isFlagged = false;
+	uint32 character_id = 0;
+	uint32 account_id = 0;
+	LootLockout lockout = LootLockout();
+
+	bool HasLockout(time_t curTime)
+	{
+		if (lockout.account_id == 0)
+			return false;
+
+		if (curTime >= lockout.expirydate || lockout.expirydate == 0)
+			return false;
+
+		return true;
+	}
+};
+
 // Restore structure packing to default
 #pragma pack()
 

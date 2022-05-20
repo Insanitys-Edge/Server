@@ -90,7 +90,7 @@ class Corpse : public Mob {
 	void			CalcCorpseName();
 	void			LoadPlayerCorpseDecayTime(uint32 dbid);
 
-	std::map<Client*, std::list<ServerLootItem_Struct*>> GetCorpseAccessList() { return corpseAccessList; }
+	std::map<std::string, std::list<ServerLootItem_Struct*>> GetCorpseAccessList() { return corpseAccessList; }
 
 	void 			DoProceduralLoot(NPC * in_npc, std::list<ServerLootItem_Struct*>& itemlist, Client* client);
 
@@ -120,10 +120,10 @@ class Corpse : public Mob {
 	void	LootItem(Client* client, const EQApplicationPacket* app);
 	void	EndLoot(Client* client, const EQApplicationPacket* app);
 	void	MakeLootRequestPackets(Client* client, const EQApplicationPacket* app);
-	void	AllowPlayerLoot(Mob *them, uint8 slot);
-	void	AddLooter(Mob *who);
+	void	AllowPlayerLoot(const char* membername);
+	void	AddLooter(Mob* who);
 	uint32	CountItems();
-	bool	CanPlayerLoot(int charid);
+	bool	CanPlayerLoot(const char* membername);
 
 	inline void	Lock()				{ is_locked = true; }
 	inline void	UnLock()			{ is_locked = false; }
@@ -160,7 +160,7 @@ private:
 	uint32		consented_group_id = 0;
 	uint32		consented_raid_id  = 0;
 	uint32		consented_guild_id = 0;
-	std::map<Client*, std::list<ServerLootItem_Struct*>> corpseAccessList; /* Internal Item list used for corpses */
+	std::map<std::string, std::list<ServerLootItem_Struct*>> corpseAccessList; /* Internal Item list used for corpses */
 	uint32		copper;
 	uint32		silver;
 	uint32		gold;
@@ -171,7 +171,7 @@ private:
 	bool		rez;
 	bool		can_corpse_be_rezzed; /* Bool declaring whether or not a corpse can be rezzed */
 	bool		become_npc;
-	int			allowed_looters[MAX_LOOTERS]; /* People allowed to loot the corpse, character id */
+	std::set<std::string> allowed_looters; /* People allowed to loot the corpse, character id */
 	Timer		corpse_decay_timer; /* The amount of time in millseconds in which a corpse will take to decay (Depop/Poof) */
 	Timer		corpse_rez_timer; /* The amount of time in millseconds in which a corpse can be rezzed */
 	Timer		corpse_delay_timer;

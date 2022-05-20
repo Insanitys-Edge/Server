@@ -426,40 +426,40 @@ XS(XS_Corpse_CompleteRezz) {
 XS(XS_Corpse_CanMobLoot); /* prototype to pass -Wmissing-prototypes */
 XS(XS_Corpse_CanMobLoot) {
 	dXSARGS;
-	if (items != 2)
-		Perl_croak(aTHX_ "Usage: Corpse::CanMobLoot(THIS, int character_id)"); // @categories Script Utility, Corpse
-	{
-		Corpse *THIS;
-		bool RETVAL;
-		int  charid = (int) SvIV(ST(1));
-		VALIDATE_THIS_IS_CORPSE;
-		RETVAL = THIS->CanPlayerLoot(charid);
-		ST(0)       = boolSV(RETVAL);
-		sv_2mortal(ST(0));
-	}
+	//if (items != 2)
+	//	Perl_croak(aTHX_ "Usage: Corpse::CanMobLoot(THIS, int character_id)"); // @categories Script Utility, Corpse
+	//{
+	//	Corpse *THIS;
+	//	bool RETVAL;
+	//	int  charid = (int) SvIV(ST(1));
+	//	VALIDATE_THIS_IS_CORPSE;
+	//	RETVAL = THIS->CanPlayerLoot(charid);
+	//	ST(0)       = boolSV(RETVAL);
+	//	sv_2mortal(ST(0));
+	//}
 	XSRETURN(1);
 }
 
 XS(XS_Corpse_AllowMobLoot); /* prototype to pass -Wmissing-prototypes */
 XS(XS_Corpse_AllowMobLoot) {
 	dXSARGS;
-	if (items != 3)
-		Perl_croak(aTHX_ "Usage: Corpse::AllowMobLoot(THIS, Mob* them, uint8 slot)"); // @categories Account and Character, Corpse
-	{
-		Corpse *THIS;
-		Mob    *them;
-		uint8 slot = (uint8) SvUV(ST(2));
-		VALIDATE_THIS_IS_CORPSE;
-		if (sv_derived_from(ST(1), "Mob")) {
-			IV tmp = SvIV((SV *) SvRV(ST(1)));
-			them = INT2PTR(Mob *, tmp);
-		} else
-			Perl_croak(aTHX_ "them is not of type Mob");
-		if (them == nullptr)
-			Perl_croak(aTHX_ "them is nullptr, avoiding crash.");
+	//if (items != 3)
+	//	Perl_croak(aTHX_ "Usage: Corpse::AllowMobLoot(THIS, Mob* them, uint8 slot)"); // @categories Account and Character, Corpse
+	//{
+	//	Corpse *THIS;
+	//	Mob    *them;
+	//	uint8 slot = (uint8) SvUV(ST(2));
+	//	VALIDATE_THIS_IS_CORPSE;
+	//	if (sv_derived_from(ST(1), "Mob")) {
+	//		IV tmp = SvIV((SV *) SvRV(ST(1)));
+	//		them = INT2PTR(Mob *, tmp);
+	//	} else
+	//		Perl_croak(aTHX_ "them is not of type Mob");
+	//	if (them == nullptr)
+	//		Perl_croak(aTHX_ "them is nullptr, avoiding crash.");
 
-		THIS->AllowPlayerLoot(them, slot);
-	}
+	//	THIS->AllowPlayerLoot(them, slot);
+	//}
 	XSRETURN_EMPTY;
 }
 
