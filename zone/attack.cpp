@@ -3785,6 +3785,25 @@ void Mob::AddToHateList(Mob* other, int64 hate /*= 0*/, int64 damage /*= 0*/, bo
 	if (damage > GetHP())
 		damage = GetHP();
 
+	if (IsNPC() && other->IsClient())
+	{
+		if (m_EngagedClientNames.find(other->GetCleanName()) == m_EngagedClientNames.end())
+		{
+			PlayerEngagementRecord record = PlayerEngagementRecord();
+			record.isFlagged = other->CastToClient()->HasZoneFlag(CastToNPC()->GetFlagGranted().c_str());
+			record.lockout = LootLockout();
+			record.account_id = other->CastToClient()->AccountID();
+			record.character_id = other->CastToClient()->CharacterID();
+
+			auto lootLockoutItr = other->CastToClient()->loot_lockouts.find(npctype_id);
+			if (lootLockoutItr != other->CastToClient()->loot_lockouts.end())
+			{
+				memcpy(&record.lockout, &lootLockoutItr->second, sizeof(LootLockout));
+			}
+			m_EngagedClientNames.emplace(other->GetCleanName(), record);
+		}
+	}
+
 	if (spellbonuses.ImprovedTaunt[SBIndex::IMPROVED_TAUNT_AGGRO_MOD] && (GetLevel() < spellbonuses.ImprovedTaunt[SBIndex::IMPROVED_TAUNT_MAX_LVL])
 		&& other && (buffs[spellbonuses.ImprovedTaunt[SBIndex::IMPROVED_TAUNT_BUFFSLOT]].casterid != other->GetID()))
 		hate = (hate*spellbonuses.ImprovedTaunt[SBIndex::IMPROVED_TAUNT_AGGRO_MOD]) / 100;
@@ -3859,24 +3878,6 @@ void Mob::AddToHateList(Mob* other, int64 hate /*= 0*/, int64 damage /*= 0*/, bo
 		if (IsNPC() && other->IsClient() && other->CastToClient())
 			parse->EventNPC(EVENT_AGGRO, CastToNPC(), other, "", 0);
 
-		if (IsNPC() && other->IsClient())
-		{
-			if (m_EngagedClientNames.find(other->GetCleanName()) == m_EngagedClientNames.end())
-			{
-				PlayerEngagementRecord record = PlayerEngagementRecord();
-				record.isFlagged = other->CastToClient()->HasZoneFlag(CastToNPC()->GetFlagGranted().c_str());
-				record.lockout = LootLockout();
-				record.account_id = other->CastToClient()->AccountID();
-				record.character_id = other->CastToClient()->CharacterID();
-
-				auto lootLockoutItr = other->CastToClient()->loot_lockouts.find(npctype_id);
-				if (lootLockoutItr != other->CastToClient()->loot_lockouts.end())
-				{
-					memcpy(&record.lockout, &lootLockoutItr->second, sizeof(LootLockout));
-				}
-				m_EngagedClientNames.emplace(other->GetCleanName(), record);
-			}
-		}
 		AI_Event_Engaged(other, iYellForHelp);
 	}
 }
