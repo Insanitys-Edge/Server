@@ -952,8 +952,6 @@ void Mob::DoArcheryAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, co
 	LogCombat("Ranged attack hit [{}]", other->GetName());
 
 	DamageHitInfo my_hit;
-	// calculate attack_skill and skillinuse depending on hand and weapon
-	// also send Packet to near clients
 	my_hit.skill = EQ::skills::SkillArchery;
 
 	// Now figure out damage
@@ -1550,8 +1548,6 @@ void Mob::DoThrowingAttackDmg(Mob *other, const EQ::ItemInstance *RangeWeapon, c
 
 	LogCombat("Throwing attack hit [{}]", other->GetName());
 	DamageHitInfo my_hit;
-	// calculate attack_skill and skillinuse depending on hand and weapon
-	// also send Packet to near clients
 	my_hit.skill = EQ::skills::SkillThrowing;
 
 	// Now figure out damage
