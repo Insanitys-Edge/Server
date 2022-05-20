@@ -1745,6 +1745,7 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 				if (!client->HasZoneFlag(flag_granted.c_str()))
 				{
 					client->SetZoneFlag(flag_granted.c_str());
+					Message(15, "You gain a progression flag! (%s)", flag_granted.c_str());
 					client->CheckProgressionFlagUnlockPrerequisites();
 				}
 				removeItems.push_back(item_data);

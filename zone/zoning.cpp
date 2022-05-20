@@ -1100,6 +1100,7 @@ void Client::CheckProgressionFlagUnlockPrerequisites()
 
 		if (hasNagafenFlag && hasVoxFlag && hasPhinigelFlag)
 		{
+			Message(15, "You gain a progression flag! You have now completed the Pre Planar flagging process.");
 			SetZoneFlag("Pre Planar");
 		}
 		return;
