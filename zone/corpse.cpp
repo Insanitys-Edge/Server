@@ -693,6 +693,15 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 
 					if (noLockouts)
 					{
+						for (auto gTables : tables)
+						{
+							database.GenerateLootTableList(gTables, itemlist, give_exp_client && give_exp_client->IsClient() ? give_exp_client->CastToClient()->GetGM() : false);
+						}
+						for (auto gTables : in_npc->GetLoottableID())
+						{
+							database.GenerateLootTableList(gTables, itemlist, give_exp_client&& give_exp_client->IsClient() ? give_exp_client->CastToClient()->GetGM() : false);
+						}
+
 						if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->loot_lockout_timer > 0)
 						{
 							LootLockout lootLockout;
