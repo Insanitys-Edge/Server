@@ -1987,11 +1987,11 @@ bool ZoneDatabase::SaveCharacterSpell(uint32 character_id, uint32 class_id, uint
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterLootLockout(uint32 account_id, uint32 expiry, uint32 npctype_id)
+bool ZoneDatabase::SaveCharacterLootLockout(uint32 account_id, uint32 expiry, uint32 npctype_id, bool aa_only)
 {
 	auto zone_id_number = zone ? zone->GetZoneID() : 0;
 
-	std::string query = StringFormat("REPLACE INTO `server_lockouts` (account_id, expiry, npctype_id) VALUES (%u, %u, %u)", account_id, expiry, npctype_id);
+	std::string query = StringFormat("REPLACE INTO `server_lockouts` (account_id, expiry, npctype_id, aa_only) VALUES (%u, %u, %u, %u)", account_id, expiry, npctype_id, aa_only == true ? 1 : 0);
 	auto results = QueryDatabase(query);
 	return true;
 }
@@ -2003,7 +2003,8 @@ bool ZoneDatabase::LoadCharacterLootLockouts(std::map<uint32, LootLockout>& loot
 		"SELECT                  "
 		"account_id,                   "
 		"expiry,                  "
-		"npctype_id                  "
+		"npctype_id,                  "
+		"aa_only                  "
 		"FROM `server_lockouts` WHERE expiry > %u AND (account_id = %u)", cur_time, account_id);
 	auto results = database.QueryDatabase(query);
 	for (auto row = results.begin(); row != results.end(); ++row) {
@@ -2014,6 +2015,7 @@ bool ZoneDatabase::LoadCharacterLootLockouts(std::map<uint32, LootLockout>& loot
 		lootLockout.account_id = atoi(row[0]);
 		lootLockout.expirydate = atoi(row[1]);
 		lootLockout.npctype_id = npctype_id;
+		lootLockout.aa_only = atoi(row[3]);
 		loot_lockout_list[npctype_id] = lootLockout;
 	}
 

@@ -1058,6 +1058,7 @@ public:
 	void LoadZoneFlags();
 	void SendZoneFlagInfo(Client *to) const;
 	void SetZoneFlag(const char* flag_name);
+	void CheckProgressionFlagUnlockPrerequisites();
 
 	void ClearPEQZoneFlag(uint32 zone_id);
 	bool HasPEQZoneFlag(uint32 zone_id) const;

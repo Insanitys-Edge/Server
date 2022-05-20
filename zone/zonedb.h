@@ -398,7 +398,7 @@ public:
 
 	// Loot Lockout system
 	bool LoadCharacterLootLockouts(std::map<uint32, LootLockout>& loot_lockout_list, uint32 account_id);
-	bool SaveCharacterLootLockout(uint32 account_id, uint32 expiry, uint32 npctype_id);
+	bool SaveCharacterLootLockout(uint32 account_id, uint32 expiry, uint32 npctype_id, bool bAAOnly);
 
 
 	/* Character Inventory  */

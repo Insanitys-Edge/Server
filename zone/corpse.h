@@ -165,6 +165,9 @@ private:
 	uint32		silver;
 	uint32		gold;
 	uint32		platinum;
+
+	std::string flag_granted;
+
 	bool		player_corpse_depop; /* Sets up Corpse::Process to depop the player corpse */
 	uint32		being_looted_by; /* Determines what the corpse is being looted by internally for logic */
 	uint32		rez_experience; /* Amount of experience that the corpse would rez for */

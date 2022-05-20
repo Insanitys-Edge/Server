@@ -5766,11 +5766,14 @@ struct LootLockout
 	uint32 account_id;
 	uint32 npctype_id;
 	uint32 expirydate;
+	bool aa_only;
+
 	LootLockout()
 	{
 		account_id = 0;
 		npctype_id = 0;
 		expirydate = 0;
+		aa_only = false;
 	}
 };
 
@@ -5791,6 +5794,14 @@ struct PlayerEngagementRecord
 
 		return true;
 	}
+	bool IsAAOnly()
+	{
+		if (lockout.aa_only == 0)
+			return false;
+
+		return true;
+	}
+
 };
 
 // Restore structure packing to default

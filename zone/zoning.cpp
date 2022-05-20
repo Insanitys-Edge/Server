@@ -1086,6 +1086,127 @@ void Client::SetZoneFlag(const char* zone_name) {
 	}
 }
 
+void Client::CheckProgressionFlagUnlockPrerequisites()
+{
+	//Pre-Planar
+
+	bool PrePlanar = zone_flags.find("Pre Planar") != zone_flags.end();
+
+	if (!PrePlanar)
+	{
+		bool hasNagafenFlag = zone_flags.find("Lord Nagafen") != zone_flags.end();
+		bool hasVoxFlag = zone_flags.find("Lady Vox") != zone_flags.end();
+		bool hasPhinigelFlag = zone_flags.find("Phinigel Autropos") != zone_flags.end();
+
+		if (hasNagafenFlag && hasVoxFlag && hasPhinigelFlag)
+		{
+			SetZoneFlag("Pre Planar");
+		}
+		return;
+	}
+
+
+	bool Kunark = zone_flags.find("Kunark") != zone_flags.end();
+
+	//Kunark
+	if (!Kunark)
+	{
+		bool hasInnyFlag = zone_flags.find("Innoruuk") != zone_flags.end();
+		bool hasYaelFlag = zone_flags.find("Master Yael") != zone_flags.end();
+		bool hasDracoFlag = zone_flags.find("a dracoliche") != zone_flags.end();
+
+		if (hasInnyFlag && hasYaelFlag && hasDracoFlag)
+		{
+			SetZoneFlag("Kunark");
+		}
+		return;
+	}
+
+	bool Velious = zone_flags.find("Velious") != zone_flags.end();
+
+
+	//Velious
+	if (!Velious)
+	{
+		bool hasFaydedarFlag = zone_flags.find("Faydedar") != zone_flags.end();
+		bool hasGorenaire = zone_flags.find("Gorenaire") != zone_flags.end();
+		bool hasOverking = zone_flags.find("Chardok Overking") != zone_flags.end();
+		bool hasQueen = zone_flags.find("Chardok Queen") != zone_flags.end();
+		bool hasSeverilous = zone_flags.find("Severilous") != zone_flags.end();
+		bool hasTalendor = zone_flags.find("Talendor") != zone_flags.end();
+		bool hasTrakanon = zone_flags.find("Trakanon") != zone_flags.end();
+		bool hasVenril = zone_flags.find("Venril Sathir") != zone_flags.end();
+		bool hasDruushk = zone_flags.find("Druushk") != zone_flags.end();
+		bool hasHoshkar = zone_flags.find("Hoshkar") != zone_flags.end();
+		bool hasNexona = zone_flags.find("Nexona") != zone_flags.end();
+		bool hasSilverwing = zone_flags.find("Silverwing") != zone_flags.end();
+		bool hasXygoz = zone_flags.find("Xygoz") != zone_flags.end();
+		bool hasPharaDar = zone_flags.find("Phara Dar") != zone_flags.end();
+
+		if (hasFaydedarFlag && hasGorenaire && hasOverking && hasQueen && hasSeverilous && hasTalendor && hasTrakanon && hasVenril && hasDruushk && hasHoshkar && hasNexona && hasSilverwing && hasXygoz && hasPharaDar)
+		{
+			SetZoneFlag("Velious");
+		}
+		return;
+	}
+
+	bool Luclin = zone_flags.find("Luclin") != zone_flags.end();
+
+
+	//Luclin
+	if (!Luclin)
+	{
+		bool hasDain = zone_flags.find("Dain Frostreaver IV") != zone_flags.end();
+		bool hasDerakor = zone_flags.find("Derakor the Vindicator") != zone_flags.end();
+		bool hasTormax = zone_flags.find("King Tormax") != zone_flags.end();
+		bool hasZlandicar = zone_flags.find("Zlandicar") != zone_flags.end();
+		bool hasAaryonar = zone_flags.find("Aaryonar") != zone_flags.end();
+		bool hasCekenar = zone_flags.find("Cekenar") != zone_flags.end();
+		bool hasDagarn = zone_flags.find("Dagarn the Destroyer") != zone_flags.end();
+		bool hasLadyM = zone_flags.find("Lady Mirenilla") != zone_flags.end();
+		bool hasLadyN = zone_flags.find("Lady Nevederia") != zone_flags.end();
+		bool hasDozekar = zone_flags.find("Dozekar the Cursed") != zone_flags.end();
+		bool hasJorlleag = zone_flags.find("Jorlleag") != zone_flags.end();
+		bool hasLendiniara = zone_flags.find("Lendiniara the Keeper") != zone_flags.end();
+		bool hasLordFeshlak = zone_flags.find("Lord Feshlak") != zone_flags.end();
+		bool hasYelinak = zone_flags.find("Lord Yelinak") != zone_flags.end();
+		bool hasKoiDoken = zone_flags.find("Lord KoiDoken") != zone_flags.end();
+		bool hasKreizenn = zone_flags.find("Lord Kreizenn") != zone_flags.end();
+		bool hasSevalak = zone_flags.find("Sevalak") != zone_flags.end();
+		bool hasVyemm = zone_flags.find("Lord Vyemm") != zone_flags.end();
+		bool hasZlexak = zone_flags.find("Zlexak") != zone_flags.end();
+		bool hasVelketor = zone_flags.find("Velketor the Sorceror") != zone_flags.end();
+		bool hasKlandicar = zone_flags.find("Klandicar") != zone_flags.end();
+
+
+		if (hasDain && hasDerakor && hasTormax && hasZlandicar && hasAaryonar && hasCekenar && hasDagarn && hasLadyM && hasLadyN && hasDozekar && hasJorlleag && hasLendiniara && hasLordFeshlak && hasKoiDoken && hasKreizenn && hasSevalak && hasVyemm && hasZlexak && hasVelketor && hasKlandicar)
+		{
+			SetZoneFlag("Luclin");
+		}
+		return;
+	}
+
+	bool PlanesOfPower = zone_flags.find("Planes of Power") != zone_flags.end();
+
+	// Planes of Power
+	if (!PlanesOfPower)
+	{
+		bool hasLich = zone_flags.find("Arch Lich Rhag`Zadune") != zone_flags.end();
+		bool hasHighPriest = zone_flags.find("High Priest of Ssraeshza") != zone_flags.end();
+		bool hasRumblecrush = zone_flags.find("Rumblecrush") != zone_flags.end();
+		bool hasCrawler = zone_flags.find("The Insanity Crawler") != zone_flags.end();
+		bool hasShei = zone_flags.find("Shei Vinitras") != zone_flags.end();
+		bool hasItraer = zone_flags.find("The Itraer Vius") != zone_flags.end();
+		bool hasVyzhdra = zone_flags.find("Vyzh`dra the Cursed") != zone_flags.end();
+		bool hasXTC = zone_flags.find("Xerkizh The Creator") != zone_flags.end();
+		bool hasSeru = zone_flags.find("Lord Inquisitor Seru") != zone_flags.end();
+		bool hasEmpSsra = zone_flags.find("Emperor Ssraeshza") != zone_flags.end();
+		bool hasVTQuestDone = zone_flags.find("Vex Thal") != zone_flags.end();
+		if (hasLich && hasHighPriest && hasRumblecrush && hasCrawler && hasShei && hasItraer && hasVyzhdra && hasXTC && hasSeru && hasEmpSsra && hasVTQuestDone)
+			SetZoneFlag("Planes of Power");
+	}
+}
+
 void Client::ClearPEQZoneFlag(uint32 zone_id) {
 	if (!HasPEQZoneFlag(zone_id)) {
 		return;

@@ -486,6 +486,10 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 	being_looted_by = 0xFFFFFFFF;
 
 	if (in_npc) {
+
+		if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->flag_granted[0])
+			flag_granted = (*in_npctypedata)->flag_granted;
+
 		auto cur_time = time(nullptr);
 		auto records = in_npc->GetEngagementRecords();
 		if (give_exp_client)
@@ -509,13 +513,18 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 							continue;
 
 						bool noLockouts = !playerItr->second.HasLockout(cur_time);
+
+						//if we have no lockouts, and it's an aa only lockout
 						for (auto q : in_npc->quest_itemlist)
 						{
+							if (!noLockouts && playerItr->second.IsAAOnly() && q.item_id == 999)
+								continue;
+
 							ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
 							itemlist.push_back(addItem);
 						}
 
-						if (noLockouts)
+						if (noLockouts || !noLockouts && playerItr->second.IsAAOnly())
 						{
 							bool mine =/* in_npc->QuestSpawned && (in_npc->QuestLootEntity == c->CharacterID() || in_npc->QuestLootEntity == 0);*/ true;
 
@@ -532,10 +541,17 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 							{
 								LootLockout lootLockout;
 								memset(&lootLockout, 0, sizeof(LootLockout));
+								bool bIsAALockout = false;
+
+								if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->flag_item == 999)
+								{
+									bIsAALockout = true;
+								}
 
 								lootLockout.account_id = playerItr->second.account_id;
 								lootLockout.expirydate = cur_time + (*in_npctypedata)->loot_lockout_timer;
 								lootLockout.npctype_id = in_npc->GetNPCTypeID();
+								lootLockout.aa_only = bIsAALockout;
 
 								if (mclient && mclient->IsClient())
 								{
@@ -551,7 +567,7 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 								}
 
 								//if they're not in zone, this will be loaded once they are.
-								database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid);
+								database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid, bIsAALockout);
 							}
 						}
 						else
@@ -601,13 +617,17 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 							continue;
 
 						bool noLockouts = !playerItr->second.HasLockout(cur_time);
+						//if we have no lockouts, and it's an aa only lockout
 						for (auto q : in_npc->quest_itemlist)
 						{
+							if (!noLockouts && playerItr->second.IsAAOnly() && q.item_id == 999)
+								continue;
+
 							ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
 							itemlist.push_back(addItem);
 						}
 
-						if (noLockouts)
+						if (noLockouts || !noLockouts && playerItr->second.IsAAOnly())
 						{
 							bool mine =/* in_npc->QuestSpawned && (in_npc->QuestLootEntity == c->CharacterID() || in_npc->QuestLootEntity == 0);*/ true;
 
@@ -625,9 +645,17 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 								LootLockout lootLockout;
 								memset(&lootLockout, 0, sizeof(LootLockout));
 
+								bool bIsAALockout = false;
+
+								if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->flag_item == 999)
+								{
+									bIsAALockout = true;
+								}
+
 								lootLockout.account_id = playerItr->second.account_id;
 								lootLockout.expirydate = cur_time + (*in_npctypedata)->loot_lockout_timer;
 								lootLockout.npctype_id = in_npc->GetNPCTypeID();
+								lootLockout.aa_only = bIsAALockout;
 
 								if (mclient && mclient->IsClient())
 								{
@@ -643,7 +671,7 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 								}
 
 								//if they're not in zone, this will be loaded once they are.
-								database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid);
+								database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid, bIsAALockout);
 							}
 						}
 						else
@@ -685,13 +713,17 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 				{
 
 					bool noLockouts = !playerItr->second.HasLockout(cur_time);
+					//if we have no lockouts, and it's an aa only lockout
 					for (auto q : in_npc->quest_itemlist)
 					{
+						if (!noLockouts && playerItr->second.IsAAOnly() && q.item_id == 999)
+							continue;
+
 						ServerLootItem_Struct* addItem = new ServerLootItem_Struct(q);
 						itemlist.push_back(addItem);
 					}
 
-					if (noLockouts)
+					if (noLockouts || !noLockouts && playerItr->second.IsAAOnly())
 					{
 						for (auto gTables : tables)
 						{
@@ -707,9 +739,18 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 							LootLockout lootLockout;
 							memset(&lootLockout, 0, sizeof(LootLockout));
 
+							bool bIsAALockout = false;
+
+							if (in_npctypedata && (*in_npctypedata) && (*in_npctypedata)->flag_item == 999)
+							{
+								bIsAALockout = true;
+							}
+
 							lootLockout.account_id = playerItr->second.account_id;
 							lootLockout.expirydate = cur_time + (*in_npctypedata)->loot_lockout_timer;
 							lootLockout.npctype_id = in_npc->GetNPCTypeID();
+							lootLockout.aa_only = bIsAALockout;
+
 
 							if (give_exp_client && give_exp_client->IsClient())
 							{
@@ -725,7 +766,7 @@ Corpse::Corpse(NPC* in_npc, uint32 in_npctypeid, const NPCType** in_npctypedata,
 							}
 
 							//if they're not in zone, this will be loaded once they are.
-							database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid);
+							database.SaveCharacterLootLockout(playerItr->second.account_id, lootLockout.expirydate, in_npctypeid, lootLockout.aa_only);
 						}
 					}
 					else
@@ -1529,25 +1570,25 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 		return;
 
 	// Added 12/08. Started compressing loot struct on live.
-	if(player_corpse_depop) {
+	if (player_corpse_depop) {
 		SendLootReqErrorPacket(client, LootResponse::SomeoneElse);
 		return;
 	}
 
-	if(IsPlayerCorpse() && !corpse_db_id) { // really should try to resave in this case
+	if (IsPlayerCorpse() && !corpse_db_id) { // really should try to resave in this case
 		// SendLootReqErrorPacket(client, 0);
 		client->Message(Chat::Red, "Warning: Corpse's dbid = 0! Corpse will not survive zone shutdown!");
 		std::cout << "Error: PlayerCorpse::MakeLootRequestPackets: dbid = 0!" << std::endl;
 		// return;
 	}
 
-	if(is_locked && client->Admin() < AccountStatus::GMAdmin) {
+	if (is_locked && client->Admin() < AccountStatus::GMAdmin) {
 		SendLootReqErrorPacket(client, LootResponse::SomeoneElse);
 		client->Message(Chat::Red, "Error: Corpse locked by GM.");
 		return;
 	}
 
-	if(!being_looted_by || (being_looted_by != 0xFFFFFFFF && !entity_list.GetID(being_looted_by)))
+	if (!being_looted_by || (being_looted_by != 0xFFFFFFFF && !entity_list.GetID(being_looted_by)))
 		being_looted_by = 0xFFFFFFFF;
 
 	if (DistanceSquaredNoZ(client->GetPosition(), m_Position) > 625) {
@@ -1582,10 +1623,9 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 		else if ((IsNPCCorpse() || become_npc) && CanPlayerLoot(client->GetCleanName())) {
 			loot_request_type = LootRequestType::AllowedPVE;
 		}
-
 	}
 
-	LogInventory("MakeLootRequestPackets() LootRequestType [{}] for [{}]", (int) loot_request_type, client->GetName());
+	LogInventory("MakeLootRequestPackets() LootRequestType [{}] for [{}]", (int)loot_request_type, client->GetName());
 
 	if (loot_request_type == LootRequestType::Forbidden) {
 		SendLootReqErrorPacket(client, LootResponse::NotAtThisTime);
@@ -1686,6 +1726,54 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 
 	auto loot_slot = EQ::invslot::CORPSE_BEGIN;
 	auto corpse_mask = client->GetInv().GetLookup()->CorpseBitmask;
+	std::vector<ServerLootItem_Struct*> removeItems;
+
+	if (corpseAccessList.find(client->GetCleanName()) != corpseAccessList.end())
+	{
+		for (auto item_data : corpseAccessList[client->GetCleanName()]) {
+
+			if (IsPlayerCorpse()) {
+				if (loot_request_type == LootRequestType::AllowedPVPSingle && loot_slot != EQ::invslot::CORPSE_BEGIN)
+					continue;
+
+				if (item_data->equip_slot < EQ::invslot::POSSESSIONS_BEGIN || item_data->equip_slot > EQ::invslot::POSSESSIONS_END)
+					continue;
+			}
+
+			if (item_data->item_id == 300 && !flag_granted.empty())
+			{
+				if (!client->HasZoneFlag(flag_granted.c_str()))
+				{
+					client->SetZoneFlag(flag_granted.c_str());
+					client->CheckProgressionFlagUnlockPrerequisites();
+				}
+				removeItems.push_back(item_data);
+			}
+
+			if (item_data->item_id == 999)
+			{
+				int32 MaxLevelForAA = level + 10;
+				if (client->GetLevel() <= MaxLevelForAA)
+				{
+					Message(15, "You gain an AA point for defeating a rare creature!");
+					client->AddAAPoints(item_data->charges);
+				}
+				removeItems.push_back(item_data);
+			}
+		}
+	}
+	if (!removeItems.empty())
+	{
+		if (corpseAccessList.find(client->GetCleanName()) != corpseAccessList.end())
+		{
+			auto list = corpseAccessList.find(client->GetCleanName());
+
+			for (auto itemRemove : removeItems)
+			{
+				list->second.remove(itemRemove);
+			}
+		}
+	}
 
 	if (corpseAccessList.find(client->GetCleanName()) != corpseAccessList.end())
 	{
@@ -1706,6 +1794,15 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 
 			if (item_data->equip_slot < EQ::invslot::POSSESSIONS_BEGIN || item_data->equip_slot > EQ::invslot::POSSESSIONS_END)
 				continue;
+		}
+
+		if (item_data->item_id == 300 && !flag_granted.empty())
+		{
+			if (!client->HasZoneFlag(flag_granted.c_str()))
+			{
+				client->SetZoneFlag(flag_granted.c_str());
+				client->CheckProgressionFlagUnlockPrerequisites();
+			}
 		}
 
 		const auto *item = database.GetItem(item_data->item_id);
