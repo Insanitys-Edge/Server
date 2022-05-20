@@ -2466,7 +2466,7 @@ void Mob::DoBashKickStun(Mob* defender, uint16 skill)
 			stun_resist = defender->aabonuses.StunResist;						// Stalwart Endurance AA
 		}
 
-		EQ::ItemInstance* inst = defender->IsClient() ? CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm) : nullptr;
+		EQ::ItemInstance* inst = defender->IsClient() ? defender->CastToClient()->GetInv().GetItem(EQ::invslot::slotCharm) : nullptr;
 		if (inst && inst->GetID() == RaceCharmIDs::CharmOgre)
 		{
 			Log(Logs::Detail, Logs::Combat, "Frontal stun resisted because, Ogre.");
