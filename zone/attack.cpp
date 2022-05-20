@@ -3506,8 +3506,8 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 		{
 
 			ServerLootItem_Struct qitem;
-			qitem.item_id = 999;
-			qitem.charges = 1;
+			qitem.item_id = progressionFlagToken->ID;
+			qitem.charges = progressionFlagToken->MaxCharges;
 			qitem.quest = true;
 			qitem.pet = false;
 			qitem.forced = false;
