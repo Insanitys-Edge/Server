@@ -1596,19 +1596,22 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 
 	/* Load Pet */
 	database.LoadPetInfo(this);
-	if (m_petinfo.SpellID > 1 && !GetPet() && m_petinfo.SpellID <= SPDAT_RECORDS && (m_pp.level ? spells[m_petinfo.SpellID].classes[m_pp.level - 1] < 100 : false)) {
-		MakePoweredPet(m_petinfo.SpellID, spells[m_petinfo.SpellID].teleport_zone, m_petinfo.petpower, m_petinfo.Name, m_petinfo.size);
-		if (GetPet() && GetPet()->IsNPC()) {
-			NPC *pet = GetPet()->CastToNPC();
-			pet->SetPetState(m_petinfo.Buffs, m_petinfo.Items);
-			pet->CalcBonuses();
-			pet->SetHP(m_petinfo.HP);
-			pet->SetMana(m_petinfo.Mana);
+	if (m_petinfo.SpellID > 1 && !GetPet() && m_petinfo.SpellID <= SPDAT_RECORDS) {
+		if (spells[m_petinfo.SpellID].classes[m_pp.class_ - 1] != 255)
+		{
+			MakePoweredPet(m_petinfo.SpellID, spells[m_petinfo.SpellID].teleport_zone, m_petinfo.petpower, m_petinfo.Name, m_petinfo.size);
+			if (GetPet() && GetPet()->IsNPC()) {
+				NPC* pet = GetPet()->CastToNPC();
+				pet->SetPetState(m_petinfo.Buffs, m_petinfo.Items);
+				pet->CalcBonuses();
+				pet->SetHP(m_petinfo.HP);
+				pet->SetMana(m_petinfo.Mana);
 
-			// Taunt persists when zoning on newer clients, overwrite default.
-			if (m_ClientVersionBit & EQ::versions::maskUFAndLater) {
-				if (!firstlogon) {
-					pet->SetTaunting(m_petinfo.taunting);
+				// Taunt persists when zoning on newer clients, overwrite default.
+				if (m_ClientVersionBit & EQ::versions::maskUFAndLater) {
+					if (!firstlogon) {
+						pet->SetTaunting(m_petinfo.taunting);
+					}
 				}
 			}
 		}
