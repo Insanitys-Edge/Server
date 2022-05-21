@@ -3502,7 +3502,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 
 
 		const EQ::ItemData* progressionFlagToken = NPCTypedata && NPCTypedata->flag_item > 0 ? database.GetItem(NPCTypedata->flag_item) : nullptr;
-		if (aaTokenItem && awardAA)
+		if (progressionFlagToken)
 		{
 
 			ServerLootItem_Struct qitem;

@@ -1075,7 +1075,7 @@ void Client::SetZoneFlag(const char* zone_name) {
 	zone_flags.insert(zone_name);
 
 	std::string query = fmt::format(
-		"REPLACE INTO zone_flags (charID, zoneID) VALUES ({}, {})",
+		"REPLACE INTO zone_flags (charID, zoneID) VALUES ({}, '{}')",
 		CharacterID(),
 		zone_name
 	);
