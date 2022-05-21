@@ -392,7 +392,10 @@ void ZoneDatabase::GenerateLootTableList(uint32 loottable_id, std::list<ServerLo
 		bool RollTableChanceBypass = false;
 		for (uint32 i = 0; i < lds->NumEntries; ++i) {
 			const EQ::ItemData* dbitem = GetItem(lds->Entries[i].item_id);
-			RollTableRange += dbitem->ID == lds->Entries[i].item_id ? (lds->Entries[i].chance < 10 ? 10 : lds->Entries[i].chance) * (lds->Entries[i].multiplier > 0 ? lds->Entries[i].multiplier : 1) : 0;
+			if (dbitem)
+			{
+				RollTableRange += dbitem->ID == lds->Entries[i].item_id ? (lds->Entries[i].chance < 10 ? 10 : lds->Entries[i].chance) * (lds->Entries[i].multiplier > 0 ? lds->Entries[i].multiplier : 1) : 0;
+			}
 			if(lds->Entries[i].chance >= 100){
 				RollTableChanceBypass = true;
 			}
@@ -412,7 +415,7 @@ void ZoneDatabase::GenerateLootTableList(uint32 loottable_id, std::list<ServerLo
 						for (int j = 0; j < charges; ++j) {
 							if (zone->random.Real(0.0, 100.0) <= lds->Entries[i].chance) {
 								const EQ::ItemData* dbitem = GetItem(lds->Entries[i].item_id);
-								if (dbitem->ID != lds->Entries[i].item_id)
+								if (!dbitem || dbitem->ID != lds->Entries[i].item_id)
 									continue;
 
 								ServerLootItem_Struct* itemLoot = new ServerLootItem_Struct;
@@ -435,15 +438,18 @@ void ZoneDatabase::GenerateLootTableList(uint32 loottable_id, std::list<ServerLo
 
 					for (uint32 i = 0; i < lds->NumEntries; ++i) {
 						const EQ::ItemData* dbitem = GetItem(lds->Entries[i].item_id);
-						int Chance = lds->Entries[i].item_id ? (lds->Entries[i].chance < 10 ? 10 : lds->Entries[i].chance) * (lds->Entries[i].multiplier > 0 ? lds->Entries[i].multiplier : 1) : 0;
-						if(Roll > Chance){ Roll -= Chance; }
-						else if (Roll <= Chance ) {
-							ServerLootItem_Struct* itemLoot = new ServerLootItem_Struct;
-							memset(itemLoot, 0, sizeof(ServerLootItem_Struct));
-							itemLoot->charges = lds->Entries[i].item_charges;
-							itemLoot->item_id = dbitem->ID;
-							itemlist.push_back(itemLoot);
-							break;
+						if (dbitem)
+						{
+							int Chance = lds->Entries[i].item_id ? (lds->Entries[i].chance < 10 ? 10 : lds->Entries[i].chance) * (lds->Entries[i].multiplier > 0 ? lds->Entries[i].multiplier : 1) : 0;
+							if (Roll > Chance) { Roll -= Chance; }
+							else if (Roll <= Chance) {
+								ServerLootItem_Struct* itemLoot = new ServerLootItem_Struct;
+								memset(itemLoot, 0, sizeof(ServerLootItem_Struct));
+								itemLoot->charges = lds->Entries[i].item_charges;
+								itemLoot->item_id = dbitem->ID;
+								itemlist.push_back(itemLoot);
+								break;
+							}
 						}
 					}
 					Drops++;
