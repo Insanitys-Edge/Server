@@ -11492,7 +11492,7 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)
 		{
-			TempSetSkill((EQ::skills::SkillType)i, GetSkill((EQ::skills::SkillType)i), true);
+			TempSetSkill((EQ::skills::SkillType)i, GetSkill((EQ::skills::SkillType)i), false);
 		}
 
 		database.LoadAlternateAdvancement(this, m_MercPP.class_);
