@@ -1477,21 +1477,21 @@ void Client::SetSkill(EQ::skills::SkillType skillid, uint16 value, bool show_msg
 	if (!CanHaveSkill(skillid)) //So we don't write any skills in the DB that we shouldn't.
 		return;
 
-	if (skills[skillid] > value) // Don't write skills that are technically lower, ever.
-	{
-		return;
-	}
+	int16 max_skill = GetCurrentSkillValueOrMax(skillid);
 
-	skills[skillid] = value; // We need to be able to #setskill 254 and 255 to reset skills
-
-	database.SaveCharacterSkill(CharacterID(), skillid, value);
 	auto outapp = new EQApplicationPacket(OP_SkillUpdate, sizeof(SkillUpdate_Struct));
 	SkillUpdate_Struct* skill = (SkillUpdate_Struct*)outapp->pBuffer;
-	skill->skillId=skillid;
-	skill->value=value;
+	skill->skillId = skillid;
+	skill->value = value <= max_skill ? value : max_skill;
 	skill->show_msg = (uint8)show_msg;
 	QueuePacket(outapp);
 	safe_delete(outapp);
+
+	if (skills[skillid] < value)
+	{
+		skills[skillid] = value;
+		database.SaveCharacterSkill(CharacterID(), skillid, value);
+	}
 }
 
 void Client::IncreaseLanguageSkill(int skill_id, int value) {
@@ -2703,7 +2703,7 @@ uint16 Client::GetSkill(EQ::skills::SkillType skill_id) {
 				std::min(GetCurrentSkillValueOrMax(skill_id) + itembonuses.skillmodmax[skill_id], GetCurrentSkillValueOrMax(skill_id) * (100 + itembonuses.skillmod[skill_id]) / 100)
 				: GetCurrentSkillValueOrMax(skill_id) * (100 + itembonuses.skillmod[skill_id]) / 100)
 				: GetCurrentSkillValueOrMax(skill_id));
-	} 
+	}
 	return 0; 
 }
 
@@ -11492,7 +11492,8 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)
 		{
-				TempSetSkill((EQ::skills::SkillType)i, GetSkill((EQ::skills::SkillType)i), false);
+			if(GetSkill((EQ::skills::SkillType)i) < skills[i])
+				TempSetSkill((EQ::skills::SkillType)i, GetSkill((EQ::skills::SkillType)i), true);
 		}
 
 		database.LoadAlternateAdvancement(this, m_MercPP.class_);
