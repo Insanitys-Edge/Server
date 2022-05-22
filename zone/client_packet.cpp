@@ -872,6 +872,7 @@ void Client::CompleteConnect()
 	{
 		Message(Chat::Red, "Drakkin are an abomination, and as such are crippled, and lose 3% of their health per tick. We highly recommend you log out and delete your character. It might get worse as you play...");
 	}
+	LearnDisciplines(1, level);
 
 	// shared tasks memberlist
 	if (RuleB(TaskSystem, EnableTaskSystem) && GetTaskState()->HasActiveSharedTask()) {
@@ -1237,7 +1238,7 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	database.LoadCharacterInspectMessage(cid, &m_inspect_message); /* Load Character Inspect Message */
 	database.LoadCharacterSpellBook(cid, m_pp.class_, &m_pp); /* Load Character Spell Book */
 	database.LoadCharacterMemmedSpells(cid, m_pp.class_, &m_pp);  /* Load Character Memorized Spells */
-	database.LoadCharacterDisciplines(cid, &m_pp); /* Load Character Disciplines */
+	database.LoadCharacterDisciplines(cid, m_pp.class_, &m_pp); /* Load Character Disciplines */
 	database.LoadCharacterLanguages(cid, &m_pp); /* Load Character Languages */
 	database.LoadCharacterLeadershipAA(cid, &m_pp); /* Load Character Leadership AA's */
 	database.LoadCharacterTribute(cid, &m_pp); /* Load CharacterTribute */

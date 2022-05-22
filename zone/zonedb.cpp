@@ -1315,23 +1315,23 @@ bool ZoneDatabase::LoadCharacterExp(uint32 character_id, uint32 class_id, Player
 	return true;
 }
 
-bool ZoneDatabase::LoadCharacterDisciplines(uint32 character_id, PlayerProfile_Struct* pp){
-	//std::string query = StringFormat(
-	//	"SELECT				  "
-	//	"disc_id			  "
-	//	"FROM				  "
-	//	"`character_disciplines`"
-	//	"WHERE `id` = %u ORDER BY `slot_id`", character_id);
-	//auto results = database.QueryDatabase(query);
-	//int i = 0;
+bool ZoneDatabase::LoadCharacterDisciplines(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp){
+	std::string query = StringFormat(
+		"SELECT				  "
+		"disc_id			  "
+		"FROM				  "
+		"`character_disciplines`"
+		"WHERE `id` = %u AND `class_id` = %u ORDER BY `slot_id`", character_id, class_id);
+	auto results = database.QueryDatabase(query);
+	int i = 0;
 
-	///* Initialize Disciplines */
-	//memset(pp->disciplines.values, 0, (sizeof(pp->disciplines.values[0]) * MAX_PP_DISCIPLINES));
-	//for (auto row = results.begin(); row != results.end(); ++row) {
-	//	if (i < MAX_PP_DISCIPLINES)
-	//		pp->disciplines.values[i] = atoi(row[0]);
- //       ++i;
- //   }
+	/* Initialize Disciplines */
+	memset(pp->disciplines.values, 0, (sizeof(pp->disciplines.values[0]) * MAX_PP_DISCIPLINES));
+	for (auto row = results.begin(); row != results.end(); ++row) {
+		if (i < MAX_PP_DISCIPLINES)
+			pp->disciplines.values[i] = atoi(row[0]);
+        ++i;
+    }
 	return true;
 }
 
@@ -1565,8 +1565,8 @@ bool ZoneDatabase::SaveCharacterSkill(uint32 character_id, uint32 skill_id, uint
 	return true;
 }
 
-bool ZoneDatabase::SaveCharacterDisc(uint32 character_id, uint32 slot_id, uint32 disc_id){
-	std::string query = StringFormat("REPLACE INTO `character_disciplines` (id, slot_id, disc_id) VALUES (%u, %u, %u)", character_id, slot_id, disc_id);
+bool ZoneDatabase::SaveCharacterDisc(uint32 character_id, uint32 class_id, uint32 slot_id, uint32 disc_id){
+	std::string query = StringFormat("REPLACE INTO `character_disciplines` (id, class_id, slot_id, disc_id) VALUES (%u, %u, %u, %u)", character_id, class_id, slot_id, disc_id);
 	auto results = QueryDatabase(query);
 	LogDebug("ZoneDatabase::SaveCharacterDisc for character ID: [{}], slot:[{}] disc_id:[{}] done", character_id, slot_id, disc_id);
 	return true;
@@ -5132,6 +5132,7 @@ std::map<uint32, MercCharacter_Struct*> ZoneDatabase::LoadCharactersOnAccount(Cl
 		charStruct->m_pp.class_ = i;
 		database.LoadCharacterSpellBook(charid, i, &charStruct->m_pp); /* Load Character Spell Book */
 		database.LoadCharacterMemmedSpells(charid, i, &charStruct->m_pp);  /* Load Character Memorized Spells */
+		database.LoadCharacterDisciplines(charid, i, &charStruct->m_pp); /* Load Character Spell Book */
 		database.LoadAlternateAdvancement(c, i);
 		retList[i] = charStruct;
 	}

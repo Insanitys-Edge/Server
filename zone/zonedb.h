@@ -362,7 +362,7 @@ public:
 	bool LoadCharacterBindPoint(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterCurrency(uint32 character_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterData(uint32 character_id, PlayerProfile_Struct* pp, ExtendedProfile_Struct* m_epp);
-	bool LoadCharacterDisciplines(uint32 character_id, PlayerProfile_Struct* pp);
+	bool LoadCharacterDisciplines(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterFactionValues(uint32 character_id, faction_map & val_list);
 	bool LoadCharacterExp(uint32 character_id, uint32 class_id, PlayerProfile_Struct* pp);
 	bool LoadCharacterLanguages(uint32 character_id, PlayerProfile_Struct* pp);
@@ -381,7 +381,7 @@ public:
 	bool SaveCharacterBindPoint(uint32 character_id, const BindStruct &bind, uint32 bind_number);
 	bool SaveCharacterCurrency(uint32 account_id, PlayerProfile_Struct* pp);
 	bool SaveCharacterData(uint32 character_id, uint32 account_id, PlayerProfile_Struct* pp, ExtendedProfile_Struct* m_epp);
-	bool SaveCharacterDisc(uint32 character_id, uint32 slot_id, uint32 disc_id);
+	bool SaveCharacterDisc(uint32 character_id, uint32 class_id, uint32 slot_id, uint32 disc_id);
 	bool SaveCharacterLanguage(uint32 character_id, uint32 lang_id, uint32 value);
 	bool SaveCharacterLeadershipAA(uint32 character_id, PlayerProfile_Struct* pp);
 	bool SaveCharacterMaterialColor(uint32 character_id, uint32 slot_id, uint32 color);
