@@ -1111,19 +1111,19 @@ int Lua_Client::GetCharacterFactionLevel(int faction_id) {
 	return self->GetCharacterFactionLevel(faction_id);
 }
 
-void Lua_Client::SetZoneFlag(const char* zone_id) {
+void Lua_Client::SetZoneFlag(std::string zone_name) {
 	Lua_Safe_Call_Void();
-	self->SetZoneFlag(zone_id);
+	self->SetZoneFlag(zone_name.c_str());
 }
 
-void Lua_Client::ClearZoneFlag(const char* zone_id) {
+void Lua_Client::ClearZoneFlag(std::string zone_name) {
 	Lua_Safe_Call_Void();
-	self->ClearZoneFlag(zone_id);
+	self->ClearZoneFlag(zone_name.c_str());
 }
 
-bool Lua_Client::HasZoneFlag(const char* zone_id) {
+bool Lua_Client::HasZoneFlag(std::string zone_name) {
 	Lua_Safe_Call_Bool();
-	return self->HasZoneFlag(zone_id);
+	return self->HasZoneFlag(zone_name.c_str());
 }
 
 void Lua_Client::SendZoneFlagInfo(Lua_Client to) {
@@ -2728,7 +2728,7 @@ luabind::scope lua_register_client() {
 	.def("HasPEQZoneFlag", (bool(Lua_Client::*)(uint32))&Lua_Client::HasPEQZoneFlag)
 	.def("HasSkill", (bool(Lua_Client::*)(int))&Lua_Client::HasSkill)
 	.def("HasSpellScribed", (bool(Lua_Client::*)(int))&Lua_Client::HasSpellScribed)
-	.def("HasZoneFlag", (bool(Lua_Client::*)(uint32))&Lua_Client::HasZoneFlag)
+	.def("HasZoneFlag", (bool(Lua_Client::*)(std::string))&Lua_Client::HasZoneFlag)
 	.def("Hungry", (bool(Lua_Client::*)(void))&Lua_Client::Hungry)
 	.def("InZone", (bool(Lua_Client::*)(void))&Lua_Client::InZone)
 	.def("IncStats", (void(Lua_Client::*)(int,int))&Lua_Client::IncStats)
