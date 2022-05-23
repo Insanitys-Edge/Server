@@ -11060,6 +11060,7 @@ void Client::SaveDisciplines()
 			auto discipline = CharacterDisciplinesRepository::NewEntity();
 			discipline.id      = CharacterID();
 			discipline.slot_id = index;
+			discipline.class_id = m_pp.class_;
 			discipline.disc_id = m_pp.disciplines.values[index];
 			character_discs.emplace_back(discipline);
 		}

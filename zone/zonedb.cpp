@@ -2028,8 +2028,8 @@ bool ZoneDatabase::DeleteCharacterSpell(uint32 character_id, uint32 class_id, ui
 	return true;
 }
 
-bool ZoneDatabase::DeleteCharacterDisc(uint32 character_id, uint32 slot_id){
-	std::string query = StringFormat("DELETE FROM `character_disciplines` WHERE `slot_id` = %u AND `id` = %u", slot_id, character_id);
+bool ZoneDatabase::DeleteCharacterDisc(uint32 character_id, uint32 class_id, uint32 slot_id){
+	std::string query = StringFormat("DELETE FROM `character_disciplines` WHERE `slot_id` = %u AND `class_id` = %u AND `id` = %u", slot_id, class_id, character_id);
 	QueryDatabase(query);
 	return true;
 }

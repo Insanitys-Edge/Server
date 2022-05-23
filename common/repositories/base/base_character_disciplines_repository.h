@@ -20,6 +20,7 @@ class BaseCharacterDisciplinesRepository {
 public:
 	struct CharacterDisciplines {
 		int id;
+		int class_id;
 		int slot_id;
 		int disc_id;
 	};
@@ -33,6 +34,7 @@ public:
 	{
 		return {
 			"id",
+			"class_id",
 			"slot_id",
 			"disc_id",
 		};
@@ -42,6 +44,7 @@ public:
 	{
 		return {
 			"id",
+			"class_id",
 			"slot_id",
 			"disc_id",
 		};
@@ -87,6 +90,7 @@ public:
 		entry.id      = 0;
 		entry.slot_id = 0;
 		entry.disc_id = 0;
+		entry.class_id = 0;
 
 		return entry;
 	}
@@ -123,8 +127,9 @@ public:
 			CharacterDisciplines entry{};
 
 			entry.id      = atoi(row[0]);
-			entry.slot_id = atoi(row[1]);
-			entry.disc_id = atoi(row[2]);
+			entry.class_id = atoi(row[1]);
+			entry.slot_id = atoi(row[2]);
+			entry.disc_id = atoi(row[3]);
 
 			return entry;
 		}
@@ -159,8 +164,9 @@ public:
 		auto columns = Columns();
 
 		update_values.push_back(columns[0] + " = " + std::to_string(character_disciplines_entry.id));
-		update_values.push_back(columns[1] + " = " + std::to_string(character_disciplines_entry.slot_id));
-		update_values.push_back(columns[2] + " = " + std::to_string(character_disciplines_entry.disc_id));
+		update_values.push_back(columns[1] + " = " + std::to_string(character_disciplines_entry.class_id));
+		update_values.push_back(columns[2] + " = " + std::to_string(character_disciplines_entry.slot_id));
+		update_values.push_back(columns[3] + " = " + std::to_string(character_disciplines_entry.disc_id));
 
 		auto results = db.QueryDatabase(
 			fmt::format(
@@ -183,6 +189,7 @@ public:
 		std::vector<std::string> insert_values;
 
 		insert_values.push_back(std::to_string(character_disciplines_entry.id));
+		insert_values.push_back(std::to_string(character_disciplines_entry.class_id));
 		insert_values.push_back(std::to_string(character_disciplines_entry.slot_id));
 		insert_values.push_back(std::to_string(character_disciplines_entry.disc_id));
 
@@ -215,6 +222,7 @@ public:
 			std::vector<std::string> insert_values;
 
 			insert_values.push_back(std::to_string(character_disciplines_entry.id));
+			insert_values.push_back(std::to_string(character_disciplines_entry.class_id));
 			insert_values.push_back(std::to_string(character_disciplines_entry.slot_id));
 			insert_values.push_back(std::to_string(character_disciplines_entry.disc_id));
 
@@ -251,8 +259,9 @@ public:
 			CharacterDisciplines entry{};
 
 			entry.id      = atoi(row[0]);
-			entry.slot_id = atoi(row[1]);
-			entry.disc_id = atoi(row[2]);
+			entry.class_id = atoi(row[1]);
+			entry.slot_id = atoi(row[2]);
+			entry.disc_id = atoi(row[3]);
 
 			all_entries.push_back(entry);
 		}
@@ -278,8 +287,9 @@ public:
 			CharacterDisciplines entry{};
 
 			entry.id      = atoi(row[0]);
-			entry.slot_id = atoi(row[1]);
-			entry.disc_id = atoi(row[2]);
+			entry.class_id = atoi(row[1]);
+			entry.slot_id = atoi(row[2]);
+			entry.disc_id = atoi(row[3]);
 
 			all_entries.push_back(entry);
 		}
