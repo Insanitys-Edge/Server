@@ -11516,6 +11516,7 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 		database.LoadAlternateAdvancement(this, m_MercPP.class_);
 
 		SendSpellSuppressionPacket(false);
+		LearnDisciplines(1,GetLevel());
 		Message(Chat::System, "You have successfully swapped to %s.", GetClassIDName(m_MercPP.class_));
 }
 
