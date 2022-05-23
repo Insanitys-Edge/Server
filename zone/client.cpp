@@ -11455,6 +11455,11 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 			m_PlayerPP.spell_book[i] = m_pp.spell_book[i];
 		}
 
+		for (int i = 0; i < MAX_PP_DISCIPLINES; i++)
+		{
+			m_PlayerPP.disciplines.values[i] = m_pp.disciplines.values[i];
+		}
+
 		//delete players' current spells
 		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
 		{
@@ -11465,6 +11470,12 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 		{
 			if (m_PlayerPP.spell_book[i] != 0xFFFFFFFF)
 				FakeUnscribeSpell(i);
+		}
+
+		for (int i = 0; i < MAX_PP_DISCIPLINES; i++)
+		{
+			if (m_PlayerPP.disciplines.values[i] != 0xFFFFFFFF)
+				FakeUntrainDisc(i);
 		}
 
 
@@ -11478,6 +11489,11 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 			m_pp.spell_book[i] = m_MercPP.spell_book[i];
 		}
 
+		for (int i = 0; i < MAX_PP_DISCIPLINES; i++)
+		{
+			m_pp.disciplines.values[i] = m_MercPP.disciplines.values[i];
+		}
+
 		//copy merc spells to client
 		for (int i = 0; i < EQ::spells::SPELL_GEM_COUNT; i++)
 		{
@@ -11489,6 +11505,8 @@ void Client::SwapLoadedSpellsWithMerc(PlayerProfile_Struct& m_MercPP, PlayerProf
 			if (m_MercPP.spell_book[i] != 0xFFFFFFFF)
 				FakeScribeSpell(m_MercPP.spell_book[i], i);
 		}
+
+		SendDisciplineUpdate();
 
 		for (int i = 0; i < EQ::skills::SkillCount; i++)
 		{

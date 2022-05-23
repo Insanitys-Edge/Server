@@ -5429,6 +5429,14 @@ void Client::UntrainDisc(int slot, bool update_client, bool defer_save)
 	}
 }
 
+void Client::FakeUntrainDisc(int slot)
+{
+	if (slot >= MAX_PP_DISCIPLINES || slot < 0) {
+		return;
+	}
+	SendDisciplineUpdate();
+}
+
 void Client::UntrainDiscAll(bool update_client)
 {
 	for (int i = 0; i < MAX_PP_DISCIPLINES; i++) {
