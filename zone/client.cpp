@@ -629,12 +629,7 @@ bool Client::Save(uint8 iCommitNow) {
 	m_pp.heading = m_Position.w;
 
 	/* Mana and HP */
-	if (GetHP() <= 0) {
-		m_pp.cur_hp = GetMaxHP();
-	}
-	else {
-		m_pp.cur_hp = GetHP();
-	}
+	m_pp.cur_hp = GetHP();
 
 	m_pp.mana = current_mana;
 	m_pp.endurance = current_endurance;
