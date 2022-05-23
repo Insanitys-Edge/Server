@@ -1745,7 +1745,7 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 				if (!client->HasZoneFlag(flag_granted.c_str()))
 				{
 					client->SetZoneFlag(flag_granted.c_str());
-					Message(15, "You gain a progression flag! (%s)", flag_granted.c_str());
+					client->Message(15, "You gain a progression flag! (%s)", flag_granted.c_str());
 					client->CheckProgressionFlagUnlockPrerequisites();
 				}
 				removeItems.push_back(item_data);
@@ -1756,7 +1756,7 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 				int32 MaxLevelForAA = level + 10;
 				if (client->GetLevel() <= MaxLevelForAA)
 				{
-					Message(15, "You gain an AA point for defeating a rare creature!");
+					client->Message(15, "You gain an AA point for defeating a rare creature!");
 					client->AddAAPoints(item_data->charges);
 				}
 				removeItems.push_back(item_data);
