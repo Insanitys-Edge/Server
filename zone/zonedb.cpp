@@ -1758,7 +1758,7 @@ bool ZoneDatabase::SaveCharacterData(uint32 character_id, uint32 account_id, Pla
 		"%u,"  // exp						  pp->exp,								" exp,
 		"%u,"  // points					  pp->points,							" points,                    "
 		"%u,"  // mana						  pp->mana,								" mana,                      "
-		"%u,"  // cur_hp					  pp->cur_hp,							" cur_hp,                    "
+		"%i,"  // cur_hp					  pp->cur_hp,							" cur_hp,                    "
 		"%u,"  // str						  pp->STR,								" str,                       "
 		"%u,"  // sta						  pp->STA,								" sta,                       "
 		"%u,"  // cha						  pp->CHA,								" cha,                       "

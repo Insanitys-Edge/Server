@@ -966,7 +966,7 @@ struct PlayerProfile_Struct
 /*2456*/	uint32				unknown2492;
 /*2460*/	uint32				points;				// Unspent Practice points
 /*2464*/	uint32				mana;				// current mana
-/*2468*/	uint32				cur_hp;				// current hp
+/*2468*/	int32				cur_hp;				// current hp
 /*2472*/	uint32				unknown2508;		// 0x05
 /*2476*/	uint32				STR;				// Strength
 /*2480*/	uint32				STA;				// Stamina
