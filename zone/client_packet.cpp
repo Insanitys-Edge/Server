@@ -5925,8 +5925,7 @@ void Client::Handle_OP_EnvDamage(const EQApplicationPacket *app)
 	}
 
 	if (GetHP() <= 0) {
-		mod_client_death_env();
-		Death(0, 32000, SPELL_UNKNOWN, EQ::skills::SkillHandtoHand);
+		SetHP(1);
 	}
 	SendHPUpdate();
 	return;

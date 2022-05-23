@@ -11381,8 +11381,11 @@ void Client::SwapWithClass(uint32 class_id)
 			SendAlternateAdvancementStats();
 
 			//Recalc bonuses, we have new data across the board
-			CalcBonuses();
+			CalcBonuses();	
+			
+			int resurrection_sickness_spell_id = (RuleI(Character, ResurrectionSicknessSpellID));
 
+			SpellOnTarget(resurrection_sickness_spell_id, this);
 			SetHP(1);
 			SetMana(0);
 			SetEndurance(0);

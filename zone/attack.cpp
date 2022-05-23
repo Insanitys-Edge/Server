@@ -2841,10 +2841,12 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 		m_pp.zoneInstance = m_pp.binds[0].instance_id;
 		if (GetLevel() >= 10)
 		{
-			SpellOnTarget(756, this);
+			int resurrection_sickness_spell_id = (RuleI(Character, ResurrectionSicknessSpellID));
+
+			SpellOnTarget(resurrection_sickness_spell_id, this);
 			SetHP(1);
-			SetMana(1);
-			SetEndurance(1);
+			SetMana(0);
+			SetEndurance(0);
 		}
 		database.MoveCharacterToZone(CharacterID(), m_pp.zone_id);
 		Save();

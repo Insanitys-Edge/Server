@@ -865,6 +865,19 @@ int Mob::_GetRunSpeed() const {
 		}
 	}
 
+	if (IsClient() && GetIntHPRatio() <= 20)
+	{
+		speed_mod = (int)((double)speed_mod * 0.75);
+	}
+	else if (IsClient() && GetIntHPRatio() < 15)
+	{
+		speed_mod = (int)((double)speed_mod * 0.50);
+	}
+	else if (IsClient() && GetIntHPRatio() < 5)
+	{
+		speed_mod = (int)((double)speed_mod * 0.20);
+	}
+
 	if(speed_mod < 1)
 	{
 		return(0);
@@ -1483,6 +1496,7 @@ void Mob::SendHPUpdate(bool force_update_all)
 			ResetHPUpdateTimer();
 
 			CastToClient()->SendEdgeHPStats();
+			CastToClient()->SendEdgeMovementStats();
 			// Used to check if HP has changed to update self next round
 			last_hp = current_hp;
 		}
