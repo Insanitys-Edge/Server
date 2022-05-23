@@ -11385,7 +11385,6 @@ void Client::SwapWithClass(uint32 class_id)
 			SetHP(0);
 			SetMana(0);
 			SetEndurance(0);
-			SendEdgeMovementStats();
 			SendHPUpdate();
 			SendManaUpdate();
 			SendEnduranceUpdate();
