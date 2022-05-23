@@ -2742,11 +2742,6 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 
 		//this generates a lot of 'updates' to the client that the client does not need
 		BuffFadeNonPersistDeath();
-		if (GetLevel() >= 10)
-		{
-			SpellOnTarget(756, this);
-			SetHP(base_hp / 5);
-		}
 		if (RuleB(Character, UnmemSpellsOnDeath)) {
 			if ((ClientVersionBit() & EQ::versions::maskSoFAndLater) && RuleB(Character, RespawnFromHover))
 				UnmemSpellAll(true);
@@ -2844,6 +2839,13 @@ bool Client::Death(Mob* killerMob, int64 damage, uint16 spell, EQ::skills::Skill
 		dead_timer.Start(5000, true);
 		m_pp.zone_id = m_pp.binds[0].zone_id;
 		m_pp.zoneInstance = m_pp.binds[0].instance_id;
+		if (GetLevel() >= 10)
+		{
+			SpellOnTarget(756, this);
+			SetHP(1);
+			SetMana(1);
+			SetEndurance(1);
+		}
 		database.MoveCharacterToZone(CharacterID(), m_pp.zone_id);
 		Save();
 		GoToDeath();
