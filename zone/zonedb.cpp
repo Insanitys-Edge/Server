@@ -2013,7 +2013,7 @@ bool ZoneDatabase::LoadCharacterLootLockouts(std::map<uint32, LootLockout>& loot
 		memset(&lootLockout, 0, sizeof(LootLockout));
 		uint32 npctype_id = atoi(row[2]);
 		lootLockout.account_id = atoi(row[0]);
-		lootLockout.expirydate = atoi(row[1]);
+		lootLockout.expirydate = atoll(row[1]);
 		lootLockout.npctype_id = npctype_id;
 		lootLockout.aa_only = atoi(row[3]);
 		loot_lockout_list[npctype_id] = lootLockout;

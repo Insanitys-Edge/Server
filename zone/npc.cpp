@@ -62,77 +62,77 @@ extern EntityList entity_list;
 
 NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &position, GravityBehavior iflymode, bool IsCorpse)
 	: Mob(
-	npc_type_data->name,
-	npc_type_data->lastname,
-	npc_type_data->max_hp,
-	npc_type_data->max_hp,
-	npc_type_data->gender,
-	npc_type_data->race,
-	npc_type_data->class_,
-	(bodyType) npc_type_data->bodytype,
-	npc_type_data->deity,
-	npc_type_data->level,
-	npc_type_data->npc_id,
-	npc_type_data->size,
-	npc_type_data->runspeed,
-	position,
-	npc_type_data->light, // innate_light
-	npc_type_data->texture,
-	npc_type_data->helmtexture,
-	npc_type_data->AC,
-	npc_type_data->ATK,
-	npc_type_data->STR,
-	npc_type_data->STA,
-	npc_type_data->DEX,
-	npc_type_data->AGI,
-	npc_type_data->INT,
-	npc_type_data->WIS,
-	npc_type_data->CHA,
-	npc_type_data->haircolor,
-	npc_type_data->beardcolor,
-	npc_type_data->eyecolor1,
-	npc_type_data->eyecolor2,
-	npc_type_data->hairstyle,
-	npc_type_data->luclinface,
-	npc_type_data->beard,
-	npc_type_data->drakkin_heritage,
-	npc_type_data->drakkin_tattoo,
-	npc_type_data->drakkin_details,
-	npc_type_data->armor_tint,
-	0,
-	npc_type_data->see_invis,            // pass see_invis/see_ivu flags to mob constructor
-	npc_type_data->see_invis_undead,
-	npc_type_data->see_hide,
-	npc_type_data->see_improved_hide,
-	npc_type_data->hp_regen,
-	npc_type_data->mana_regen,
-	npc_type_data->qglobal,
-	npc_type_data->maxlevel,
-	npc_type_data->scalerate,
-	npc_type_data->armtexture,
-	npc_type_data->bracertexture,
-	npc_type_data->handtexture,
-	npc_type_data->legtexture,
-	npc_type_data->feettexture,
-	npc_type_data->use_model,
-	npc_type_data->always_aggro,
-	npc_type_data->hp_regen_per_second,
-	npc_type_data->ooc_hp_regen,
-	npc_type_data->ooc_mana_regen
-),
-	  attacked_timer(CombatEventTimer_expire),
-	  swarm_timer(100),
-	  classattack_timer(1000),
-	  monkattack_timer(1000),
-	  knightattack_timer(1000),
-	  assist_timer(AIassistcheck_delay),
-	  qglobal_purge_timer(30000),
-	  send_hp_update_timer(2000),
-	  enraged_timer(1000),
-	  taunt_timer(TauntReuseTime * 1000),
-	  m_SpawnPoint(position),
-	  m_GuardPoint(-1, -1, -1, 0),
-	  m_GuardPointSaved(0, 0, 0, 0)
+		npc_type_data->name,
+		npc_type_data->lastname,
+		npc_type_data->max_hp,
+		npc_type_data->max_hp,
+		npc_type_data->gender,
+		npc_type_data->race,
+		npc_type_data->class_,
+		(bodyType)npc_type_data->bodytype,
+		npc_type_data->deity,
+		npc_type_data->level,
+		npc_type_data->npc_id,
+		npc_type_data->size,
+		npc_type_data->runspeed,
+		position,
+		npc_type_data->light, // innate_light
+		npc_type_data->texture,
+		npc_type_data->helmtexture,
+		npc_type_data->AC,
+		npc_type_data->ATK,
+		npc_type_data->STR,
+		npc_type_data->STA,
+		npc_type_data->DEX,
+		npc_type_data->AGI,
+		npc_type_data->INT,
+		npc_type_data->WIS,
+		npc_type_data->CHA,
+		npc_type_data->haircolor,
+		npc_type_data->beardcolor,
+		npc_type_data->eyecolor1,
+		npc_type_data->eyecolor2,
+		npc_type_data->hairstyle,
+		npc_type_data->luclinface,
+		npc_type_data->beard,
+		npc_type_data->drakkin_heritage,
+		npc_type_data->drakkin_tattoo,
+		npc_type_data->drakkin_details,
+		npc_type_data->armor_tint,
+		0,
+		npc_type_data->see_invis,            // pass see_invis/see_ivu flags to mob constructor
+		npc_type_data->see_invis_undead,
+		npc_type_data->see_hide,
+		npc_type_data->see_improved_hide,
+		npc_type_data->hp_regen,
+		npc_type_data->mana_regen,
+		npc_type_data->qglobal,
+		npc_type_data->maxlevel,
+		npc_type_data->scalerate,
+		npc_type_data->armtexture,
+		npc_type_data->bracertexture,
+		npc_type_data->handtexture,
+		npc_type_data->legtexture,
+		npc_type_data->feettexture,
+		npc_type_data->use_model,
+		npc_type_data->always_aggro,
+		npc_type_data->hp_regen_per_second,
+		npc_type_data->ooc_hp_regen,
+		npc_type_data->ooc_mana_regen
+	),
+	attacked_timer(CombatEventTimer_expire),
+	swarm_timer(100),
+	classattack_timer(1000),
+	monkattack_timer(1000),
+	knightattack_timer(1000),
+	assist_timer(AIassistcheck_delay),
+	qglobal_purge_timer(30000),
+	send_hp_update_timer(2000),
+	enraged_timer(1000),
+	taunt_timer(TauntReuseTime * 1000),
+	m_SpawnPoint(position),
+	m_GuardPoint(-1, -1, -1, 0),
+	m_GuardPointSaved(0, 0, 0, 0)
 {
 	//What is the point of this, since the names get mangled..
 	Mob *mob = entity_list.GetMob(name);
@@ -142,9 +142,9 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 
 	int moblevel = GetLevel();
 
-	NPCTypedata      = npc_type_data;
+	NPCTypedata = npc_type_data;
 	NPCTypedata_ours = nullptr;
-	respawn2         = in_respawn;
+	respawn2 = in_respawn;
 
 	swarm_timer.Disable();
 
@@ -152,42 +152,42 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 		size = GetRaceGenderDefaultHeight(race, gender);
 	}
 
-	taunting       = false;
-	proximity      = nullptr;
-	copper         = 0;
-	silver         = 0;
-	gold           = 0;
-	platinum       = 0;
-	max_dmg        = npc_type_data->max_dmg;
-	min_dmg        = npc_type_data->min_dmg;
-	attack_count   = npc_type_data->attack_count;
-	grid           = 0;
-	wp_m           = 0;
-	max_wp         = 0;
-	save_wp        = 0;
+	taunting = false;
+	proximity = nullptr;
+	copper = 0;
+	silver = 0;
+	gold = 0;
+	platinum = 0;
+	max_dmg = npc_type_data->max_dmg;
+	min_dmg = npc_type_data->min_dmg;
+	attack_count = npc_type_data->attack_count;
+	grid = 0;
+	wp_m = 0;
+	max_wp = 0;
+	save_wp = 0;
 	spawn_group_id = 0;
-	swarmInfoPtr   = nullptr;
-	spellscale     = npc_type_data->spellscale;
-	healscale      = npc_type_data->healscale;
-	pAggroRange    = npc_type_data->aggroradius;
-	pAssistRange   = npc_type_data->assistradius;
-	findable       = npc_type_data->findable;
-	trackable      = npc_type_data->trackable;
-	MR             = npc_type_data->MR;
-	CR             = npc_type_data->CR;
-	DR             = npc_type_data->DR;
-	FR             = npc_type_data->FR;
-	PR             = npc_type_data->PR;
-	Corrup         = npc_type_data->Corrup;
-	PhR          = npc_type_data->PhR;
-	STR          = npc_type_data->STR;
-	STA          = npc_type_data->STA;
-	AGI          = npc_type_data->AGI;
-	DEX          = npc_type_data->DEX;
-	INT          = npc_type_data->INT;
-	WIS          = npc_type_data->WIS;
-	CHA          = npc_type_data->CHA;
-	npc_mana     = npc_type_data->Mana;
+	swarmInfoPtr = nullptr;
+	spellscale = npc_type_data->spellscale;
+	healscale = npc_type_data->healscale;
+	pAggroRange = npc_type_data->aggroradius;
+	pAssistRange = npc_type_data->assistradius;
+	findable = npc_type_data->findable;
+	trackable = npc_type_data->trackable;
+	MR = npc_type_data->MR;
+	CR = npc_type_data->CR;
+	DR = npc_type_data->DR;
+	FR = npc_type_data->FR;
+	PR = npc_type_data->PR;
+	Corrup = npc_type_data->Corrup;
+	PhR = npc_type_data->PhR;
+	STR = npc_type_data->STR;
+	STA = npc_type_data->STA;
+	AGI = npc_type_data->AGI;
+	DEX = npc_type_data->DEX;
+	INT = npc_type_data->INT;
+	WIS = npc_type_data->WIS;
+	CHA = npc_type_data->CHA;
+	npc_mana = npc_type_data->Mana;
 
 	//quick fix of ordering if they screwed it up in the DB
 	if (max_dmg < min_dmg) {

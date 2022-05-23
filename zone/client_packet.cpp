@@ -4807,19 +4807,19 @@ void Client::Handle_OP_Consider(const EQApplicationPacket *app)
 		SendColoredText(color, std::string("This creature would take an army to defeat!"));
 	}
 
-	if (tmob && tmob->IsNPC() && CastToNPC()->GetFlagItem() != 0)
+	if (tmob && tmob->IsNPC() && tmob->CastToNPC()->GetFlagItem() != 0)
 	{
-		time_t curTime = time(0);
+		time_t curTime = time(nullptr);
 
 		auto LootLockoutItr = loot_lockouts.find(tmob->GetNPCTypeID());
 		if (LootLockoutItr == loot_lockouts.end() || !LootLockoutItr->second.HasLockout(curTime))
 		{
-			if (CastToNPC()->GetFlagItem() == 999)
+			if (tmob->CastToNPC()->GetFlagItem() == 999)
 			{
 				SendColoredText(Chat::System, "This creature will grant alternate advancement on looting its corpse.");
 				SendColoredText(Chat::System, "You are currently not locked out from this creature.");
 			}
-			else if (CastToNPC()->GetFlagItem() == 300)
+			else if (tmob->CastToNPC()->GetFlagItem() == 300)
 			{
 				SendColoredText(Chat::System, "You are eligible for progression flags and standard loot upon looting the creature's corpse.");
 			}
@@ -4832,14 +4832,14 @@ void Client::Handle_OP_Consider(const EQApplicationPacket *app)
 		{
 			int64 durationRemaining = LootLockoutItr->second.expirydate - curTime;
 			std::string time_string = ConvertSecondsToTime(durationRemaining, true);
-			if (CastToNPC()->GetFlagItem() == 999)
+			if (tmob->CastToNPC()->GetFlagItem() == 999)
 			{
 				SendColoredText(Chat::System, fmt::format(
 					"This creature grants AA, but you are locked out of this NPC for {}.",
 					time_string
 				).c_str());
 			}
-			else if (CastToNPC()->GetFlagItem() == 300)
+			else if (tmob->CastToNPC()->GetFlagItem() == 300)
 			{
 				SendColoredText(Chat::System, fmt::format(
 					"This creature grants flags, progression-based AA, and loot but you are locked out of this NPC for {}.",

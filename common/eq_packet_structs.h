@@ -5765,7 +5765,7 @@ struct LootLockout
 {
 	uint32 account_id;
 	uint32 npctype_id;
-	uint32 expirydate;
+	int64 expirydate;
 	bool aa_only;
 
 	LootLockout()
