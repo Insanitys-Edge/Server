@@ -4831,7 +4831,7 @@ void Client::Handle_OP_Consider(const EQApplicationPacket *app)
 		else
 		{
 			int64 durationRemaining = LootLockoutItr->second.expirydate - curTime;
-			std::string time_string = ConvertSecondsToTime(durationRemaining, true);
+			std::string time_string = ConvertSecondsToTime(durationRemaining, false);
 			if (tmob->CastToNPC()->GetFlagItem() == 999)
 			{
 				SendColoredText(Chat::System, fmt::format(
