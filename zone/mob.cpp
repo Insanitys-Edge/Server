@@ -865,11 +865,6 @@ int Mob::_GetRunSpeed() const {
 		}
 	}
 
-	 if (IsClient() && GetHP())
-	{
-		speed_mod = (int)((double)speed_mod * 0.20);
-	}
-
 	if(speed_mod < 1 || GetHP() == 0)
 	{
 		return(0);
