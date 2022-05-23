@@ -754,7 +754,7 @@ int Mob::_GetWalkSpeed() const {
 	if (!has_horse && movemod != 0)
 		speed_mod += (base_run * movemod / 100);
 
-	if(speed_mod < 1)
+	if(speed_mod < 1 || GetHP() <= 0)
 		return(0);
 
 	//runspeed cap.
@@ -865,20 +865,12 @@ int Mob::_GetRunSpeed() const {
 		}
 	}
 
-	if (IsClient() && GetIntHPRatio() <= 20)
-	{
-		speed_mod = (int)((double)speed_mod * 0.75);
-	}
-	else if (IsClient() && GetIntHPRatio() < 15)
-	{
-		speed_mod = (int)((double)speed_mod * 0.50);
-	}
-	else if (IsClient() && GetIntHPRatio() < 5)
+	 if (IsClient() && GetHP())
 	{
 		speed_mod = (int)((double)speed_mod * 0.20);
 	}
 
-	if(speed_mod < 1)
+	if(speed_mod < 1 || GetHP() == 0)
 	{
 		return(0);
 	}
