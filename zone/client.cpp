@@ -11382,7 +11382,7 @@ void Client::SwapWithClass(uint32 class_id)
 
 			//Recalc bonuses, we have new data across the board
 			CalcBonuses();	
-			SetHP(0);
+			SetHP(-5);
 			SetMana(0);
 			SetEndurance(0);
 			SendHPUpdate();
