@@ -31,6 +31,8 @@ void command_reload(Client *c, const Seperator *sep)
 	bool is_world = !strcasecmp(sep->arg[1], "world");
 	bool is_zone = !strcasecmp(sep->arg[1], "zone");
 	bool is_zone_points = !strcasecmp(sep->arg[1], "zone_points");
+	bool is_npctype = !strcasecmp(sep->arg[1], "npctype");
+
 
 	if (
 		!is_aa &&
@@ -55,7 +57,8 @@ void command_reload(Client *c, const Seperator *sep)
 		!is_veteran_rewards &&
 		!is_world &&
 		!is_zone &&
-		!is_zone_points
+		!is_zone_points &&
+		!is_npctype
 	) {
 		c->SendReloadCommandMessages();
 		return;
@@ -174,7 +177,12 @@ void command_reload(Client *c, const Seperator *sep)
 
 		c->Message(Chat::White, "Attempting to reload Traps globally.");
 		pack = new ServerPacket(ServerOP_ReloadTraps, 0);
-	} else if (is_variables) {
+	}
+	else if (is_npctype) {
+		c->Message(Chat::White, "Attempting to reload local NPC type cache.");
+		zone->ClearNPCTypeCache(0);
+	}
+	else if (is_variables) {
 		c->Message(Chat::White, "Attempting to reload Variables globally.");
 		pack = new ServerPacket(ServerOP_ReloadVariables, 0);
 	} else if (is_veteran_rewards) {

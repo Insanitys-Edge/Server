@@ -11815,6 +11815,20 @@ void Client::SendReloadCommandMessages() {
 		).c_str()
 	);
 
+	auto npc_types_link = EQ::SayLinkEngine::GenerateQuestSaylink(
+		"#reload npctype",
+		false,
+		"#reload npctype"
+	);
+
+	Message(
+		Chat::White,
+		fmt::format(
+			"Usage: {} - Reloads NPC types locally.",
+			npc_types_link
+		).c_str()
+	);
+
 	auto objects_link = EQ::SayLinkEngine::GenerateQuestSaylink(
 		"#reload objects",
 		false,
