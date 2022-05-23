@@ -5775,6 +5775,16 @@ struct LootLockout
 		expirydate = 0;
 		aa_only = false;
 	}
+
+	bool HasLockout(time_t curTime)
+	{
+		if (account_id == 0)
+			return false;
+
+		if (curTime >= expirydate || expirydate == 0)
+			return false;
+		return true;
+	}
 };
 
 struct PlayerEngagementRecord

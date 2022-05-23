@@ -870,6 +870,8 @@ void Client::SetLevel(uint8 set_level, bool command)
 	LearnDisciplines(1, level);
 	UpdateMercLevel();
 
+	AddAAPoints(level);
+
 	Save();
 }
 

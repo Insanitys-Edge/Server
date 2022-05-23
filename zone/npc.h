@@ -333,6 +333,7 @@ public:
 	inline const char* GetAmmoIDfile() const { return ammo_idfile; }
 
 	std::string GetFlagGranted() const { return flag_granted; }
+	uint32 GetFlagItem() const { return flag_item; }
 
 	void ModifyStatsOnCharm(bool is_charm_removed);
 
