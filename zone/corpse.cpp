@@ -1753,12 +1753,8 @@ void Corpse::MakeLootRequestPackets(Client* client, const EQApplicationPacket* a
 
 			if (item_data->item_id == 999)
 			{
-				int32 MaxLevelForAA = level + 10;
-				if (client->GetLevel() <= MaxLevelForAA)
-				{
-					client->Message(15, "You gain an AA point for defeating a rare creature!");
-					client->AddAAPoints(item_data->charges);
-				}
+				client->Message(15, "You gain an AA point for defeating a rare creature!");
+				client->AddAAPoints(item_data->charges);
 				removeItems.push_back(item_data);
 			}
 		}
