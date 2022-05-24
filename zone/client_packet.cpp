@@ -5924,12 +5924,18 @@ void Client::Handle_OP_EnvDamage(const EQApplicationPacket *app)
 		parse->EventPlayer(EVENT_ENVIRONMENTAL_DAMAGE, this, export_string, 0);
 	}
 
-	if (GetHP() >= 0) {
+	if (GetHP() <= 0) {
 		if (GetXTargetAutoMgr() && GetXTargetAutoMgr()->empty())
 		{
 			if(ed->dmgtype != EQ::constants::EnvironmentalDamage::Drowning && ed->dmgtype != EQ::constants::EnvironmentalDamage::Lava)
 			{
 				SetHP(-5);
+				SetMana(0);
+				SetEndurance(0);
+			}
+			else
+			{
+				SetHP(1);
 				SetMana(0);
 				SetEndurance(0);
 			}
