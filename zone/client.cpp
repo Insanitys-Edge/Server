@@ -635,7 +635,7 @@ bool Client::Save(uint8 iCommitNow) {
 	m_pp.endurance = current_endurance;
 
 	/* Save Character Currency */
-	database.SaveCharacterCurrency(CharacterID(), &m_pp);
+	database.SaveCharacterCurrency(AccountID(), &m_pp);
 
 	/* Save Current Bind Points */
 	for (int i = 0; i < 5; i++)
