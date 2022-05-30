@@ -883,7 +883,7 @@ void MobMovementManager::SendCommandToClients(
 
 	FillCommandStruct(spu, mob, delta_x, delta_y, delta_z, delta_heading, anim);
 
-	if (range == ClientRangeAny) {
+	//if (range == ClientRangeAny) {
 		for (auto &c : _impl->Clients) {
 			if (single_client && c != single_client) {
 				continue;
@@ -907,8 +907,8 @@ void MobMovementManager::SendCommandToClients(
 
 			c->QueuePacket(&outapp, false);
 		}
-	}
-	else {
+	//}
+	/*else {
 		float short_range = RuleR(Pathing, ShortMovementUpdateRange);
 		float long_range  = zone->GetNpcPositionUpdateDistance();
 
@@ -958,7 +958,7 @@ void MobMovementManager::SendCommandToClients(
 				c->QueuePacket(&outapp, false);
 			}
 		}
-	}
+	}*/
 }
 
 /**
