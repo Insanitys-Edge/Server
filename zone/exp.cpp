@@ -737,8 +737,6 @@ void Client::SetEXP(uint32 set_exp, uint32 set_aaxp, bool isrezzexp) {
 		}
 	}
 	bool okToSet = false;
-#ifdef EDGE_PROGRESSION_RELEASE
-#endif
 
 	if ((GetLevel() != check_level) && !(check_level >= maxlevel)) {
 		char val1[20]={0};
