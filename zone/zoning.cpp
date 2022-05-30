@@ -1090,23 +1090,6 @@ void Client::CheckProgressionFlagUnlockPrerequisites()
 {
 	//Pre-Planar
 
-	bool PrePlanar = zone_flags.find("Pre Planar") != zone_flags.end();
-
-	if (!PrePlanar)
-	{
-		bool hasNagafenFlag = zone_flags.find("Lord Nagafen") != zone_flags.end();
-		bool hasVoxFlag = zone_flags.find("Lady Vox") != zone_flags.end();
-		bool hasPhinigelFlag = zone_flags.find("Phinigel Autropos") != zone_flags.end();
-
-		if (hasNagafenFlag && hasVoxFlag && hasPhinigelFlag)
-		{
-			Message(15, "You gain a progression flag! You have now completed the Pre Planar flagging process.");
-			SetZoneFlag("Pre Planar");
-		}
-		return;
-	}
-
-
 	bool Kunark = zone_flags.find("Kunark") != zone_flags.end();
 
 	//Kunark
@@ -1115,8 +1098,11 @@ void Client::CheckProgressionFlagUnlockPrerequisites()
 		bool hasInnyFlag = zone_flags.find("Innoruuk") != zone_flags.end();
 		bool hasYaelFlag = zone_flags.find("Master Yael") != zone_flags.end();
 		bool hasDracoFlag = zone_flags.find("a dracoliche") != zone_flags.end();
+		bool hasNagafenFlag = zone_flags.find("Lord Nagafen") != zone_flags.end();
+		bool hasVoxFlag = zone_flags.find("Lady Vox") != zone_flags.end();
+		bool hasPhinigelFlag = zone_flags.find("Phinigel Autropos") != zone_flags.end();
 
-		if (hasInnyFlag && hasYaelFlag && hasDracoFlag)
+		if (hasInnyFlag && hasYaelFlag && hasDracoFlag && hasNagafenFlag && hasVoxFlag && hasPhinigelFlag)
 		{
 			SetZoneFlag("Kunark");
 		}
