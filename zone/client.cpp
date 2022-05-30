@@ -11387,6 +11387,9 @@ void Client::SwapWithClass(uint32 class_id)
 
 			SendArmorAppearance();
 
+			if (GetClass() != WARRIOR)
+				berserk = false;
+
 			//Save, just so we can test saving to DB.
 			Save();
 		}
