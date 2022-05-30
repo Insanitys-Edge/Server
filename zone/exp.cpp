@@ -707,6 +707,15 @@ void Client::SetEXP(uint32 set_exp, uint32 set_aaxp, bool isrezzexp) {
 	if(maxlevel <= 1)
 		maxlevel = RuleI(Character, MaxLevel) + 1;
 
+	if (!HasZoneFlag("Kunark"))
+	{
+		maxlevel = 60; // TEMP for testing.
+	}
+	else if (!HasZoneFlag("Planes of Power"))
+	{
+		maxlevel = 60;
+	}
+
 	if(check_level > maxlevel) {
 		check_level = maxlevel;
 
@@ -727,6 +736,9 @@ void Client::SetEXP(uint32 set_exp, uint32 set_aaxp, bool isrezzexp) {
 			}
 		}
 	}
+	bool okToSet = false;
+#ifdef EDGE_PROGRESSION_RELEASE
+#endif
 
 	if ((GetLevel() != check_level) && !(check_level >= maxlevel)) {
 		char val1[20]={0};
