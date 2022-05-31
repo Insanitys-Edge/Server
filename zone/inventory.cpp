@@ -2267,7 +2267,7 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 
 	if (dst_slot_id == EQ::invslot::slotCharm)
 	{
-		ApplyCharmRaceAppearanceSwap(dst_inst);
+		ApplyCharmRaceAppearanceSwap(src_inst);
 	}
 	else if (src_slot_id == EQ::invslot::slotCharm && dst_slot_id != EQ::invslot::slotCharm)
 	{
