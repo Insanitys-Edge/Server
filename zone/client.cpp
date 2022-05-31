@@ -11385,6 +11385,9 @@ void Client::SwapWithClass(uint32 class_id)
 			SendManaUpdate();
 			SendEnduranceUpdate();
 
+			EQ::ItemInstance* inst = m_inv.GetItem(EQ::invslot::slotCharm);
+			ApplyCharmRaceAppearanceSwap(inst);
+
 			SendArmorAppearance();
 
 			if (GetClass() != WARRIOR && berserk)

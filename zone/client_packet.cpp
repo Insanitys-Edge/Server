@@ -1132,11 +1132,11 @@ void Client::Handle_Connect_OP_ZoneComplete(const EQApplicationPacket *app)
 	return;
 }
 
-void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
+void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket* app)
 {
 	if (app->size != sizeof(ClientZoneEntry_Struct))
 		return;
-	ClientZoneEntry_Struct *cze = (ClientZoneEntry_Struct *)app->pBuffer;
+	ClientZoneEntry_Struct* cze = (ClientZoneEntry_Struct*)app->pBuffer;
 
 	if (strlen(cze->char_name) > 63)
 		return;
@@ -1333,7 +1333,8 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	int client_max_level = 0;
 	if (RuleB(Character, PerCharacterQglobalMaxLevel)) {
 		client_max_level = GetCharMaxLevelFromQGlobal();
-	} else if (RuleB(Character, PerCharacterBucketMaxLevel)) {
+	}
+	else if (RuleB(Character, PerCharacterBucketMaxLevel)) {
 		client_max_level = GetCharMaxLevelFromBucket();
 	}
 	SetClientMaxLevel(client_max_level);
@@ -1456,6 +1457,10 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 
 	/* Load Character Key Ring */
 	KeyRingLoad();
+
+	/* Reapply race texture/faction if on item */
+	EQ::ItemInstance* inst = m_inv.GetItem(EQ::invslot::slotCharm);
+	ApplyCharmRaceAppearanceSwap(inst);
 
 	/* Send Group Members via PP */
 	uint32 groupid = database.GetGroupID(GetName());

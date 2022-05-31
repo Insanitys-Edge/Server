@@ -1917,24 +1917,24 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 	uint32 dst_slot_check = move_in->to_slot;
 	uint32 stack_count_check = move_in->number_in_stack;
 
-	if(!IsValidSlot(src_slot_check)){
+	if (!IsValidSlot(src_slot_check)) {
 		// SoF+ sends a Unix timestamp (should be int32) for src and dst slots every 10 minutes for some reason.
-		if(src_slot_check < 2147483647)
+		if (src_slot_check < 2147483647)
 			Message(Chat::Red, "Warning: Invalid slot move from slot %u to slot %u with %u charges!", src_slot_check, dst_slot_check, stack_count_check);
 		LogInventory("Invalid slot move from slot [{}] to slot [{}] with [{}] charges!", src_slot_check, dst_slot_check, stack_count_check);
 		return false;
 	}
 
-	if(!IsValidSlot(dst_slot_check)) {
+	if (!IsValidSlot(dst_slot_check)) {
 		// SoF+ sends a Unix timestamp (should be int32) for src and dst slots every 10 minutes for some reason.
-		if(src_slot_check < 2147483647)
+		if (src_slot_check < 2147483647)
 			Message(Chat::Red, "Warning: Invalid slot move from slot %u to slot %u with %u charges!", src_slot_check, dst_slot_check, stack_count_check);
 		LogInventory("Invalid slot move from slot [{}] to slot [{}] with [{}] charges!", src_slot_check, dst_slot_check, stack_count_check);
 		return false;
 	}
 
 	if (move_in->from_slot == move_in->to_slot) { // Item summon, no further processing needed
-		if(RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
+		if (RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
 		if (ClientVersion() >= EQ::versions::ClientVersion::RoF) { return true; } // Can't do RoF+
 
 		if (move_in->to_slot == EQ::invslot::slotCursor) {
@@ -1966,10 +1966,10 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 	if (move_in->to_slot == (uint32)INVALID_INDEX) {
 		if (move_in->from_slot == (uint32)EQ::invslot::slotCursor) {
 			LogInventory("Client destroyed item from cursor slot [{}]", move_in->from_slot);
-			if(RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
+			if (RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
 
-			EQ::ItemInstance *inst = m_inv.GetItem(EQ::invslot::slotCursor);
-			if(inst) {
+			EQ::ItemInstance* inst = m_inv.GetItem(EQ::invslot::slotCursor);
+			if (inst) {
 				parse->EventItem(EVENT_DESTROY_ITEM, this, inst, nullptr, "", 0);
 			}
 
@@ -1980,7 +1980,7 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 		}
 		else {
 			LogInventory("Deleted item from slot [{}] as a result of an inventory container tradeskill combine", move_in->from_slot);
-			if(RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
+			if (RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
 			DeleteItemInInventory(move_in->from_slot);
 			return true; // Item deletion
 		}
@@ -1997,15 +1997,15 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 	int16 src_slot_id = (int16)move_in->from_slot;
 	int16 dst_slot_id = (int16)move_in->to_slot;
 
-	if(IsBankSlot(src_slot_id) || IsBankSlot(dst_slot_id) || IsBankSlot(src_slot_check) || IsBankSlot(dst_slot_check)) {
+	if (IsBankSlot(src_slot_id) || IsBankSlot(dst_slot_id) || IsBankSlot(src_slot_check) || IsBankSlot(dst_slot_check)) {
 		uint32 distance = 0;
-		NPC *banker = entity_list.GetClosestBanker(this, distance);
+		NPC* banker = entity_list.GetClosestBanker(this, distance);
 
-		if(!banker || distance > USE_NPC_RANGE2)
+		if (!banker || distance > USE_NPC_RANGE2)
 		{
 			auto hacked_string = fmt::format("Player tried to make use of a banker(items) but {} is "
-							 "non-existant or too far away ({} units).",
-							 banker ? banker->GetName() : "UNKNOWN NPC", distance);
+				"non-existant or too far away ({} units).",
+				banker ? banker->GetName() : "UNKNOWN NPC", distance);
 			database.SetMQDetectionFlag(AccountName(), GetName(), hacked_string, zone->GetShortName());
 			Kick("Inventory desync");	// Kicking player to avoid item loss do to client and server inventories not being sync'd
 			return false;
@@ -2017,13 +2017,13 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 	uint32 dstitemid = 0;
 	EQ::ItemInstance* src_inst = m_inv.GetItem(src_slot_id);
 	EQ::ItemInstance* dst_inst = m_inv.GetItem(dst_slot_id);
-	if (src_inst){
+	if (src_inst) {
 		LogInventory("Src slot [{}] has item [{}] ([{}]) with [{}] charges in it", src_slot_id, src_inst->GetItem()->Name, src_inst->GetItem()->ID, src_inst->GetCharges());
 		srcitemid = src_inst->GetItem()->ID;
 		//SetTint(dst_slot_id,src_inst->GetColor());
 		if (src_inst->GetCharges() > 0 && (src_inst->GetCharges() < (int16)move_in->number_in_stack || move_in->number_in_stack > src_inst->GetItem()->StackSize))
 		{
-			Message(Chat::Red,"Error: Insufficient number in stack.");
+			Message(Chat::Red, "Error: Insufficient number in stack.");
 			return false;
 		}
 	}
@@ -2031,10 +2031,10 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 		LogInventory("Dest slot [{}] has item [{}] ([{}]) with [{}] charges in it", dst_slot_id, dst_inst->GetItem()->Name, dst_inst->GetItem()->ID, dst_inst->GetCharges());
 		dstitemid = dst_inst->GetItem()->ID;
 	}
-	if (Trader && srcitemid>0){
+	if (Trader && srcitemid > 0) {
 		EQ::ItemInstance* srcbag;
 		EQ::ItemInstance* dstbag;
-		uint32 srcbagid =0;
+		uint32 srcbagid = 0;
 		uint32 dstbagid = 0;
 
 		if (src_slot_id >= EQ::invbag::GENERAL_BAGS_BEGIN && src_slot_id <= EQ::invbag::GENERAL_BAGS_END) {
@@ -2048,11 +2048,11 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 				dstbagid = dstbag->GetItem()->ID;
 		}
 		if ((srcbagid && srcbag->GetItem()->BagType == EQ::item::BagTypeTradersSatchel) ||
-		    (dstbagid && dstbag->GetItem()->BagType == EQ::item::BagTypeTradersSatchel) ||
-		    (srcitemid && src_inst->GetItem()->BagType == EQ::item::BagTypeTradersSatchel) ||
-		    (dstitemid && dst_inst->GetItem()->BagType == EQ::item::BagTypeTradersSatchel)) {
+			(dstbagid && dstbag->GetItem()->BagType == EQ::item::BagTypeTradersSatchel) ||
+			(srcitemid && src_inst->GetItem()->BagType == EQ::item::BagTypeTradersSatchel) ||
+			(dstitemid && dst_inst->GetItem()->BagType == EQ::item::BagTypeTradersSatchel)) {
 			Trader_EndTrader();
-			Message(Chat::Red,"You cannot move your Trader Satchels, or items inside them, while Trading.");
+			Message(Chat::Red, "You cannot move your Trader Satchels, or items inside them, while Trading.");
 		}
 	}
 
@@ -2066,37 +2066,37 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 			move_in->from_slot = dst_slot_check;
 			move_in->to_slot = src_slot_check;
 			move_in->number_in_stack = dst_inst->GetCharges();
-			if(!SwapItem(move_in)) { LogInventory("Recursive SwapItem call failed due to non-existent destination item (charid: [{}], fromslot: [{}], toslot: [{}])", CharacterID(), src_slot_id, dst_slot_id); }
+			if (!SwapItem(move_in)) { LogInventory("Recursive SwapItem call failed due to non-existent destination item (charid: [{}], fromslot: [{}], toslot: [{}])", CharacterID(), src_slot_id, dst_slot_id); }
 		}
 
 		return false;
 	}
 	//verify shared bank transactions in the database
 	if (src_inst && src_slot_id >= EQ::invslot::SHARED_BANK_BEGIN && src_slot_id <= EQ::invbag::SHARED_BANK_BAGS_END) {
-		if(!database.VerifyInventory(account_id, src_slot_id, src_inst)) {
+		if (!database.VerifyInventory(account_id, src_slot_id, src_inst)) {
 			LogError("Player [{}] on account [{}] was found exploiting the shared bank.\n", GetName(), account_name);
-			DeleteItemInInventory(dst_slot_id,0,true);
+			DeleteItemInInventory(dst_slot_id, 0, true);
 			return(false);
 		}
-		if (src_slot_id >= EQ::invslot::SHARED_BANK_BEGIN && src_slot_id <= EQ::invslot::SHARED_BANK_END && src_inst->IsClassBag()){
+		if (src_slot_id >= EQ::invslot::SHARED_BANK_BEGIN && src_slot_id <= EQ::invslot::SHARED_BANK_END && src_inst->IsClassBag()) {
 			for (uint8 idx = EQ::invbag::SLOT_BEGIN; idx <= EQ::invbag::SLOT_END; idx++) {
 				const EQ::ItemInstance* baginst = src_inst->GetItem(idx);
-				if (baginst && !database.VerifyInventory(account_id, EQ::InventoryProfile::CalcSlotId(src_slot_id, idx), baginst)){
+				if (baginst && !database.VerifyInventory(account_id, EQ::InventoryProfile::CalcSlotId(src_slot_id, idx), baginst)) {
 					DeleteItemInInventory(EQ::InventoryProfile::CalcSlotId(src_slot_id, idx), 0, false);
 				}
 			}
 		}
 	}
 	if (dst_inst && dst_slot_id >= EQ::invslot::SHARED_BANK_BEGIN && dst_slot_id <= EQ::invbag::SHARED_BANK_BAGS_END) {
-		if(!database.VerifyInventory(account_id, dst_slot_id, dst_inst)) {
+		if (!database.VerifyInventory(account_id, dst_slot_id, dst_inst)) {
 			LogError("Player [{}] on account [{}] was found exploting the shared bank.\n", GetName(), account_name);
-			DeleteItemInInventory(src_slot_id,0,true);
+			DeleteItemInInventory(src_slot_id, 0, true);
 			return(false);
 		}
-		if (dst_slot_id >= EQ::invslot::SHARED_BANK_BEGIN && dst_slot_id <= EQ::invslot::SHARED_BANK_END && dst_inst->IsClassBag()){
+		if (dst_slot_id >= EQ::invslot::SHARED_BANK_BEGIN && dst_slot_id <= EQ::invslot::SHARED_BANK_END && dst_inst->IsClassBag()) {
 			for (uint8 idx = EQ::invbag::SLOT_BEGIN; idx <= EQ::invbag::SLOT_END; idx++) {
 				const EQ::ItemInstance* baginst = dst_inst->GetItem(idx);
-				if (baginst && !database.VerifyInventory(account_id, EQ::InventoryProfile::CalcSlotId(dst_slot_id, idx), baginst)){
+				if (baginst && !database.VerifyInventory(account_id, EQ::InventoryProfile::CalcSlotId(dst_slot_id, idx), baginst)) {
 					DeleteItemInInventory(EQ::InventoryProfile::CalcSlotId(dst_slot_id, idx), 0, false);
 				}
 			}
@@ -2108,8 +2108,8 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 	Mob* with = trade->With();
 	if (((with && with->IsClient() && dst_slot_id >= EQ::invslot::TRADE_BEGIN && dst_slot_id <= EQ::invslot::TRADE_END) ||
 		(dst_slot_id >= EQ::invslot::SHARED_BANK_BEGIN && dst_slot_id <= EQ::invbag::SHARED_BANK_BAGS_END))
-	&& GetInv().CheckNoDrop(src_slot_id)
-	&& RuleI(World, FVNoDropFlag) == 0 || RuleI(Character, MinStatusForNoDropExemptions) < Admin() && RuleI(World, FVNoDropFlag) == 2) {
+		&& GetInv().CheckNoDrop(src_slot_id)
+		&& RuleI(World, FVNoDropFlag) == 0 || RuleI(Character, MinStatusForNoDropExemptions) < Admin() && RuleI(World, FVNoDropFlag) == 2) {
 		auto ndh_inst = m_inv[src_slot_id];
 		std::string ndh_item_data;
 		if (ndh_inst == nullptr) {
@@ -2136,7 +2136,7 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 	}
 
 	// Step 3: Check for interaction with World Container (tradeskills)
-	if(m_tradeskill_object != nullptr) {
+	if (m_tradeskill_object != nullptr) {
 		if (src_slot_id >= EQ::invslot::WORLD_BEGIN && src_slot_id <= EQ::invslot::WORLD_END) {
 			// Picking up item from world container
 			EQ::ItemInstance* inst = m_tradeskill_object->PopItem(EQ::InventoryProfile::CalcBagIdx(src_slot_id));
@@ -2145,7 +2145,7 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 				safe_delete(inst);
 			}
 
-			if(RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in, true); } // QS Audit
+			if (RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in, true); } // QS Audit
 
 			return true;
 		}
@@ -2215,7 +2215,7 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 				database.SaveInventory(character_id, account_id, GetClass(), m_inv[src_slot_id], src_slot_id);
 			}
 
-			if(RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in, true); } // QS Audit
+			if (RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in, true); } // QS Audit
 
 			return true;
 		}
@@ -2237,7 +2237,7 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 
 			// Add cursor item to trade bucket
 			// Also sends trade information to other client of trade session
-			if(RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
+			if (RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
 
 			trade->AddEntity(dst_slot_id, move_in->number_in_stack);
 			if (dstitemid == 0)
@@ -2246,8 +2246,9 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 			}
 
 			return true;
-		} else {
-			if(RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
+		}
+		else {
+			if (RuleB(QueryServ, PlayerLogMoves)) { QSSwapItemAuditor(move_in); } // QS Audit
 
 			SummonItem(src_inst->GetID(), src_inst->GetCharges());
 			DeleteItemInInventory(EQ::invslot::slotCursor);
@@ -2262,6 +2263,15 @@ bool Client::SwapItem(MoveItem_Struct* move_in) {
 		Message(Chat::Yellow, "<SERVERWIDE_MESAGE> You know, you were warned...");
 		Kill();
 		return false;
+	}
+
+	if (dst_slot_id == EQ::invslot::slotCharm)
+	{
+		ApplyCharmRaceAppearanceSwap(dst_inst);
+	}
+	else if (src_slot_id == EQ::invslot::slotCharm && dst_slot_id != EQ::invslot::slotCharm)
+	{
+		ApplyCharmRaceAppearanceSwap(nullptr);
 	}
 
 	if (GetXTargetAutoMgr() && !GetXTargetAutoMgr()->empty() && dst_slot_id == EQ::invslot::slotCharm || GetXTargetAutoMgr() && !GetXTargetAutoMgr()->empty() && src_slot_id == EQ::invslot::slotCharm)
@@ -4665,4 +4675,53 @@ int EQ::InventoryProfile::GetItemStatValue(uint32 item_id, const char* identifie
 
 	safe_delete(inst);
 	return stat;
+}
+void Client::ApplyCharmRaceAppearanceSwap(EQ::ItemInstance* inst)
+{
+	if (inst)
+	{
+		switch (inst->GetID())
+		{
+			case CharmHuman:
+			case CharmBarbarian:
+			case CharmErudite:
+			case CharmWoodElf:
+			case CharmHighElf:
+			case CharmDarkElf:
+			case CharmHalfElf:
+			case CharmDwarf:
+			case CharmTroll:
+			case CharmOgre:
+			case CharmHalfling:
+			case CharmGnome:
+			{
+				SendIllusionPacket(inst->GetID() - 100, GetGender());
+				break;
+			}
+			case CharmIksar:
+			{
+				SendIllusionPacket(IKSAR, GetGender());
+				break;
+			}
+			case CharmVahShir:
+			{
+				SendIllusionPacket(VAHSHIR, GetGender());
+				break;
+			}
+			case CharmFroglok:
+			{
+				SendIllusionPacket(FROGLOK, GetGender());
+				break;
+			}
+			default:
+			{
+				SendIllusionPacket(0);
+				break;
+			}
+		}
+	}
+	else
+	{
+		SendIllusionPacket(0);
+	}
 }
