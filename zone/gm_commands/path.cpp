@@ -24,4 +24,3 @@ void Client::Undye()
 
 	database.DeleteCharacterDye(CharacterID());
 }
-

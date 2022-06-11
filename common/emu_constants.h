@@ -226,7 +226,7 @@ namespace EQ
 			stanceBurnAE
 		};
 
-		enum GravityBehavior : uint8 {
+		enum GravityBehavior : int8 {
 			Ground,
 			Flying,
 			Levitating,
@@ -242,6 +242,21 @@ namespace EQ
 			Trap
 		};
 
+		enum StuckBehavior : uint8 {
+			RunToTarget,
+			WarpToTarget,
+			TakeNoAction,
+			EvadeCombat
+		};
+
+		enum SpawnAnimations : uint8 {
+			Standing,
+			Sitting,
+			Crouching,
+			Laying,
+			Looting
+		};
+
 		const char *GetStanceName(StanceType stance_type);
 		int ConvertStanceTypeToIndex(StanceType stance_type);
 
@@ -251,8 +266,8 @@ namespace EQ
 		extern const std::map<uint32, std::string>& GetLDoNThemeMap();
 		std::string GetLDoNThemeName(uint32 theme_id);
     
-		extern const std::map<uint8, std::string>& GetFlyModeMap();
-		std::string GetFlyModeName(uint8 flymode_id);
+		extern const std::map<int8, std::string>& GetFlyModeMap();
+		std::string GetFlyModeName(int8 flymode_id);
 
 		extern const std::map<bodyType, std::string>& GetBodyTypeMap();
 		std::string GetBodyTypeName(bodyType bodytype_id);
@@ -265,6 +280,12 @@ namespace EQ
 
 		extern const std::map<uint8, std::string>& GetEnvironmentalDamageMap();
 		std::string GetEnvironmentalDamageName(uint8 damage_type);
+
+		extern const std::map<uint8, std::string>& GetStuckBehaviorMap();
+		std::string GetStuckBehaviorName(uint8 behavior_id);
+
+		extern const std::map<uint8, std::string>& GetSpawnAnimationMap();
+		std::string GetSpawnAnimationName(uint8 animation_id);
 
 		const int STANCE_TYPE_FIRST = stancePassive;
 		const int STANCE_TYPE_LAST = stanceBurnAE;

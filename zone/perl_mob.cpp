@@ -766,7 +766,7 @@ XS(XS_Mob_SetHP) {
 		Perl_croak(aTHX_ "Usage: Mob::SetHP(THIS, int64 hp)"); // @categories Stats and Attributes
 	{
 		Mob *THIS;
-		int64 hp = (int32) SvIV(ST(1));
+		int64 hp = (int64) SvIV(ST(1));
 		VALIDATE_THIS_IS_MOB;
 		THIS->SetHP(hp);
 	}
@@ -952,7 +952,7 @@ XS(XS_Mob_FindBuff) {
 		uint16 spellid = (uint16) SvUV(ST(1));
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->FindBuff(spellid);
-		ST(0)          = boolSV(RETVAL);
+		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
 	XSRETURN(1);
@@ -1018,7 +1018,7 @@ XS(XS_Mob_FindType) {
 		}
 
 		RETVAL = THIS->FindType(type, bOffensive, threshold);
-		ST(0)       = boolSV(RETVAL);
+		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
 	XSRETURN(1);
@@ -1575,7 +1575,7 @@ XS(XS_Mob_GetHP) {
 		Perl_croak(aTHX_ "Usage: Mob::GetHP(THIS)"); // @categories Stats and Attributes
 	{
 		Mob *THIS;
-		int32 RETVAL;
+		int64 RETVAL;
 		dXSTARG;
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->GetHP();
@@ -1592,7 +1592,7 @@ XS(XS_Mob_GetMaxHP) {
 		Perl_croak(aTHX_ "Usage: Mob::GetMaxHP(THIS)"); // @categories Stats and Attributes
 	{
 		Mob *THIS;
-		int32 RETVAL;
+		int64 RETVAL;
 		dXSTARG;
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->GetMaxHP();
@@ -1609,7 +1609,7 @@ XS(XS_Mob_GetItemHPBonuses) {
 		Perl_croak(aTHX_ "Usage: Mob::GetItemHPBonuses(THIS)"); // @categories Inventory and Items, Stats and Attributes
 	{
 		Mob *THIS;
-		int32 RETVAL;
+		int64 RETVAL;
 		dXSTARG;
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->GetItemHPBonuses();
@@ -1626,7 +1626,7 @@ XS(XS_Mob_GetSpellHPBonuses) {
 		Perl_croak(aTHX_ "Usage: Mob::GetSpellHPBonuses(THIS)"); // @categories Spells and Disciplines
 	{
 		Mob *THIS;
-		int32 RETVAL;
+		int64 RETVAL;
 		dXSTARG;
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->GetSpellHPBonuses();
@@ -2826,7 +2826,7 @@ XS(XS_Mob_IsImmuneToSpell) {
 			Perl_croak(aTHX_ "caster is nullptr, avoiding crash.");
 
 		RETVAL = THIS->IsImmuneToSpell(spell_id, caster);
-		ST(0)           = boolSV(RETVAL);
+		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
 	XSRETURN(1);
@@ -4330,7 +4330,7 @@ XS(XS_Mob_SetAA) {
 		int  charges = (items == 4) ? (int) SvIV(ST(3)) : 0;
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->SetAA(aa_id, points, charges);
-		ST(0)        = boolSV(RETVAL);
+		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
 	XSRETURN(1);
@@ -4413,12 +4413,12 @@ XS(XS_Mob_SetOOCRegen); /* prototype to pass -Wmissing-prototypes */
 XS(XS_Mob_SetOOCRegen) {
 	dXSARGS;
 	if (items != 2)
-		Perl_croak(aTHX_ "Usage: Mob::SetOOCRegen(THIS, int32 new_ooc_regen)"); // @categories Stats and Attributes
+		Perl_croak(aTHX_ "Usage: Mob::SetOOCRegen(THIS, int64 new_ooc_regen)"); // @categories Stats and Attributes
 	{
 		Mob *THIS;
-		int32 newoocregen = (int32) SvIV(ST(1));
+		int64 new_ooc_regen = (int64) SvIV(ST(1));
 		VALIDATE_THIS_IS_MOB;
-		THIS->SetOOCRegen(newoocregen);
+		THIS->SetOOCRegen(new_ooc_regen);
 	}
 	XSRETURN_EMPTY;
 }
@@ -4453,7 +4453,7 @@ XS(XS_Mob_EntityVariableExists) {
 		bool RETVAL;
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->EntityVariableExists(id);
-		ST(0)          = boolSV(RETVAL);
+		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
 	XSRETURN(1);
@@ -4540,7 +4540,7 @@ XS(XS_Mob_CombatRange) {
 			Perl_croak(aTHX_ "target is nullptr, avoiding crash.");
 
 		RETVAL = THIS->CombatRange(target);
-		ST(0)       = boolSV(RETVAL);
+		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
 	XSRETURN(1);
@@ -4717,7 +4717,7 @@ XS(XS_Mob_HasNPCSpecialAtk) {
 		bool RETVAL;
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->HasNPCSpecialAtk(parse);
-		ST(0)       = boolSV(RETVAL);
+		ST(0) = boolSV(RETVAL);
 		sv_2mortal(ST(0));
 	}
 	XSRETURN(1);
@@ -5673,7 +5673,7 @@ XS(XS_Mob_GetBuffStatValueBySpell) {
 
 		RETVAL = THIS->GetBuffStatValueBySpell(spellid, stat);
 		XSprePUSH;
-		PUSHi((IV)RETVAL);
+		PUSHi((IV) RETVAL);
 	}
 	XSRETURN(1);
 }
@@ -5693,7 +5693,7 @@ XS(XS_Mob_GetBuffStatValueBySlot) {
 
 		RETVAL = THIS->GetBuffStatValueBySlot(slot, stat);
 		XSprePUSH;
-		PUSHi((IV)RETVAL);
+		PUSHi((IV) RETVAL);
 	}
 	XSRETURN(1);
 }
@@ -5854,7 +5854,7 @@ XS(XS_Mob_GetInvisibleLevel) {
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->GetInvisibleLevel();
 		XSprePUSH;
-		PUSHu((UV)RETVAL);
+		PUSHu((UV) RETVAL);
 	}
 	XSRETURN(1);
 }
@@ -5871,7 +5871,7 @@ XS(XS_Mob_GetInvisibleUndeadLevel) {
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->GetInvisibleUndeadLevel();
 		XSprePUSH;
-		PUSHu((UV)RETVAL);
+		PUSHu((UV) RETVAL);
 	}
 	XSRETURN(1);
 }
@@ -5906,7 +5906,7 @@ XS(XS_Mob_SeeInvisibleUndead) {
 		VALIDATE_THIS_IS_MOB;
 		RETVAL = THIS->SeeInvisibleUndead();
 		XSprePUSH;
-		PUSHu((UV)RETVAL);
+		PUSHu((UV) RETVAL);
 	}
 	XSRETURN(1);
 }
