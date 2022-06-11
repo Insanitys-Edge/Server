@@ -1357,6 +1357,32 @@ void command_npcedit(Client *c, const Seperator *sep)
 		return;
 	}
 
+	if (strcasecmp(sep->arg[1], "named") == 0) {
+
+		auto        flag_id = atoi(sep->arg[2]);
+
+		c->Message(
+			Chat::Yellow,
+			fmt::format("NPC ID {} now has a namedflag of {}%%.", npc_id, atoi(sep->arg[2])).c_str());
+		std::string query = fmt::format("UPDATE npc_types SET flag_item = {} WHERE id = {}", flag_id == 1 ? 999 : 0, npc_id);
+		std::string query = fmt::format("UPDATE npc_types SET loot_lockout_timer = 561600 WHERE id = {}", npc_id);
+		content_db.QueryDatabase(query);
+		return;
+	}
+
+	if (strcasecmp(sep->arg[1], "raidtarget") == 0) {
+
+		auto        flag_id = atoi(sep->arg[2]);
+
+		c->Message(
+			Chat::Yellow,
+			fmt::format("NPC ID {} now has a raid target flag of {}%%.", npc_id, atoi(sep->arg[2])).c_str());
+		std::string query = fmt::format("UPDATE npc_types SET flag_item = {} WHERE id = {}", flag_id == 1 ? 300 : 0, npc_id);
+		std::string query = fmt::format("UPDATE npc_types SET loot_lockout_timer = 561600 WHERE id = {}", npc_id);
+		content_db.QueryDatabase(query);
+		return;
+	}
+
 	if (strcasecmp(sep->arg[1], "setanimation") == 0) {
 		int         animation      = 0;
 		std::string animation_name = "Unknown";
