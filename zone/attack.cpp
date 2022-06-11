@@ -315,9 +315,6 @@ bool Mob::CheckHitChance(Mob* other, DamageHitInfo &hit)
 
 	if (percentMod != 0)
 	{
-		if (hit.skill == EQ::skills::SkillArchery && percentMod > 0)
-			percentMod -= static_cast<int>(static_cast<float>(percentMod) * RuleR(Combat, ArcheryHitPenalty));
-
 		Log(Logs::Detail, Logs::Attack, "Modified chance to hit: %i%%", percentMod);
 
 		if (percentMod > 0)
