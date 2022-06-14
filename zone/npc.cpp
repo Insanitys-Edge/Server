@@ -203,6 +203,8 @@ NPC::NPC(const NPCType *npc_type_data, Spawn2 *in_respawn, const glm::vec4 &posi
 
 	flag_granted = "";
 
+	npctype_id = npc_type_data->npc_id;
+
 	if (npc_type_data->flag_granted[0])
 	{
 		flag_granted = npc_type_data->flag_granted;
