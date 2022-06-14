@@ -710,11 +710,11 @@ void Client::SetEXP(uint32 set_exp, uint32 set_aaxp, bool isrezzexp) {
 
 	if (!HasZoneFlag("Kunark"))
 	{
-		maxlevel = 60; // TEMP for testing.
+		maxlevel = 60 + 1; // TEMP for testing.
 	}
 	else if (!HasZoneFlag("Planes of Power"))
 	{
-		maxlevel = 60;
+		maxlevel = 60 + 1;
 	}
 
 	if(check_level > maxlevel) {

@@ -2352,9 +2352,6 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 	//if weapon damage > 0 then we know we can hit the target with this weapon
 	//otherwise we cannot and we set the damage to -5 later on
 	if (my_hit.damage_done > 0) {
-		//try a finishing blow.. if successful end the attack
-		if (TryFinishingBlow(other, my_hit.base_damage))
-			return (true);
 
 		CheckIncreaseSkill(my_hit.skill, other, -15);
 		CheckIncreaseSkill(EQ::skills::SkillOffense, other, -15);
@@ -2406,6 +2403,8 @@ bool Client::Attack(Mob* other, int Hand, bool bRiposte, bool IsStrikethrough, b
 			}
 
 			if (my_hit.damage_done > 0) {
+				//try a finishing blow.. if successful end the attack
+				TryFinishingBlow(other, my_hit.base_damage);
 				CommonOutgoingHitSuccess(other, my_hit, opts);
 			}
 		}
