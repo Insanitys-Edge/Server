@@ -502,12 +502,14 @@ Mob* Mob::MakePoweredNPCPet(uint16 spell_id, uint32 npcTypeId, const char* petTy
 	//find the NPC classdata for the specified NPC type
 	const NPCType* npcclass = database.LoadNPCTypesData(npctype_id);
 	if (npcclass == nullptr) {
+		Message(Chat::Red, "Unable to find npc type data for npc %i", npctype_id);
 		return nullptr;
 	}
 
 	//find the NPC data for the specified NPC type
 	const NPCType* base = database.LoadNPCTypesData(record.npc_type);
 	if (base == nullptr) {
+		Message(Chat::Red, "Unable to find pet data for npc %i", record.npc_type);
 		return nullptr;
 	}
 
