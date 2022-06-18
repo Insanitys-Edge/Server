@@ -1438,6 +1438,7 @@ bool Client::TryForceStack(uint32 new_item_id, int32 count, uint8 type) {
                 }
             }
             switch(bag_inst->GetItem()->EdgeBagType)
+			{
 				case 7: // stackpack
 					if(item_data->Stackable && item_data->StackSize > 1 && (new_item_id < 199900 || new_item_id > 200000))
 					{
