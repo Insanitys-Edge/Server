@@ -121,7 +121,7 @@ void Mob::DoSpecialAttackDamage(Mob *who, EQ::skills::SkillType skill, int32 bas
 	int64 hate = my_hit.base_damage;
 	if (hate_override > -1)
 		hate = hate_override;
-
+	
 	my_hit.offense = GetOffense(my_hit.skill);
 	my_hit.tohit = GetToHit(my_hit.skill);
 

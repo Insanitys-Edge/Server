@@ -3461,7 +3461,7 @@ bool NPC::Death(Mob* killer_mob, int64 damage, uint16 spell, EQ::skills::SkillTy
 	}
 
 	bool    allow_merchant_corpse = RuleB(Merchant, AllowCorpse);
-	bool    is_merchant = (class_ == MERCHANT || class_ == ADVENTUREMERCHANT || MerchantType != 0);
+	bool    is_merchant = (class_ == MERCHANT || class_ == ADVENTURE_MERCHANT || MerchantType != 0);
 
 	if (!HasOwner() && !IsMerc() && !GetSwarmInfo() && (!is_merchant || allow_merchant_corpse) &&
 		((killer && (killer->IsClient() || (killer->HasOwner() && killer->GetUltimateOwner()->IsClient()) ||
@@ -6531,17 +6531,17 @@ void Mob::DoShieldDamageOnShielder(Mob *shield_target, int64 hit_damage_done, EQ
 		shielder->shield_timer.Disable();
 		shield_target->SetShielderID(0);
 		shield_target->SetShieldTargetMitigation(0);
-		return; //Too far away, no message is given thoughh.
+		return; //Too far away, no message is given though.
 	}
 
-	int mitigation = shielder->GetShielderMitigation(); //Default shielder mitigates 25 pct of damage taken, this can be increased up to max 50 by equiping a shield item
+	int mitigation = shielder->GetShielderMitigation(); //Default shielder mitigates 25 pct of damage taken, this can be increased up to max 50 by equipping a shield item
 	if (shielder->IsClient() && shielder->HasShieldEquiped()) {
 		EQ::ItemInstance* inst = shielder->CastToClient()->GetInv().GetItem(EQ::invslot::slotSecondary);
 		if (inst) {
 			const EQ::ItemData* shield = inst->GetItem();
 			if (shield && shield->ItemType == EQ::item::ItemTypeShield) {
 				mitigation += shield->AC * 50 / 100; //1% increase per 2 AC
-				std::min(50, mitigation);//50 pct max mitigation bonus from /shield
+				mitigation = std::min(50, mitigation);//50 pct max mitigation bonus from /shield
 			}
 		}
 	}

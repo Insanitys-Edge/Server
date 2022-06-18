@@ -425,6 +425,7 @@ RULE_BOOL(Spells, FixBeaconHeading, false, "Beacon spells use casters heading to
 RULE_BOOL(Spells, UseSpellImpliedTargeting, false, "Replicates EQ2-style targeting behavior for spells. Spells will 'pass through' inappropriate targets to target's target if it is appropriate.")
 RULE_BOOL(Spells, BuffsFadeOnDeath, true, "Disable to keep buffs from fading on death")
 RULE_BOOL(Spells, IllusionsAlwaysPersist, false, "Allows Illusions to persist beyond death and zoning always.")
+RULE_BOOL(Spells, UseItemCastMessage, false, "Enable to use the \"item begins to glow\" messages when casting from an item.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Combat)
@@ -488,6 +489,10 @@ RULE_BOOL(Combat, Classic2HBAnimation, false, "2HB will use the 2 hand piercing 
 RULE_BOOL(Combat, ArcheryConsumesAmmo, true, "Set to false to disable Archery Ammo Consumption")
 RULE_BOOL(Combat, ThrowingConsumesAmmo, true, "Set to false to disable Throwing Ammo Consumption")
 RULE_BOOL(Combat, UseLiveRiposteMechanics, false, "Set to true to disable SPA 173 SE_RiposteChance from making those with the effect on them immune to enrage, can longer riposte from a riposte.")
+RULE_INT(Combat, FrontalStunImmunityClasses, 0, "Bitmask for Classes than have frontal stun immunity, No Races (0) by default.")
+RULE_BOOL(Combat, NPCsUseFrontalStunImmunityClasses, false, "Enable or disable NPCs using frontal stun immunity Classes from Combat:FrontalStunImmunityClasses, false by default.")
+RULE_INT(Combat, FrontalStunImmunityRaces, 512, "Bitmask for Races than have frontal stun immunity, Ogre (512) only by default.")
+RULE_BOOL(Combat, NPCsUseFrontalStunImmunityRaces, true, "Enable or disable NPCs using frontal stun immunity Races from Combat:FrontalStunImmunityRaces, true by default.")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(NPC)
@@ -523,6 +528,7 @@ RULE_INT(NPC, MaxRaceID, 732, "Maximum Race ID, RoF2 by default supports up to 7
 RULE_BOOL(NPC, IsNPCElixirEnabled, false, "Override AI with elixir logic")
 RULE_INT(NPC, NPCsElixirHealPercent, 90, "Heal allies at this percent health")
 RULE_INT(NPC, NPCsElixirAEMinimum, 3, "AE Minimum to trigger AE spells (heals and nukes)")
+RULE_BOOL(NPC, DisableLastNames, false, "Enable to disable NPC Last Names")
 RULE_CATEGORY_END()
 
 RULE_CATEGORY(Aggro)
@@ -778,6 +784,18 @@ RULE_CATEGORY_END()
 
 RULE_CATEGORY(Doors)
 RULE_BOOL(Doors, RequireKeyOnCursor, false, "Enable this to require pre-keyring keys to be on player cursor to open doors.")
+RULE_CATEGORY_END()
+
+RULE_CATEGORY(Items)
+RULE_BOOL(Items, DisableAttuneable, false, "Enable this to disable Attuneable Items")
+RULE_BOOL(Items, DisableBardFocusEffects, false, "Enable this to disable Bard Focus Effects on Items")
+RULE_BOOL(Items, DisableLore, false, "Enable this to disable Lore Items")
+RULE_BOOL(Items, DisableNoDrop, false, "Enable this to disable No Drop Items")
+RULE_BOOL(Items, DisableNoPet, false, "Enable this to disable No Pet Items")
+RULE_BOOL(Items, DisableNoRent, false, "Enable this to disable No Rent Items")
+RULE_BOOL(Items, DisableNoTransfer, false, "Enable this to disable No Transfer Items")
+RULE_BOOL(Items, DisablePotionBelt, false, "Enable this to disable Potion Belt Items")
+RULE_BOOL(Items, DisableSpellFocusEffects, false, "Enable this to disable Spell Focus Effects on Items")
 RULE_CATEGORY_END()
 
 #undef RULE_CATEGORY

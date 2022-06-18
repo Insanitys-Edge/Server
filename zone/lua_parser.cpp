@@ -336,6 +336,7 @@ int LuaParser::_EventNPC(std::string package_name, QuestEventID evt, NPC* npc, M
 			std::string error = lua_tostring(L, -1);
 			AddError(error);
 			quest_manager.EndQuest();
+			lua_pop(L, npop);
 			return 0;
 		}
 		quest_manager.EndQuest();
@@ -429,6 +430,7 @@ int LuaParser::_EventPlayer(std::string package_name, QuestEventID evt, Client *
 			std::string error = lua_tostring(L, -1);
 			AddError(error);
 			quest_manager.EndQuest();
+			lua_pop(L, npop);
 			return 0;
 		}
 		quest_manager.EndQuest();
@@ -489,6 +491,7 @@ int LuaParser::_EventItem(std::string package_name, QuestEventID evt, Client *cl
 		} else {
 			lua_getfield(L, LUA_REGISTRYINDEX, package_name.c_str());
 			lua_getfield(L, -1, sub_name);
+			npop = 2;
 		}
 
 		lua_createtable(L, 0, 0);
@@ -512,6 +515,7 @@ int LuaParser::_EventItem(std::string package_name, QuestEventID evt, Client *cl
 			std::string error = lua_tostring(L, -1);
 			AddError(error);
 			quest_manager.EndQuest();
+			lua_pop(L, npop);
 			return 0;
 		}
 		quest_manager.EndQuest();
@@ -593,6 +597,7 @@ int LuaParser::_EventSpell(std::string package_name, QuestEventID evt, NPC* npc,
 			std::string error = lua_tostring(L, -1);
 			AddError(error);
 			quest_manager.EndQuest();
+			lua_pop(L, npop);
 			return 0;
 		}
 		quest_manager.EndQuest();
@@ -659,6 +664,7 @@ int LuaParser::_EventEncounter(std::string package_name, QuestEventID evt, std::
 			std::string error = lua_tostring(L, -1);
 			AddError(error);
 			quest_manager.EndQuest();
+			lua_pop(L, 2);
 			return 0;
 		}
 		quest_manager.EndQuest();

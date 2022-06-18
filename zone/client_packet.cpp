@@ -1889,7 +1889,7 @@ void Client::Handle_OP_AdventureMerchantPurchase(const EQApplicationPacket *app)
 	Adventure_Purchase_Struct* aps = (Adventure_Purchase_Struct*)app->pBuffer;
 	uint32 merchantid = 0;
 	Mob* tmp = entity_list.GetMob(aps->npcid);
-	if (tmp == 0 || !tmp->IsNPC() || ((tmp->GetClass() != ADVENTUREMERCHANT) &&
+	if (tmp == 0 || !tmp->IsNPC() || ((tmp->GetClass() != ADVENTURE_MERCHANT) &&
 		(tmp->GetClass() != DISCORD_MERCHANT) && (tmp->GetClass() != NORRATHS_KEEPERS_MERCHANT) && (tmp->GetClass() != DARK_REIGN_MERCHANT)))
 		return;
 
@@ -2070,7 +2070,7 @@ void Client::Handle_OP_AdventureMerchantRequest(const EQApplicationPacket *app)
 	uint32 merchantid = 0;
 
 	Mob* tmp = entity_list.GetMob(eid->entity_id);
-	if (tmp == 0 || !tmp->IsNPC() || ((tmp->GetClass() != ADVENTUREMERCHANT) &&
+	if (tmp == 0 || !tmp->IsNPC() || ((tmp->GetClass() != ADVENTURE_MERCHANT) &&
 		(tmp->GetClass() != DISCORD_MERCHANT) && (tmp->GetClass() != NORRATHS_KEEPERS_MERCHANT) && (tmp->GetClass() != DARK_REIGN_MERCHANT)))
 		return;
 
@@ -2141,7 +2141,7 @@ void Client::Handle_OP_AdventureMerchantSell(const EQApplicationPacket *app)
 	Adventure_Sell_Struct *ams_in = (Adventure_Sell_Struct*)app->pBuffer;
 
 	Mob* vendor = entity_list.GetMob(ams_in->npcid);
-	if (vendor == 0 || !vendor->IsNPC() || ((vendor->GetClass() != ADVENTUREMERCHANT) &&
+	if (vendor == 0 || !vendor->IsNPC() || ((vendor->GetClass() != ADVENTURE_MERCHANT) &&
 		(vendor->GetClass() != NORRATHS_KEEPERS_MERCHANT) && (vendor->GetClass() != DARK_REIGN_MERCHANT)))
 	{
 		Message(Chat::Red, "Vendor was not found.");
@@ -2238,7 +2238,7 @@ void Client::Handle_OP_AdventureMerchantSell(const EQApplicationPacket *app)
 
 	switch (vendor->GetClass())
 	{
-	case ADVENTUREMERCHANT:
+	case ADVENTURE_MERCHANT:
 	{
 		UpdateLDoNPoints(6, price);
 		break;
@@ -9582,26 +9582,21 @@ void Client::Handle_OP_LootItem(const EQApplicationPacket *app)
 		return;
 	}
 
-	EQApplicationPacket* outapp = nullptr;
-	Entity* entity = entity_list.GetID(*((uint16*)app->pBuffer));
-	if (entity == 0) {
-		Message(Chat::Red, "Error: OP_LootItem: Corpse not found (ent = 0)");
-		outapp = new EQApplicationPacket(OP_LootComplete, 0);
+	auto* l = (LootingItem_Struct*) app->pBuffer;
+	auto entity = entity_list.GetID(static_cast<uint16>(l->lootee));
+	if (!entity) {
+		auto outapp = new EQApplicationPacket(OP_LootComplete, 0);
 		QueuePacket(outapp);
 		safe_delete(outapp);
 		return;
 	}
 
-	if (entity->IsCorpse()) {
-		entity->CastToCorpse()->LootItem(this, app);
+	if (!entity->IsCorpse()) {
+		Corpse::SendEndLootErrorPacket(this);
 		return;
 	}
-	else {
-		Message(Chat::Red, "Error: Corpse not found! (!ent->IsCorpse())");
-		Corpse::SendEndLootErrorPacket(this);
-	}
 
-	return;
+	entity->CastToCorpse()->LootItem(this, app);
 }
 
 void Client::Handle_OP_LootRequest(const EQApplicationPacket *app)
@@ -9824,7 +9819,7 @@ void Client::Handle_OP_MercenaryDataRequest(const EQApplicationPacket *app)
 		if (DistanceSquared(m_Position, tar->GetPosition()) > USE_NPC_RANGE2)
 			return;
 
-		if (tar->GetClass() != MERCERNARY_MASTER) {
+		if (tar->GetClass() != MERCENARY_MASTER) {
 			return;
 		}
 
@@ -13144,7 +13139,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 		auto hacker_str = fmt::format("Vendor Cheat: attempted to buy {} of {}: {} that cost {} cp but only has {} pp {} gp {} sp {} cp",
 			mpo->quantity, item->ID, item->Name,
 			mpo->price, m_pp.platinum, m_pp.gold, m_pp.silver, m_pp.copper);
-		database.SetMQDetectionFlag(AccountName(), GetName(), hacker_str, zone->GetShortName());
+		database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
 		safe_delete(outapp);
 		safe_delete(inst);
 		return;
@@ -14069,7 +14064,7 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 			{
 				auto hacker_str = fmt::format("{} attempting to target something untargetable, {} bodytype: {}",
 					GetName(), GetTarget()->GetName(), (int)GetTarget()->GetBodyType());
-				database.SetMQDetectionFlag(AccountName(), GetName(), hacker_str, zone->GetShortName());
+				database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
 				SetTarget((Mob*)nullptr);
 				return;
 			}
@@ -14106,7 +14101,7 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 						    (zone->newzone_data.maxclip * zone->newzone_data.maxclip), GetX(),
 						    GetY(), GetZ(), GetTarget()->GetName(), GetTarget()->GetX(),
 						    GetTarget()->GetY(), GetTarget()->GetZ());
-						database.SetMQDetectionFlag(AccountName(), GetName(), hacker_str, zone->GetShortName());
+						database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
 						SetTarget(nullptr);
 						return;
 					}
@@ -14120,7 +14115,7 @@ void Client::Handle_OP_TargetCommand(const EQApplicationPacket *app)
 						GetName(), (zone->newzone_data.maxclip * zone->newzone_data.maxclip),
 						GetX(), GetY(), GetZ(), GetTarget()->GetName(), GetTarget()->GetX(),
 						GetTarget()->GetY(), GetTarget()->GetZ());
-				database.SetMQDetectionFlag(AccountName(), GetName(), hacker_str, zone->GetShortName());
+				database.SetMQDetectionFlag(AccountName(), GetName(), EscapeString(hacker_str), zone->GetShortName());
 				SetTarget(nullptr);
 				return;
 			}

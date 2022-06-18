@@ -359,6 +359,7 @@ public:
 	virtual int32		GetEquipmentMaterial(uint8 material_slot);
 	virtual uint32 		GetEquipmentColor(uint8 material_slot) { return Mob::GetEquipmentColor(material_slot); }
 	void				NextGuardPosition();
+	void				SaveGuardSpot(bool ClearGuardSpot = false);
 	void				SaveGuardSpot(const glm::vec4 &pos);
 	inline bool			IsGuarding() const { return(m_GuardPoint.w != 0); }
 	void				SaveGuardSpotCharm();

@@ -52,6 +52,7 @@ int (*command_dispatch)(Client *,std::string) = command_notavail;
 
 std::map<std::string, CommandRecord *> commandlist;
 std::map<std::string, std::string> commandaliases;
+std::vector<CommandRecord *> command_delete_list;
 
 /*
  * command_notavail
@@ -107,7 +108,7 @@ int command_init(void)
 		command_add("cvs", "Summary of client versions currently online.", AccountStatus::GMMgmt, command_cvs) ||
 		command_add("damage", "[Amount] - Damage yourself or your target", AccountStatus::GMAdmin, command_damage) ||
 		command_add("databuckets", "View|Delete [key] [limit]- View data buckets, limit 50 default or Delete databucket by key", AccountStatus::QuestTroupe, command_databuckets) ||
-		command_add("date", "[yyyy] [mm] [dd] [HH] [MM] - Set EQ time", AccountStatus::EQSupport, command_date) ||
+		command_add("date", "[Year] [Month] [Day] [Hour] [Minute] - Set EQ time (Hour and Minute are optional)", AccountStatus::EQSupport, command_date) ||
 		command_add("dbspawn2", "[spawngroup] [respawn] [variance] - Spawn an NPC from a predefined row in the spawn2 table", AccountStatus::GMAdmin, command_dbspawn2) ||
 		command_add("delacct", "[accountname] - Delete an account", AccountStatus::GMLeadAdmin, command_delacct) ||
 		command_add("delpetition", "[petition number] - Delete a petition", AccountStatus::ApprenticeGuide, command_delpetition) ||
@@ -294,7 +295,7 @@ int command_init(void)
 		command_add("showzonepoints", "Show zone points for current zone", AccountStatus::Guide, command_showzonepoints) ||
 		command_add("shutdown", "Shut this zone process down", AccountStatus::GMLeadAdmin, command_shutdown) ||
 		command_add("spawn", "[name] [race] [level] [material] [hp] [gender] [class] [priweapon] [secweapon] [merchantid] - Spawn an NPC", AccountStatus::Steward, command_spawn) ||
-		command_add("spawneditmass", "Mass editing spawn command", AccountStatus::GMLeadAdmin, command_spawneditmass) ||
+		command_add("spawneditmass", "[Search Criteria] [Edit Option] [Edit Value] [Apply] Mass editing spawn command (Apply is optional, 0 = False, 1 = True, default is False)", AccountStatus::GMLeadAdmin, command_spawneditmass) ||
 		command_add("spawnfix", "Find targeted NPC in database based on its X/Y/heading and update the database to make it spawn at your current location/heading.", AccountStatus::GMAreas, command_spawnfix) ||
 		command_add("spawnstatus", "[All|Disabled|Enabled|Spawn ID] - Show respawn timer status", AccountStatus::GMAdmin, command_spawnstatus) ||
 		command_add("spellinfo", "[spellid] - Get detailed info about a spell", AccountStatus::Steward, command_spellinfo) ||
@@ -461,6 +462,9 @@ int command_init(void)
  */
 void command_deinit(void)
 {
+	for (auto &c : command_delete_list)
+		delete c;
+	command_delete_list.clear();
 	commandlist.clear();
 	commandaliases.clear();
 
@@ -512,6 +516,7 @@ int command_add(std::string command_name, std::string description, uint8 admin, 
 
 	commandlist[command_name] = c;
 	commandaliases[command_name] = command_name;
+	command_delete_list.push_back(c);
 	command_count++;
 
 	return 0;
@@ -644,136 +649,6 @@ void command_help(Client *c, const Seperator *sep)
 			)
 		).c_str()
 	);
-}
-
-void command_spawneditmass(Client *c, const Seperator *sep)
-{
-	std::string query = fmt::format(
-		SQL(
-			SELECT
-			npc_types.id,
-			npc_types.name,
-			spawn2.respawntime,
-			spawn2.id
-				FROM
-					npc_types
-				JOIN spawnentry ON spawnentry.npcID = npc_types.id
-				JOIN spawn2 ON spawn2.spawngroupID = spawnentry.spawngroupID
-				WHERE
-				spawn2.zone = '{0}' and spawn2.version = {1}
-				GROUP BY npc_types.id
-		),
-		zone->GetShortName(),
-		zone->GetInstanceVersion()
-	);
-
-	std::string status = "(Searching)";
-
-	if (strcasecmp(sep->arg[4], "apply") == 0) {
-		status = "(Applying)";
-	}
-
-	std::string search_value;
-	std::string edit_option;
-	std::string edit_value;
-	std::string apply_set;
-
-	if (sep->arg[1]) {
-		search_value = sep->arg[1];
-	}
-
-	if (sep->arg[2]) {
-		edit_option = sep->arg[2];
-	}
-
-	if (sep->arg[3]) {
-		edit_value = sep->arg[3];
-	}
-
-	if (sep->arg[4]) {
-		apply_set = sep->arg[4];
-	}
-
-	if (!edit_option.empty() && edit_value.empty()) {
-		c->Message(Chat::Yellow, "Please specify an edit option value | #npceditmass <search> <option> <value>");
-		return;
-	}
-
-	std::vector<std::string> npc_ids;
-	std::vector<std::string> spawn2_ids;
-
-	int  found_count = 0;
-	auto results     = database.QueryDatabase(query);
-
-	for (auto row = results.begin(); row != results.end(); ++row) {
-
-		std::string npc_id       = row[0];
-		std::string npc_name     = row[1];
-		std::string respawn_time = row[2];
-		std::string spawn2_id    = row[3];
-
-		if (npc_name.find(search_value) == std::string::npos) {
-			continue;
-		}
-
-		c->Message(
-			Chat::Yellow,
-			fmt::format(
-				"NPC ({0}) [{1}] respawn_time [{2}] {3}",
-				npc_id,
-				npc_name,
-				respawn_time,
-				status
-			).c_str()
-		);
-
-		npc_ids.push_back(npc_id);
-		spawn2_ids.push_back(spawn2_id);
-
-		found_count++;
-	}
-
-	c->Message(Chat::Yellow, "Found [%i] NPC Spawn2 entries that match this criteria in this zone", found_count);
-	if (edit_option.empty()) {
-		c->Message(Chat::Yellow, "Please specify an edit option | #npceditmass <search> <option>");
-		c->Message(Chat::Yellow, "Options [respawn_time]");
-		return;
-	}
-
-	std::string saylink = fmt::format(
-		"#spawneditmass {} {} {} apply",
-		search_value,
-		edit_option,
-		edit_value
-	);
-
-	if (found_count > 0) {
-		c->Message(
-			Chat::Yellow, "To apply these changes, click <%s> or type [%s]",
-			EQ::SayLinkEngine::GenerateQuestSaylink(saylink, false, "Apply").c_str(),
-			saylink.c_str()
-		);
-	}
-
-	if (edit_option == "respawn_time" && apply_set == "apply") {
-		std::string spawn2_ids_string = implode(",", spawn2_ids);
-		if (spawn2_ids_string.empty()) {
-			c->Message(Chat::Red, "Error: Ran into an unknown error compiling Spawn2 IDs");
-			return;
-		}
-
-		database.QueryDatabase(
-			fmt::format(
-				SQL(
-					UPDATE spawn2 SET respawntime = {} WHERE id IN({})
-				),
-				std::stoi(edit_value),
-				spawn2_ids_string
-			)
-		);
-
-		c->Message(Chat::Yellow, "Updated [%i] spawns", found_count);
-	}
 }
 
 void command_findaliases(Client *c, const Seperator *sep)
@@ -1220,6 +1095,7 @@ void command_bot(Client *c, const Seperator *sep)
 #include "gm_commands/showzonepoints.cpp"
 #include "gm_commands/shutdown.cpp"
 #include "gm_commands/spawn.cpp"
+#include "gm_commands/spawneditmass.cpp"
 #include "gm_commands/spawnfix.cpp"
 #include "gm_commands/spawnstatus.cpp"
 #include "gm_commands/spellinfo.cpp"
