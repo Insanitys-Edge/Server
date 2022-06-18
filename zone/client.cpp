@@ -12163,7 +12163,7 @@ void Client::Undye()
 
 		if (inst) {
 			inst->SetColor(inst->GetItem()->Color);
-			database.SaveInventory(CharacterID(), inst, inventory_slot);
+			database.SaveInventory(CharacterID(), AccountID(), GetClass(), inst, inventory_slot);
 		}
 
 		m_pp.item_tint.Slot[slot].Color = 0;
