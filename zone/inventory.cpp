@@ -1414,28 +1414,30 @@ bool Client::TryForceStack(uint32 new_item_id, int32 count, uint8 type) {
 			return true;
 		}
 	}
-	for (i = EQ::invslot::GENERAL_BEGIN; i <= EQ::invslot::GENERAL_END; i++) {
-		if (((uint64)1 << i) & GetInv().GetLookup()->PossessionsBitmask == 0)
-			continue;
+    for (i = EQ::invslot::GENERAL_BEGIN; i <= EQ::invslot::GENERAL_END; i++) {
+        if (((uint64)1 << i) & GetInv().GetLookup()->PossessionsBitmask == 0)
+            continue;
 
-		EQ::ItemInstance* bag_inst = m_inv.GetItem(i);
-		
-		if(bag_inst != nullptr){
-			uint8 slots = std::min(bag_inst->GetItem()->BagSlots, (uint8)100);
+        EQ::ItemInstance* bag_inst = m_inv.GetItem(i);
+        
+        if(bag_inst != nullptr){
+            if(bag_inst->GetItem()->BagSize < item_data->Size)
+                continue;
+            
+            uint8 slots = std::min(bag_inst->GetItem()->BagSlots, (uint8)100);
 
-			for (uint8 j = 0; j < slots; j++) { // Attempt to complete stacks first
-				uint16 slotid = EQ::InventoryProfile::CalcSlotId(i, j);
-				EQ::ItemInstance* tmp_inst = m_inv.GetItem(slotid);
-				if(tmp_inst && tmp_inst->GetItem()->ID == item_id && tmp_inst->GetCharges() + count <= tmp_inst->GetItem()->StackSize) {
-					tmp_inst->SetCharges(tmp_inst->GetCharges() + count);
-					SendLootItemInPacket(tmp_inst, slotid);
-					database.SaveInventory(this->CharacterID(), AccountID(), GetClass(), tmp_inst, slotid);
-					CalcBonuses();
-					return true;
-				}
-			}
-			switch(bag_inst->GetItem()->EdgeBagType)
-			{
+            for (uint8 j = 0; j < slots; j++) { // Attempt to complete stacks first
+                uint16 slotid = EQ::InventoryProfile::CalcSlotId(i, j);
+                EQ::ItemInstance* tmp_inst = m_inv.GetItem(slotid);
+                if(tmp_inst && tmp_inst->GetItem()->ID == item_id && tmp_inst->GetCharges() + count <= tmp_inst->GetItem()->StackSize) {
+                    tmp_inst->SetCharges(tmp_inst->GetCharges() + count);
+                    SendLootItemInPacket(tmp_inst, slotid);
+                    database.SaveInventory(this->CharacterID(), AccountID(), GetClass(), tmp_inst, slotid);
+                    CalcBonuses();
+                    return true;
+                }
+            }
+            switch(bag_inst->GetItem()->EdgeBagType)
 				case 7: // stackpack
 					if(item_data->Stackable && item_data->StackSize > 1 && (new_item_id < 199900 || new_item_id > 200000))
 					{
