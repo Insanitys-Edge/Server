@@ -933,8 +933,6 @@ const char* GetEQClassName(uint8 class_, uint8 level) {
 		return "Beastlord Guildmaster";
 	case MERCHANT:
 		return "Merchant";
-	case CORPSE_CLASS:
-		return "Corpse Class";
 	default:
 		return "Unknown";
 	}
