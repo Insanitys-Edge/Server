@@ -1098,6 +1098,7 @@ void SharedDatabase::LoadItems(void *data, uint32 size, int32 items, uint32 max_
 		item.Attack = std::stoi(row[ItemField::attack]);
 		item.Avoidance = static_cast<int8>(EQ::Clamp(std::stoi(row[ItemField::avoidance]), -128, 127));
 		item.Clairvoyance = std::stoul(row[ItemField::clairvoyance]);
+		item.EdgeBagType = (uint32)atoul(row[ItemField::edgebagtype]);
 		item.CombatEffects = StringIsNumber(row[ItemField::combateffects]) ? static_cast<int8>(EQ::Clamp(std::stoi(row[ItemField::combateffects]), -128, 127)) : 0;
 		item.DamageShield = std::stoi(row[ItemField::damageshield]);
 		item.DotShielding = std::stoi(row[ItemField::dotshielding]);
@@ -1174,7 +1175,7 @@ void SharedDatabase::LoadItems(void *data, uint32 size, int32 items, uint32 max_
 		
 		// Bag
 		item.BagSize = static_cast<uint8>(std::stoul(row[ItemField::bagsize]));
-		item.BagSlots = static_cast<uint8>(EQ::Clamp(std::stoi(row[ItemField::bagslots]), 0, 10)); // Will need to be changed from std::min to just use database value when bag slots are increased
+		item.BagSlots = static_cast<uint8>(std::stoi(row[ItemField::bagslots])); // Will need to be changed from std::min to just use database value when bag slots are increased
 		item.BagType = static_cast<uint8>(std::stoul(row[ItemField::bagtype]));
 		item.BagWR = static_cast<uint8>(EQ::Clamp(std::stoi(row[ItemField::bagwr]), 0, 100));
 
